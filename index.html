@@ -68,20 +68,20 @@ dialog p{color:var(--muted);font-size:13px;margin:8px 0 17px}
 #touch{display:none}
 .clean .hud>:not(.top){visibility:hidden}
 .clean .brand,.clean .tools>:not(#view){visibility:hidden}
-@media(pointer:coarse){.hint{display:none}.playing:not(.clean) #touch{display:flex;position:absolute;right:24px;bottom:102px}.jump{min-height:44px}}
+@media(pointer:coarse){.hint{display:none}.playing:not(.clean) #touch{display:flex;position:absolute;right:20px;bottom:82px;gap:6px}.jump{min-height:44px;touch-action:none}.jump.active{background:#69556edd;border-color:#fff2dfaa}}
 @media(max-width:680px){.top{top:max(16px,env(safe-area-inset-top))}.brand{letter-spacing:.19em}.tool{width:38px;height:38px}.tools{gap:6px}.intro{top:clamp(82px,18vh,180px)}.lead{font-size:12px;letter-spacing:.06em;margin-bottom:18px}.subtitle{margin-bottom:16px}.scene{bottom:max(20px,env(safe-area-inset-bottom))}.bottom{bottom:max(20px,env(safe-area-inset-bottom))}.hint{display:none}.scene-icon{width:32px;height:32px}.pill{padding:9px 11px}.bottom .pill svg{display:none}}
 @media(max-height:440px){.intro{top:70px}h1{font-size:48px;margin-top:6px}.subtitle{font-size:26px;margin-bottom:9px}.lead{margin-bottom:11px}}
 @media(prefers-reduced-motion:reduce){.intro,#whisper{transition:none}}
 </style>
 </head>
 <body>
-<canvas id="world" aria-label="梦境航路，拖动可改变漂流方向"></canvas>
+<canvas id="world" aria-label="梦境航路，左右拖动转向，上下拖动前划或倒划"></canvas>
 <div class="shade"></div>
 <main class="hud">
   <header class="top">
     <div class="brand"><span class="mark" aria-hidden="true">✧</span> REVERIE</div>
     <nav class="tools" aria-label="游戏设置">
-      <button class="tool" id="sound" type="button" aria-label="开启环境音" aria-pressed="false" title="环境音">
+      <button class="tool" id="sound" type="button" aria-label="开启音乐和环境音" aria-pressed="false" title="音乐和环境音">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4h4l5 4V6l-5 4H3m13 0 5 5m0-5-5 5" id="soundIcon"/></svg>
       </button>
       <button class="tool" id="view" type="button" aria-label="开启观景模式" aria-pressed="false" title="观景模式 · H">
@@ -104,14 +104,18 @@ dialog p{color:var(--muted);font-size:13px;margin:8px 0 17px}
     <span class="scene-icon" id="sceneIcon" aria-hidden="true">☼</span>
     <div><strong id="sceneName">桃色天光</strong><small id="weather">晨光 · 微风</small></div>
   </div>
-  <div class="hint" id="hint"><kbd>←</kbd><kbd>→</kbd> 转向　<kbd>空格</kbd> 轻跃　<kbd>Enter</kbd> 换梦</div>
+  <div class="hint" id="hint"><kbd>←</kbd><kbd>→</kbd> 转向　<kbd>↑</kbd><kbd>↓</kbd> 前划 / 倒划　<kbd>空格</kbd> 轻跃</div>
   <div class="bottom">
     <button class="pill" id="photo" type="button" title="留影 · P" aria-label="留影">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h4l2-3h4l2 3h4v12H4z"/><circle cx="12" cy="13" r="3"/></svg>留影
     </button>
     <button class="pill" id="dream" type="button"><span aria-hidden="true">✦</span>换一个梦</button>
   </div>
-  <div id="touch"><button class="jump" type="button" id="jump">轻跃 ↑</button></div>
+  <div id="touch" role="group" aria-label="划船操作">
+    <button class="jump" type="button" id="rowBack">↓ 倒划</button>
+    <button class="jump" type="button" id="rowForward">↑ 前划</button>
+    <button class="jump" type="button" id="jump">轻跃</button>
+  </div>
   <dialog id="dreamDialog" aria-labelledby="dreamTitle">
     <button class="tool close" type="button" aria-label="关闭">×</button>
     <h2 id="dreamTitle">你想梦见什么？</h2>
@@ -139,9 +143,9 @@ dialog p{color:var(--muted);font-size:13px;margin:8px 0 17px}
   <dialog id="helpDialog" aria-labelledby="helpTitle">
     <button class="tool close" type="button" aria-label="关闭">×</button>
     <h2 id="helpTitle">随风漂流</h2>
-    <p><kbd>←</kbd> <kbd>→</kbd> 或左右拖动转向。<kbd>空格</kbd> 轻跃，<kbd>↑</kbd> / <kbd>↓</kbd> 调整速度。触屏可以点「轻跃」。</p>
+    <p><kbd>←</kbd> <kbd>→</kbd> 或左右拖动转向。<kbd>空格</kbd> 轻跃，<kbd>↑</kbd> / <kbd>↓</kbd> 前划或倒划。触屏可上下拖动或按住「前划」「倒划」。</p>
     <p><kbd>Enter</kbd> 换梦，<kbd>H</kbd> 观景，<kbd>P</kbd> 留影。靠近水面上的光点，会遇见几句旅途中的话。</p>
-    <p>松开按键，小船会沿航路往前漂。海棠、海雾、鲲与云海会依次出现，读过的话会留在「卷」里。</p>
+    <p>松开按键，小船会沿航路往前漂。海棠、海雾、鲲与云海会依次出现，读过的话会留在「卷」里。打开右上角的声音，可听到随场景变化的配乐。</p>
   </dialog>
 </main>
 <script>
@@ -188,8 +192,8 @@ const chapters = [
     lines:[[55,"鲲往更深的夜里去了。一片花瓣落回船舷，和出发时一样轻。"],[340,"远处还有星光。你可以跟着它继续漂，也可以在这里多待一会儿。"]]}
 ];
 const original = {...palettes[0],...chapters[0],word:"",whale:false};
-let chapterIndex=0, routeDistance=0, routeMode=true, nextLine=0, storyUntil=0;
-const journal = new Map();
+let chapterIndex=0, routeDistance=0, routePosition=0, routeMode=true, nextLine=0, storyUntil=0;
+const journal = new Map(), pendingLines = [];
 const viewingDialog = () => ["dreamDialog","helpDialog","journalDialog"].some(id=>$(id).open);
 function storyLine(chapter, lineIndex) {
   const text=chapter.lines[lineIndex][1];
@@ -200,17 +204,23 @@ function storyLine(chapter, lineIndex) {
   storyUntil=t+7;
 }
 function travelStory(dt) {
-  routeDistance+=dt*velocity*32;
+  routePosition=Math.max(0,routePosition+dt*velocity*32);
+  routeDistance=Math.max(routeDistance,routePosition);
+  const chapter=chapters[chapterIndex];
+  while(chapter.lines[nextLine] && routeDistance>=chapter.at+chapter.lines[nextLine][0]){
+    pendingLines.push([chapter,nextLine++]);
+  }
   const next=chapters[chapterIndex+1];
   if(next && routeDistance>=next.at) enterChapter(chapterIndex+1);
-  const chapter=chapters[chapterIndex], line=chapter.lines[nextLine];
-  if(line && routeDistance>=chapter.at+line[0] && t>=storyUntil-1.3) storyLine(chapter,nextLine++);
+  if(pendingLines.length && t>=storyUntil-(velocity>1.45?3:1.3)){
+    storyLine(...pendingLines.shift());
+  }
 }
 function enterChapter(index, jump=false) {
   const chapter=chapters[index];
   if(jump) {
-    routeDistance=chapter.at;
-    storyUntil=0;
+    routePosition=routeDistance=chapter.at;
+    pendingLines.length=0;storyUntil=0;
     $("story").classList.remove("show");
   }
   routeMode=true;chapterIndex=index;nextLine=0;
@@ -230,7 +240,8 @@ function showJournal() {
 let current=original, previous=original, cache=null, oldCache=null, transition=1;
 let W=1,H=1,dpr=1,horizon=1, start=false, t=0, timeInDream=0, previousFrame=0, whisperTimer;
 let position=0, heading=0, velocity=0, lift=0, jumpSpeed=0, steer=0, distance=0, ripple=1, found=0;
-let drag=null, clean=false, lastPose=null, lateral=0;
+let drag=null, clean=false, lastPose=null, lateral=0, paddle=0;
+const touchPaddles=new Map();
 const keys = new Set();
 const sky = document.createElement("canvas"), sk = sky.getContext("2d",{alpha:false});
 const art = new Image();
@@ -265,6 +276,7 @@ function changeDream(next) {
   $("sceneName").textContent=next.name;
   $("sceneIcon").textContent=next.icon;
   $("weather").textContent=next.weather;
+  setScore(next);
 }
 function setWord(word){
   $("dreamDialog").close();
@@ -435,7 +447,33 @@ function drawWater(light,water) {
     ctx.fillStyle=rgba(light,(.09+hash(i*9+4)*.24)*smooth((1450-z)/410));
     ctx.fillRect(x,y,width,.25+depth*1.55);
   }
+  drawWaterMarkers(light);
   ctx.restore();
+}
+function drawWaterMarkers(light){
+  for(let i=0;i<56;i++){
+    const offset=i*23-distance, z=63+wrap(offset,1288);
+    const key=i+Math.floor(offset/1288)*56;
+    const spread=Math.sin(key*.078)*19+(hash(key+1012)-.5)*53;
+    const point=project(spread,z), s=point.scale;
+    const fade=smooth((z-63)/26)*smooth((1288-z)/370);
+    const alpha=fade*(.14+hash(key+306)*.42);
+    if(i%6===0) bloom(ctx,point.x,point.y,4+s*15,light,alpha*.55);
+    ellipse(ctx,point.x,point.y,.6+s*4,.4+s*1.9,rgba(light,alpha),-.24);
+  }
+  // Wider surface crests make forward and reverse motion readable near the boat.
+  for(let i=0;i<18;i++){
+    const offset=i*69-distance, z=62+wrap(offset,1242);
+    const key=i+Math.floor(offset/1242)*18;
+    const point=project((hash(key+316)-.5)*570,z), s=point.scale;
+    const span=24+s*(45+hash(key+52)*140);
+    const alpha=smooth((z-62)/38)*smooth((1090-z)/650)*(.13+hash(key+91)*.25);
+    const glint=ctx.createLinearGradient(point.x-span,0,point.x+span,0);
+    glint.addColorStop(0,rgba(light,0));glint.addColorStop(.44,rgba(light,alpha));glint.addColorStop(1,rgba(light,0));
+    ctx.beginPath();ctx.moveTo(point.x-span,point.y+s*5);
+    ctx.quadraticCurveTo(point.x,point.y-s*7,point.x+span,point.y+s*3);
+    ctx.lineWidth=.45+s*1.55;ctx.strokeStyle=glint;ctx.stroke();
+  }
 }
 function cloudBanks(c,w,h,light,mist) {
   const cloudSea=routeMode?smooth((routeDistance-1450)/530)*(1-smooth((routeDistance-2300)/570)):0;
@@ -601,13 +639,15 @@ function particles(p,light){
 }
 function trail(x,y,light){
   ctx.save();
-  const length=Math.min(210,H*.3);
+  const length=Math.min(225,H*.33)*Math.min(1.45,.62+Math.abs(velocity)*.47);
+  const flow=velocity<-.04?-1:1;
+  ctx.globalAlpha=.28+Math.min(1,Math.abs(velocity))*.72;
   for(let i=0;i<3;i++){
     const startX=x+(i-1)*12,endX=x+(i-1)*74-heading*length*.54;
-    const g=ctx.createLinearGradient(0,y,0,y+length);
+    const g=ctx.createLinearGradient(0,y,0,y+length*flow);
     g.addColorStop(0,rgba(light,.56-i*.10));g.addColorStop(1,rgba(light,0));
     ctx.strokeStyle=g;ctx.lineWidth=1.45-i*.18;
-    ctx.beginPath();ctx.moveTo(startX,y);ctx.bezierCurveTo(startX-heading*23,y+length*.38,endX,y+length*.66,endX,y+length);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(startX,y);ctx.bezierCurveTo(startX-heading*23,y+length*flow*.38,endX,y+length*flow*.66,endX,y+length*flow);ctx.stroke();
   }
   if(ripple<1){
     ctx.strokeStyle=rgba(light,(1-ripple)*.65);ctx.lineWidth=1.4;
@@ -616,28 +656,60 @@ function trail(x,y,light){
   ctx.restore();
 }
 function traveler(c,x,y,scale,lean,reflection){
-  c.save();c.translate(x,y);c.scale(scale,scale*(reflection?-0.72:1));c.rotate(lean*.17);
-  const wind=(reduced?0:Math.sin(t*3.2))*4;
-  const stroke=(color,w,points)=>{
-    c.strokeStyle=color;c.lineWidth=w;c.lineCap="round";c.lineJoin="round";c.beginPath();
-    c.moveTo(points[0],points[1]);c.quadraticCurveTo(points[2],points[3],points[4],points[5]);c.stroke();
+  c.save();c.translate(x,y);c.scale(scale,reflection?-scale*.55:scale);c.rotate(lean*.34);
+  c.lineJoin="round";c.lineCap="round";
+  const shape=(fill,outline,width,draw)=>{
+    c.beginPath();draw();c.closePath();c.fillStyle=fill;c.fill();
+    if(outline){c.lineWidth=width;c.strokeStyle=outline;c.stroke();}
   };
-  const path=(fill,fn)=>{c.beginPath();fn();c.closePath();c.fillStyle=fill;c.fill();};
-  path("#98647c",()=>{c.moveTo(-46,1);c.bezierCurveTo(-33,11,21,10,45,-4);c.bezierCurveTo(19,-2,-13,-1,-46,1);});
-  path("#fff0c8",()=>{c.moveTo(-46,1);c.bezierCurveTo(-30,-8,20,-13,45,-4);c.bezierCurveTo(26,3,-22,7,-46,1);});
-  stroke("#503d61",7,[-8,-29,-12,-14,-17,-7]);
-  stroke("#453855",7,[4,-30,13,-19,9,-8]);
-  stroke("#30283f",4,[-18,-7,-15,-7,-11,-7]);
-  stroke("#30283f",4,[9,-8,14,-8,17,-8]);
-  path("#cb717e",()=>{c.moveTo(-7,-62);c.bezierCurveTo(0,-62,10,-57,11,-47);c.lineTo(16,-26);c.bezierCurveTo(4,-23,-12,-24,-19,-32);c.bezierCurveTo(-15,-43,-16,-55,-7,-62);});
-  path("#ec9b91",()=>{c.moveTo(-8,-59);c.bezierCurveTo(-13,-51,-11,-36,-15,-30);c.bezierCurveTo(-5,-29,0,-33,3,-44);c.lineTo(5,-58);});
-  stroke("#b87380",6,[7,-55,17,-49,24,-50]);
-  ellipse(c,24,-50,3,2.4,"#e0ac92");
-  ellipse(c,1,-69,8.8,10.9,"#e0aa91",-.18);
-  path("#302942",()=>{c.moveTo(-8,-64);c.bezierCurveTo(-18,-63,-21,-80,-7,-84);c.bezierCurveTo(4,-89,13,-82,12,-74);c.bezierCurveTo(6,-76,0,-76,-5,-70);c.lineTo(-5,-62);});
-  ellipse(c,-15,-69,6,7,"#302942",.24);
-  stroke("#ffe0a3",3,[8,-64,1,-59,-9,-61]);
-  path("#ffe0a3",()=>{c.moveTo(-6,-62);c.bezierCurveTo(-17,-65,-26,-55+wind,-43,-61+wind);c.bezierCurveTo(-31,-51+wind,-20,-58,-9,-58);});
+  const hull=c.createLinearGradient(-27,0,27,0);
+  hull.addColorStop(0,"#512d41");hull.addColorStop(.49,"#ac6558");hull.addColorStop(1,"#573247");
+  shape(hull,"#ffc998",1.5,()=>{
+    c.moveTo(0,-81);c.bezierCurveTo(20,-63,28,-33,26,-3);
+    c.bezierCurveTo(24,24,14,36,0,45);c.bezierCurveTo(-14,36,-24,24,-26,-3);
+    c.bezierCurveTo(-28,-33,-20,-63,0,-81);
+  });
+  shape("#5f414c","#d59178",.9,()=>{
+    c.moveTo(0,-68);c.bezierCurveTo(16,-51,21,-29,20,-4);
+    c.quadraticCurveTo(19,23,0,35);c.quadraticCurveTo(-19,23,-20,-4);
+    c.bezierCurveTo(-21,-29,-16,-51,0,-68);
+  });
+  for(let i=0;i<6;i++){
+    const offset=i*4-10;
+    c.beginPath();c.moveTo(offset*.45,-54);c.quadraticCurveTo(offset*1.4,-7,offset*.61,28);
+    c.strokeStyle=i%2?"#cd8c7160":"#3e2d426f";c.lineWidth=.85;c.stroke();
+  }
+  c.fillStyle="#dc9d7b";c.fillRect(-19,6,38,5);
+  c.beginPath();c.moveTo(0,-79);c.quadraticCurveTo(12,-67,17,-55);
+  c.lineWidth=1.7;c.strokeStyle="#ffecd1";c.stroke();
+  if(!reflection){
+    for(const side of [-1,1]){
+      const stroke=Math.sin(paddle+side*.29), reach=28+Math.abs(velocity)*5;
+      const ox=side*(33+reach*.35), oy=11+stroke*23;
+      c.beginPath();c.moveTo(side*7,-4);c.lineTo(ox,oy);
+      c.lineWidth=2.1;c.strokeStyle="#dbad8a";c.stroke();
+      ellipse(c,ox+side*4,oy+3,8.7,3.4,"#e6ab86",side*.49);
+      if(stroke>.28 && Math.abs(velocity)>.45){
+        c.beginPath();c.ellipse(ox+side*5,oy+4,12+stroke*15,3+stroke*3,0,0,TAU);
+        c.strokeStyle=rgba([255,224,193],stroke*.47);c.lineWidth=1;c.stroke();
+      }
+    }
+  }
+  const cloak=c.createLinearGradient(-16,-21,16,11);
+  cloak.addColorStop(0,"#f5ab9d");cloak.addColorStop(.68,"#bf677e");cloak.addColorStop(1,"#8f4d70");
+  shape(cloak,"#f2b1a0",.7,()=>{
+    c.moveTo(-9,-26);c.quadraticCurveTo(0,-33,10,-26);
+    c.quadraticCurveTo(19,-16,17,8);c.quadraticCurveTo(0,18,-17,8);
+    c.quadraticCurveTo(-19,-16,-9,-26);
+  });
+  ellipse(c,0,-31,10.4,11,"#3e3048",-.15);
+  ellipse(c,1,-26,5.4,6.6,"#513a50",.18);
+  c.beginPath();c.moveTo(-10,-24);c.quadraticCurveTo(0,-20,10,-25);c.lineWidth=2.7;c.strokeStyle="#ffe2a5";c.stroke();
+  const flutter=Math.sin(t*3)*4;
+  shape("#ffd7a0",null,0,()=>{
+    c.moveTo(-7,-24);c.bezierCurveTo(-15,-22,-14,-11,-24+flutter,-1);
+    c.bezierCurveTo(-14+flutter,-4,-9,-12,-5,-22);
+  });
   c.restore();
 }
 function lights(light,px,py){
@@ -674,12 +746,16 @@ function render(ms) {
   const target=start?clamp(turn+steer,-1,1):.08;
   heading=lerp(heading,target,1-Math.exp(-dt*3));
   steer*=Math.exp(-dt*.85);
-  const pace=keys.has("ArrowUp")||keys.has("KeyW")?1.62:keys.has("ArrowDown")||keys.has("KeyS")?.38:1;
-  velocity=lerp(velocity,pace,1-Math.exp(-dt*2));
+  const forward=keys.has("ArrowUp")||keys.has("KeyW")||[...touchPaddles.values()].includes(1);
+  const reverse=keys.has("ArrowDown")||keys.has("KeyS")||[...touchPaddles.values()].includes(-1);
+  const throttle=clamp(Number(forward)-Number(reverse)+(drag?.throttle??0),-1,1);
+  const pace=start?.84+throttle*(throttle<0?1.87:1.65):.3;
+  velocity=lerp(velocity,pace,1-Math.exp(-dt*(throttle<0?7:4.5)));
+  if(!paused) paddle+=dt*(1.4+Math.abs(velocity)*2.6)*(velocity<0?-1:1);
   if(!paused){
     position+=heading*dt*149;
-    lateral=clamp(lateral+heading*dt*(17+velocity*25),-135,135);
-    distance+=dt*velocity*(start?32:6);
+    lateral=clamp(lateral+heading*dt*(30+Math.abs(velocity)*28),-142,142);
+    distance+=dt*velocity*(start?32:7);
     if(start&&routeMode) travelStory(dt);
   }
   if(t>=storyUntil) $("story").classList.remove("show");
@@ -688,8 +764,8 @@ function render(ms) {
   drawSky(light);drawWater(light,water);
   drawRouteScenery(light,water);
   particles(current,light);
-  const px=W*(W<680?.54:.55)+heading*W*.045;
-  const py=horizon+(H-horizon)*.59;
+  const px=W*.54+heading*W*.065;
+  const py=horizon+(H-horizon)*(.61-clamp((velocity-.84)*.047,-.09,.08));
   lights(light,px,py);
   const scale=clamp(Math.min(W/1020,H/680),.64,1.32);
   const bob=reduced?0:Math.sin(t*2.4)*2.6;
@@ -702,6 +778,7 @@ function render(ms) {
     const weather = !routeMode && current.index===0 && timeInDream>25 ? "薄暮 · 湖雾" : current.weather;
     if($("weather").textContent!==weather) $("weather").textContent=weather;
   }
+  scoreTick();
   lastPose={name:current.name};
   requestAnimationFrame(render);
 }
@@ -726,7 +803,63 @@ function savePhoto(){
   },"image/png");
   announce("这一刻，留在了湖面上。");
 }
-let audio=null, ambient=null, audioOn=false, audioRequest=0;
+let audio=null, ambient=null, windFilter=null, audioOn=false, audioRequest=0, scoreLayer=null;
+const scores = [
+  {chord:[48,55,60,64], melody:[72,null,76,79,76,null,74,72], beat:1.48, wind:590, voice:"sine"},
+  {chord:[45,52,57,59], melody:[69,null,71,null,64,67,null,64], beat:1.93, wind:220, voice:"sine"},
+  {chord:[38,45,50,57], melody:[62,null,69,null,65,null,72,69], beat:2.32, wind:320, voice:"triangle"},
+  {chord:[53,60,64,69], melody:[77,81,null,84,79,76,72,null], beat:1.31, wind:840, voice:"sine"},
+  {chord:[43,50,55,62], melody:[79,null,74,83,null,86,null,81], beat:1.75, wind:430, voice:"sine"}
+];
+const frequencyFor = midi => 440*Math.pow(2,(midi-69)/12);
+function scoreFor(scene){
+  return scores[scene.lines?chapters.findIndex(chapter=>chapter.lines===scene.lines):[0,2,3,4][scene.index]];
+}
+function setScore(scene){
+  if(!audio||!audioOn||audio.state!=="running")return;
+  const score=scoreFor(scene);
+  if(scoreLayer?.score===score)return;
+  const now=audio.currentTime, fade=reduced?1.2:5.8;
+  if(scoreLayer){
+    const old=scoreLayer;
+    old.gain.gain.cancelScheduledValues(now);
+    old.gain.gain.setValueAtTime(clamp((now-old.started)/old.fade,0,1),now);
+    old.gain.gain.linearRampToValueAtTime(0,now+fade);
+    old.voices[0].onended=()=>old.gain.disconnect();
+    for(const oscillator of old.voices) oscillator.stop(now+fade+.05);
+  }
+  const gain=audio.createGain();
+  gain.gain.value=0;
+  gain.gain.setValueAtTime(0,now);
+  gain.gain.linearRampToValueAtTime(1,now+fade);
+  gain.connect(ambient);
+  const voices=score.chord.map((midi,i)=>{
+    const oscillator=audio.createOscillator(), level=audio.createGain();
+    oscillator.frequency.value=frequencyFor(midi);
+    oscillator.type=i===0?score.voice:"sine";
+    level.gain.value=.12/(1+i*.49);
+    oscillator.connect(level).connect(gain);oscillator.start(now);
+    return oscillator;
+  });
+  windFilter.frequency.setTargetAtTime(score.wind,now,fade/3);
+  scoreLayer={score,gain,voices,started:now,fade,next:now+.4,step:0};
+}
+function scoreTick(){
+  if(!audioOn||audio.state!=="running"||!scoreLayer)return;
+  const layer=scoreLayer, now=audio.currentTime;
+  if(layer.next>now+.075)return;
+  const time=Math.max(now+.015,layer.next);
+  const midi=layer.score.melody[layer.step++%layer.score.melody.length];
+  if(midi!==null){
+    const oscillator=audio.createOscillator(), envelope=audio.createGain();
+    oscillator.frequency.value=frequencyFor(midi);oscillator.type="sine";
+    envelope.gain.setValueAtTime(.0001,time);
+    envelope.gain.exponentialRampToValueAtTime(.19,time+.13);
+    envelope.gain.exponentialRampToValueAtTime(.0001,time+2.7);
+    oscillator.connect(envelope).connect(layer.gain);oscillator.start(time);oscillator.stop(time+2.75);
+  }
+  layer.next=time+layer.score.beat;
+}
 function note(index){
   if(!audioOn||!audio||audio.state!=="running")return;
   const osc=audio.createOscillator(), envelope=audio.createGain(), now=audio.currentTime;
@@ -749,22 +882,18 @@ async function toggleSound(){
         let last=0;
         for(let i=0;i<data.length;i++){last=(last+(Math.random()*2-1)*.023)/1.023;data[i]=last*2.1;}
         for(let i=0;i<2048;i++){const n=i/2048;data[i]*=n;data[data.length-1-i]*=n;}
-        const wind=audio.createBufferSource(), filter=audio.createBiquadFilter();
-        wind.buffer=buffer;wind.loop=true;filter.type="lowpass";filter.frequency.value=410;
-        wind.connect(filter).connect(ambient);wind.start();
-        [65.41,98,130.81,164.81].forEach((frequency,i)=>{
-          const voice=audio.createOscillator(), volume=audio.createGain();
-          voice.frequency.value=frequency;volume.gain.value=.085/(1+i*.45);
-          voice.connect(volume).connect(ambient);voice.start();
-        });
+        const wind=audio.createBufferSource();
+        windFilter=audio.createBiquadFilter();
+        wind.buffer=buffer;wind.loop=true;windFilter.type="lowpass";windFilter.frequency.value=410;
+        wind.connect(windFilter).connect(ambient);wind.start();
       }
       await audio.resume();
       if(request!==audioRequest)return;
-      audioOn=true;ambient.gain.setTargetAtTime(.26,audio.currentTime,.28);note(1);
+      audioOn=true;ambient.gain.setTargetAtTime(.28,audio.currentTime,.28);setScore(current);note(1);
     }catch{announce("这里暂时听不到环境音。");}
   }
   $("sound").setAttribute("aria-pressed",String(audioOn));
-  $("sound").setAttribute("aria-label",audioOn?"关闭环境音":"开启环境音");
+  $("sound").setAttribute("aria-label",audioOn?"关闭音乐和环境音":"开启音乐和环境音");
   $("soundIcon").setAttribute("d",audioOn?"M3 10v4h4l5 4V6l-5 4H3m12-2q5 4 0 8m2-11q8 7 0 14":"M3 10v4h4l5 4V6l-5 4H3m13 0 5 5m0-5-5 5");
 }
 function openDream(){
@@ -806,15 +935,33 @@ window.addEventListener("keydown",event=>{
   else if(!event.repeat&&event.code==="KeyP")savePhoto();
 });
 window.addEventListener("keyup",event=>keys.delete(event.code));
-window.addEventListener("blur",()=>{keys.clear();steer=0;drag=null;previousFrame=0;});
+window.addEventListener("blur",()=>{
+  keys.clear();steer=0;drag=null;previousFrame=0;touchPaddles.clear();
+  $("rowBack").classList.remove("active");$("rowForward").classList.remove("active");
+});
+for(const [id,direction] of [["rowBack",-1],["rowForward",1]]){
+  const button=$(id);
+  button.addEventListener("pointerdown",event=>{
+    if(event.button!==0)return;
+    event.preventDefault();play();button.setPointerCapture(event.pointerId);
+    touchPaddles.set(event.pointerId,direction);button.classList.add("active");
+  });
+  for(const type of ["pointerup","pointercancel","lostpointercapture"]){
+    button.addEventListener(type,event=>{
+      touchPaddles.delete(event.pointerId);
+      if(![...touchPaddles.values()].includes(direction)) button.classList.remove("active");
+    });
+  }
+}
 canvas.addEventListener("pointerdown",event=>{
   if(drag||event.button!==0)return;
-  drag={id:event.pointerId,x:event.clientX};canvas.setPointerCapture(event.pointerId);play();
+  drag={id:event.pointerId,x:event.clientX,startY:event.clientY,throttle:0};canvas.setPointerCapture(event.pointerId);play();
 });
 canvas.addEventListener("pointermove",event=>{
   if(drag?.id!==event.pointerId)return;
   const change=event.clientX-drag.x;
   steer=clamp(steer+change*.026,-1,1);drag.x=event.clientX;
+  drag.throttle=clamp((drag.startY-event.clientY)/65,-1,1);
 });
 for(const type of ["pointerup","pointercancel","lostpointercapture"]){
   canvas.addEventListener(type,event=>{if(drag?.id===event.pointerId)drag=null;});
