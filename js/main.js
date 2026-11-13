@@ -53,9 +53,9 @@ function startReplay(scene){
   $("returnFromReplay").hidden=false;
   seekVoyage(scene.chapter,scene.line);
 }
-function startPhotoReplay(shot,guided=true,focus=null,focusGuided=false){
+function startPhotoReplay(shot,guided=true,focus=null,focusGuided=false,plan=""){
   startReplay(replayScenes.find(scene=>scene.chapter===jadeChapter));
-  showPhotoReference(shot,guided,focus,focusGuided);
+  showPhotoReference(shot,guided,focus,focusGuided,plan);
   canvas.focus({preventScroll:true});
 }
 function endReplay(){
@@ -89,17 +89,19 @@ function resumeCheckpoint(index,saved){
 $("start").onclick=play;
 $("quickJournal").onclick=showJournal;
 $("retryPhotoReference").onclick=()=>{
-  if(photoReference)startPhotoReplay(photoReference.shot,photoReference.guided,photoReference.focus,photoReference.focusGuided);
+  if(!photoReference)return;
+  const {shot,guided,focus,focusGuided,plan}=photoReference;
+  startPhotoReplay(shot,guided,focus,focusGuided,plan);
 };
 $("photoReferenceGuidance").onclick=()=>{
-  if(!photoReference||photoReference.focus?.checkAgainst||photoReference.focus?.singleHint)return;
+  if(!photoReference||$("photoReferenceGuidance").hidden)return;
   photoReference.guided=!photoReference.guided;
   photoReference.focusGuided=false;
   syncPhotoGuidance();
   updatePhotoReference(jadePhotoPose());
 };
 $("photoFocusGuidance").onclick=()=>{
-  if(!photoReference?.focus||photoReference.focus.checkAgainst||photoReference.focus.singleHint)return;
+  if(!photoReference?.focus||$("photoFocusGuidance").hidden)return;
   photoReference.focusGuided=!photoReference.focusGuided;
   photoReference.guided=false;
   syncPhotoGuidance();

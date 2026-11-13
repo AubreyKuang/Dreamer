@@ -59,6 +59,11 @@ function journalReplayComparison(shot){
   feedback.append(reveal);
   const result=document.createElement("p");
   result.textContent=shot.replay.result;
+  if(typeof shot.replay.planResult==="string"){
+    const planResult=document.createElement("p");
+    planResult.textContent=shot.replay.planResult;
+    feedback.append(planResult);
+  }
   if(typeof shot.replay.focusResult==="string"){
     const practice=document.createElement("p");
     practice.textContent=(shot.replay.practiceHint?"拍摄前用过单次提示。":shot.replay.practiceGuided?"拍摄时开启了专项提示。":"")+shot.replay.focusResult;
@@ -120,13 +125,20 @@ function journalReplayComparison(shot){
   for(const [key,label] of Object.entries(JADE_REPLAY_FOCUS))area.append(new Option(label,key));
   if(Object.hasOwn(JADE_REPLAY_FOCUS,shot.replay.practiceArea))area.value=shot.replay.practiceArea;
   focusPicker.append(area);
-  retry.addEventListener("click",()=>startPhotoReplay(reference,false,area.value?startJadePractice(shot,area.value):null));
+  const planPicker=document.createElement("label");
+  planPicker.className="replay-guess";
+  planPicker.textContent="这趟打算怎么拍";
+  const plans=document.createElement("select");
+  plans.append(new Option("不设计划",""));
+  for(const [key,{label}] of Object.entries(JADE_REPLAY_PLANS))plans.append(new Option(label,key));
+  planPicker.append(plans);
+  retry.addEventListener("click",()=>startPhotoReplay(reference,false,area.value?startJadePractice(shot,area.value):null,false,plans.value));
   const single=document.createElement("button");
   single.type="button";single.className="chip";single.textContent="带一次提示重试";
   single.disabled=!area.value;
   area.addEventListener("change",()=>{single.disabled=!area.value;});
-  single.onclick=()=>startPhotoReplay(reference,false,{...startJadePractice(shot,area.value),singleHint:true});
-  details.append(summary,pair,picker,feedback,focusPicker,retry,single);
+  single.onclick=()=>startPhotoReplay(reference,false,{...startJadePractice(shot,area.value),singleHint:true},false,plans.value);
+  details.append(summary,pair,picker,feedback,focusPicker,planPicker,retry,single);
   const {practiceArea,practiceGuided,practiceHint}=shot.replay;
   if((practiceGuided||practiceHint)&&shot.jadePose&&Object.hasOwn(JADE_REPLAY_FOCUS,practiceArea)){
     const verify=document.createElement("button");

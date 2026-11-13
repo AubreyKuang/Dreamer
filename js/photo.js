@@ -3,6 +3,11 @@
 let photoReference=null;
 const JADE_PHOTO_SIDE_TOLERANCE=12, JADE_PHOTO_DEPTH_TOLERANCE=35;
 const JADE_REPLAY_FOCUS={mist:"雾况或散雾方式",shoal:"浅滩倒影",side:"左右位置",depth:"快门早晚"};
+const JADE_REPLAY_PLANS={
+  light:{label:"循光拨雾后再拍",met:pose=>pose.cleared&&!pose.waited},
+  wait:{label:"在溪心等雾散后再拍",met:pose=>pose.waited===true},
+  shoal:{label:"滑进浅滩倒影再拍",met:pose=>pose.shoal===true},
+};
 function startJadePractice(shot,area){
   const series=shot.replay.practiceArea===area&&shot.replay.practiceSeries;
   const latest=series&&snapshots.find(entry=>entry.replay?.practiceSeries===series&&entry.jadePose);
@@ -25,15 +30,17 @@ function jadePhotoPose(){
   return {side:lateral*.61-jadeLight.x,depth:routeDistance-jadeLight.start,cleared:followedJadeLight||waitedForJadeMist,
     ...(waitedForJadeMist?{waited:true}:{}),...(shoal?{shoal:true}:{})};
 }
-function showPhotoReference(shot,guided=true,focus=null,focusGuided=false){
+function showPhotoReference(shot,guided=true,focus=null,focusGuided=false,plan=""){
   hidePhotoReference();
-  photoReference={shot,guided,focus,focusGuided,src:URL.createObjectURL(shot.blob)};
-  $("photoReferenceFocus").hidden=!focus;
-  $("photoReferenceFocus").textContent=focus
+  photoReference={shot,guided,focus,focusGuided,plan,src:URL.createObjectURL(shot.blob)};
+  const focusLabel=focus
     ?`${focus.checkAgainst?"盲拍验证":focus.singleHint?"单次提示练习":"本趟专练"}：${JADE_REPLAY_FOCUS[focus.area]}`:"";
+  const planLabel=plan?`计划：${JADE_REPLAY_PLANS[plan].label}`:"";
+  $("photoReferenceFocus").hidden=!focus&&!plan;
+  $("photoReferenceFocus").textContent=[focusLabel,planLabel].filter(Boolean).join(" · ");
   $("photoReferenceFeedback").open=false;
   $("photoReferenceImage").src=photoReference.src;
-  const limited=Boolean(focus?.checkAgainst||focus?.singleHint);
+  const limited=Boolean(plan||focus?.checkAgainst||focus?.singleHint);
   $("photoReferenceGuidance").hidden=limited;
   $("photoFocusGuidance").hidden=!focus||limited;
   $("photoSingleHint").hidden=!focus?.singleHint;
@@ -166,6 +173,8 @@ function savePhoto(){
   const singleHintUsed=compare&&Boolean(reference.singleHintText);
   const result=compare&&photoReplayResult(jadePose,reference.shot.jadePose);
   const focusResult=compare&&reference.focus&&photoFocusResult(jadePose,reference.shot.jadePose,reference.focus);
+  const plan=compare&&JADE_REPLAY_PLANS[reference.plan];
+  const planResult=plan&&`计划「${plan.label}」：${!jadePose?"快门落在取景时段之外":plan.met(jadePose)?"这次做到了":"这次未做到"}。`;
   const attempt=compare&&(reference.attempt=(reference.attempt||0)+1);
   if(compare){
     reference.result=null;
@@ -181,7 +190,7 @@ function savePhoto(){
     const shot={blob,name,when,...(comparison?{comparison}:{}),...(jadePose?{jadePose}:{})};
     if(compare){
       const {blob,jadePose}=reference.shot;
-      shot.replay={blob,jadePose,result,...(focusResult?{
+      shot.replay={blob,jadePose,result,...(planResult?{planResult}:{}),...(focusResult?{
         focusResult,practiceArea:reference.focus.area,practiceSeries:reference.focus.series,
         ...(focusGuided?{practiceGuided:true}:singleHintUsed?{practiceHint:true}:{})
       }:{})};
@@ -197,7 +206,7 @@ function savePhoto(){
     })).then(()=>{
       if(compare&&photoReference===reference){
         if(attempt===reference.attempt){
-          reference.result=focusResult?`${focusResult}\n${result}`:result;
+          reference.result=[planResult,focusResult,result].filter(Boolean).join("\n");
           if(reference.focus&&jadePose)reference.focus={...reference.focus,previous:jadePose};
           updatePhotoReference(jadePhotoPose());
         }
