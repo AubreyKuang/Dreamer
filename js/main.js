@@ -6,9 +6,11 @@ window.addEventListener("pointerdown",primeAudio);
 window.addEventListener("keydown",primeAudio);
 function openDream(){
   if(clean)toggleView();
+  populateChapterChoices("dreamChapterChoices","dreamDialog");
   $("word").value="";
   $("dreamDialog").showModal();
-  $("word").focus();
+  $("dreamChapterChoices").firstElementChild.focus({preventScroll:true});
+  $("dreamDialog").scrollTop=0;
 }
 function leaveFreeRoam(){
   if(!freeRoam)return;

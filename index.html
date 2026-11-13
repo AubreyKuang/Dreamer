@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#212345">
 <meta name="description" content="浮梦之境。循着一尾巨鲲，滑过海棠、北冥与云海。">
 <title>浮梦之境 · Reverie</title>
-<link rel="stylesheet" href="style.css?v=5728db0e0f48">
+<link rel="stylesheet" href="style.css?v=48344de57bf3">
 </head>
 <body>
 <canvas id="world" tabindex="-1" aria-label="梦境航路，左右拖动转向，上下拖动加速或减速"></canvas>
@@ -82,12 +82,14 @@
   <dialog id="dreamDialog" aria-labelledby="dreamTitle">
     <form method="dialog"><button class="tool close" type="submit" aria-label="关闭">×</button></form>
     <h2 id="dreamTitle">你想梦见什么？</h2>
-    <p>写下一个词，它会改变下一片天空。</p>
+    <h3 id="dreamChaptersTitle">直达航段</h3>
+    <div id="dreamChapterChoices" class="choices" aria-labelledby="dreamChaptersTitle" role="group"></div>
+    <h3 id="dreamPresetsTitle">自由梦境</h3>
     <form class="row" id="dreamForm">
       <input id="word" maxlength="24" autocomplete="off" placeholder="比如，晚霞、云海或月亮" aria-label="梦境关键词">
       <button class="submit" type="submit">入梦</button>
     </form>
-    <div class="choices" aria-label="预设梦境">
+    <div class="choices" aria-labelledby="dreamPresetsTitle" role="group">
       <button class="chip" type="button" data-word="晚霞">晚霞</button>
       <button class="chip" type="button" data-word="极光">极光</button>
       <button class="chip" type="button" data-word="花海">花海</button>
@@ -133,7 +135,7 @@
 <script src="js/chapters.js?v=d2246c8a2326"></script>
 <script src="js/storage.js?v=jade-pair-replace-1"></script>
 <script src="js/route.js?v=4f0843526193"></script>
-<script src="js/journal-ui.js?v=dfe8a561a77f"></script>
+<script src="js/journal-ui.js?v=41f84c944f51"></script>
 <script src="assets/sky-atlas.js"></script>
 <script src="js/scene-state.js?v=voyage-resume-1"></script>
 <script src="js/journey.js?v=voyage-resume-1"></script>
@@ -143,6 +145,6 @@
 <script src="js/controls.js"></script>
 <script src="js/photo.js?v=jade-fixed-reflection-1"></script>
 <script src="js/audio.js?v=harp-duet-1"></script>
-<script src="js/main.js?v=76315e20aaaa"></script>
+<script src="js/main.js?v=c4ec98ecdca2"></script>
 </body>
 </html>

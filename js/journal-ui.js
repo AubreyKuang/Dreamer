@@ -319,23 +319,26 @@ function showJournal() {
     fixed.onclick=()=>startJadePairRun(true,true);
     replayChoices.append(pair,water,fixed);
   }
-  const choices=$("chapterChoices");
-  if(!choices.childElementCount){
-    const add=(label,index,line=0)=>{
-      const button=document.createElement("button");
-      button.type="button";button.className="chip";button.textContent=label;
-      button.onclick=()=>{
-        $("journalDialog").close();play();
-        endReplay();
-        seekVoyage(index,line);
-      };
-      choices.append(button);
-    };
-    chapters.forEach((chapter,index)=>{
-      add(chapter.name,index);
-      if(index===cloudChapter)add("扶摇",index,flightVerse);
-    });
-  }
+  populateChapterChoices("chapterChoices","journalDialog");
   renderJournal();
   $("journalDialog").showModal();
+}
+
+function populateChapterChoices(containerId,dialogId){
+  const choices=$(containerId);
+  if(choices.childElementCount)return;
+  const add=(label,index,line=0)=>{
+    const button=document.createElement("button");
+    button.type="button";button.className="chip";button.textContent=label;
+    button.onclick=()=>{
+      $(dialogId).close();play();
+      endReplay();
+      seekVoyage(index,line);
+    };
+    choices.append(button);
+  };
+  chapters.forEach((chapter,index)=>{
+    add(chapter.name,index);
+    if(index===cloudChapter)add("扶摇",index,flightVerse);
+  });
 }
