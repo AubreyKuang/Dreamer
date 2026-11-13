@@ -24,6 +24,26 @@ function trail(x,y,scale,light){
   }
   ctx.restore();
 }
+function drawFireflyTrail(x,y,scale){
+  if(!routeMode||chapterIndex!==fireflyChapter)return;
+  const gesture=chapters[chapterIndex].lines[nextLine-1]?.[3];
+  if(gesture!=="fireflyPause"&&gesture!=="fireflyResult")return;
+  const gold=[255,223,135];
+  if(fireflyTrail){
+    for(let i=0;i<7;i++){
+      const along=(i+1)/7;
+      const tx=x+(12+along*37+Math.sin(i*1.8)*5-heading*22*along)*scale;
+      const ty=y+(along*40-17)*scale;
+      const glow=(1-along*.7)*(reduced?1:.85+.15*Math.sin(t*2-i));
+      bloom(ctx,tx,ty,17*scale,gold,glow*.9);
+      ellipse(ctx,tx,ty,2.6*scale,2*scale,rgba(gold,glow));
+    }
+  }else if(fireflySettled&&gesture==="fireflyPause"){
+    const tx=x+(10+edgeLean*18)*scale, ty=y-45*scale;
+    bloom(ctx,tx,ty,18*scale,gold,.9);
+    ellipse(ctx,tx,ty,2.8*scale,2.8*scale,rgba(gold,1));
+  }
+}
 function traveler(c,x,y,scale,reflection,air=0){
   c.save();c.translate(x,y);c.scale(scale,reflection?-scale*.51:scale);
   c.lineJoin="round";c.lineCap="round";
@@ -260,6 +280,7 @@ function render(ms) {
   ctx.save();ctx.globalAlpha=1-river;
   traveler(ctx,px,py,scale,false,air);ctx.restore();
   if(!flight)drawCompanions(px,py,scale,light);
+  drawFireflyTrail(px,py,scale);
   drawPetalShower();
   if(t>0){
     const weather = flight?(flight.mirrorLake?"青云 · 飞渡":"乘风 · 鹤引"):current.weather;

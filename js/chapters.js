@@ -81,13 +81,13 @@ const chapters = [
       [625,"大鹏一日同风起，\n扶摇直上九万里。","李白《上李邕》","flight"],
       [700,"鹤群散入云霞。你沿着一缕金光落下，\n冰刀又轻轻碰到了冰。"]
     ]},
-  {at:2470, name:"天河星原", icon:"✦", weather:"星雨 · 长夜", index:3, seed:411, painting:4,
+  {at:2470, name:"天河星原", icon:"✦", weather:"星雨 · 长夜", index:3, seed:411, painting:4, fireflies:true,
     sky:[18,25,68], mid:[77,67,141], line:[159,145,202], cloud:[164,150,230], shadow:[66,62,136], hills:[83,90,155], water:[25,37,84], light:[218,222,255],
     lines:[
       [45,"鲲往更深的夜里去了。\n围巾上，多了一瓣海棠。"],
       [185,"银烛秋光冷画屏，\n轻罗小扇扑流萤。","杜牧《秋夕》"],
-      [320,"有一只萤火虫落在袖口。\n你放慢了，它也放慢了。"],
-      [455,"灯，一盏盏远了。\n今天，有什么可以轻轻放下？"],
+      [320,"有一只萤火虫落在袖口。\n你放慢了，它也放慢了。",null,"fireflyPause"],
+      [455,"灯，一盏盏远了。\n今天，有什么可以轻轻放下？",null,"fireflyResult"],
       [590,"我挥一挥衣袖，\n不带走一片云彩。","徐志摩《再别康桥》","wave"],
       [775,"冰上只剩两道浅浅的弧线。天快亮了。"]
     ]},
@@ -206,6 +206,7 @@ let chapterIndex=0, routeDistance=0, routePosition=0, routeMode=true, nextLine=0
 let flight=null, flightWind=0;
 let petalShowerAt=null;
 const cloudChapter=3;
+const fireflyChapter=chapters.findIndex(chapter=>chapter.fireflies);
 const forestChapter=chapters.findIndex(chapter=>chapter.forest);
 const jadeChapter=chapters.findIndex(chapter=>chapter.jade);
 const groveChapter=chapters.findIndex(chapter=>chapter.grove);

@@ -16,6 +16,9 @@ const mirrorVerses={
   water:"你低头俯瞰。\n月影铺在湖心，像另一轮月。"
 };
 let mirrorView=null;
+const FIREFLY_STOP=2, FIREFLY_COAST=3;
+const fireflyVerse="你松开刹车，那点萤光也从袖口飞了起来。\n它沿着你的冰痕，照亮了一小段星原。";
+let fireflyStill=0, fireflyCoast=0, fireflySettled=false, fireflyTrail=false;
 const HARP_BANK_OFFSET=25, HARP_PHRASE_TIME=1.8, HARP_BANK_INTERVAL=4;
 const harpBankVerses={
   left:"左岸的低弦穿过花丛。\n余音贴着水面，慢慢远了。",
@@ -108,6 +111,10 @@ function storyLine(chapter, lineIndex) {
   if(gesture==="harpDuet"&&harpDuet)text=verse+"\n"+harpDuetVerse;
   if(gesture==="mirrorLanding"&&mirrorView)text=mirrorVerses[mirrorView];
   if(gesture==="flight"&&chapter.mirrorLake)text=verse+"\n按住抬升看云上月，或按住俯瞰看水中月。";
+  if(gesture==="fireflyPause"){
+    text=fireflyTrail?fireflyVerse:verse+"\n可以按住刹停等它落稳，再松手顺滑一小段。";
+  }
+  if(gesture==="fireflyResult"&&fireflyTrail)text=verse+"\n"+fireflyVerse;
   saveVoyageCheckpoint({chapter:chapter.name,line:lineIndex,metTraveller,
     ...(chapterIndex===riverChapter&&sailedTogether?{sailedTogether:true}:{}),
     ...(chapterIndex===riverChapter&&landedAtPier?{landedAtPier:true}:{}),
@@ -115,6 +122,7 @@ function storyLine(chapter, lineIndex) {
     ...(chapter.harp&&harpBank?{harpBank}:{}),
     ...(chapter.harp&&harpDuet?{harpDuet:true}:{}),
     ...(chapter.mirrorLake&&mirrorView?{mirrorView}:{}),
+    ...(chapter.fireflies&&fireflyTrail?{fireflyTrail:true}:{}),
     ...(chapter.grove&&groveBank?{groveBank}:{})});
   $("storyTitle").textContent=chapter.name;
   $("storyLine").textContent=text;
@@ -172,6 +180,7 @@ function travelStory(dt, sideStep=0, holdingBrake=false) {
   }
   if(cue?.[3]==="harpResult"&&!harpBank)updateHarpListening(chapter,dt);
   if(cue?.[3]==="harpDuet"&&harpBank&&!harpDuet)updateHarpListening(chapter,dt);
+  if(cue?.[3]==="fireflyResult"&&!fireflyTrail)updateFirefly(chapter,dt,holdingBrake);
   if(!cue&&!next&&storyTime>=nextStoryAt){
     // Keep travelling after the last verse without replaying the story.
     roamDistance+=Math.hypot(step,sideStep);
@@ -194,6 +203,27 @@ function travelStory(dt, sideStep=0, holdingBrake=false) {
     storyLine(chapter,nextLine++);
   }
   else if(next) enterChapter(chapterIndex+1);
+}
+function updateFirefly(chapter,dt,holdingBrake){
+  if(!fireflySettled){
+    fireflyStill=holdingBrake&&velocity===0?fireflyStill+dt:0;
+    if(fireflyStill<FIREFLY_STOP)return;
+    fireflySettled=true;
+    announce("萤火落稳了。松开刹车，顺滑一小段。",4);
+    return;
+  }
+  if(velocity>1.3){
+    fireflyStill=fireflyCoast=0;
+    fireflySettled=false;
+    announce("你滑得太快，萤火散开了。",3);
+    return;
+  }
+  fireflyCoast=!holdingBrake&&velocity>=.35?fireflyCoast+dt:0;
+  if(fireflyCoast<FIREFLY_COAST)return;
+  fireflyTrail=true;
+  rememberJournalEntry(chapter.name+"-firefly-trail",{name:chapter.name,text:fireflyVerse,source:""});
+  announce("萤火沿着冰痕亮起来了。",4);
+  saveVoyageCheckpoint({chapter:chapter.name,line:nextLine-1,fireflyTrail});
 }
 function updateHarpListening(chapter,dt){
   const side=listeningHarpSide();
@@ -285,6 +315,7 @@ function enterChapter(index, jump=false) {
   groveBanks=null;groveBank=null;
   harpListening=null;harpBank=null;harpDuet=false;
   mirrorView=null;
+  fireflyStill=fireflyCoast=0;fireflySettled=fireflyTrail=false;
   if(chapter.moonRiver){moonStillTime=0;moonReflection=null;moonResultAt=null;}
   if(jump) {
     routePosition=routeDistance=chapter.at;
@@ -296,7 +327,7 @@ function enterChapter(index, jump=false) {
   changeDream(sceneForChapter(chapter));
 }
 
-function seekVoyage(index,line=0,met=false,reflection=null,bank=null,shared=false,landed=false,heardBank=null,duet=false,moonView=null){
+function seekVoyage(index,line=0,met=false,reflection=null,bank=null,shared=false,landed=false,heardBank=null,duet=false,moonView=null,litTrail=false){
   leaveFreeRoam();
   enterChapter(index,true);
   const chapter=chapters[index];
@@ -307,6 +338,7 @@ function seekVoyage(index,line=0,met=false,reflection=null,bank=null,shared=fals
   landedAtPier=sailedTogether&&landed;
   metTraveller=met||sailedTogether;
   if(chapter.mirrorLake&&Object.hasOwn(mirrorVerses,moonView))mirrorView=moonView;
+  if(chapter.fireflies)fireflyTrail=litTrail;
   if(chapter.harp&&Object.hasOwn(harpBankVerses,heardBank)){
     harpBank=heardBank;
     harpDuet=duet;
