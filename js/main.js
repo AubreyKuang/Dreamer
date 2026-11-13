@@ -53,9 +53,9 @@ function startReplay(scene){
   $("returnFromReplay").hidden=false;
   seekVoyage(scene.chapter,scene.line);
 }
-function startPhotoReplay(shot,guided=true,focus=null){
+function startPhotoReplay(shot,guided=true,focus=null,focusGuided=false){
   startReplay(replayScenes.find(scene=>scene.chapter===jadeChapter));
-  showPhotoReference(shot,guided,focus);
+  showPhotoReference(shot,guided,focus,focusGuided);
   canvas.focus({preventScroll:true});
 }
 function endReplay(){
@@ -89,12 +89,20 @@ function resumeCheckpoint(index,saved){
 $("start").onclick=play;
 $("quickJournal").onclick=showJournal;
 $("retryPhotoReference").onclick=()=>{
-  if(photoReference)startPhotoReplay(photoReference.shot,photoReference.guided,photoReference.focus);
+  if(photoReference)startPhotoReplay(photoReference.shot,photoReference.guided,photoReference.focus,photoReference.focusGuided);
 };
 $("photoReferenceGuidance").onclick=()=>{
   if(!photoReference)return;
   photoReference.guided=!photoReference.guided;
-  $("photoReferenceGuidance").setAttribute("aria-pressed",String(photoReference.guided));
+  photoReference.focusGuided=false;
+  syncPhotoGuidance();
+  updatePhotoReference(jadePhotoPose());
+};
+$("photoFocusGuidance").onclick=()=>{
+  if(!photoReference?.focus)return;
+  photoReference.focusGuided=!photoReference.focusGuided;
+  photoReference.guided=false;
+  syncPhotoGuidance();
   updatePhotoReference(jadePhotoPose());
 };
 $("closePhotoReference").onclick=()=>{

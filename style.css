@@ -58,7 +58,7 @@ kbd{font:inherit;border:1px solid #fff0d34f;border-radius:4px;padding:2px 5px;ma
 #photoReferenceFeedback p{margin:0 0 5px;font-size:12px}
 #photoReferenceResult{white-space:pre-line}
 #photoReferenceFocus{margin:0;font-size:12px}
-#photoReferenceGuidance[aria-pressed="true"]{background:#69556e;border-color:#fff2df86}
+#photoReference :is(#photoReferenceGuidance,#photoFocusGuidance)[aria-pressed="true"]{background:#69556e;border-color:#fff2df86}
 @media(max-width:680px){body:has(#photoReference:not([hidden])) .story{max-width:calc(100vw - 150px)}}
 @media(max-height:440px){#photoReference{inset-block-start:56px}}
 #journalEntries p{margin:7px 0 16px;line-height:1.7;white-space:pre-line;line-break:strict}

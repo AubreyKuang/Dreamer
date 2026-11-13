@@ -25,15 +25,20 @@ function jadePhotoPose(){
   return {side:lateral*.61-jadeLight.x,depth:routeDistance-jadeLight.start,cleared:followedJadeLight||waitedForJadeMist,
     ...(waitedForJadeMist?{waited:true}:{}),...(shoal?{shoal:true}:{})};
 }
-function showPhotoReference(shot,guided=true,focus=null){
+function showPhotoReference(shot,guided=true,focus=null,focusGuided=false){
   hidePhotoReference();
-  photoReference={shot,guided,focus,src:URL.createObjectURL(shot.blob)};
+  photoReference={shot,guided,focus,focusGuided,src:URL.createObjectURL(shot.blob)};
   $("photoReferenceFocus").hidden=!focus;
   $("photoReferenceFocus").textContent=focus?`本趟专练：${JADE_REPLAY_FOCUS[focus.area]}`:"";
   $("photoReferenceFeedback").open=false;
   $("photoReferenceImage").src=photoReference.src;
-  $("photoReferenceGuidance").setAttribute("aria-pressed",String(guided));
+  $("photoFocusGuidance").hidden=!focus;
+  syncPhotoGuidance();
   updatePhotoReference(null);
+}
+function syncPhotoGuidance(){
+  $("photoReferenceGuidance").setAttribute("aria-pressed",String(photoReference.guided));
+  $("photoFocusGuidance").setAttribute("aria-pressed",String(photoReference.focusGuided));
 }
 function hidePhotoReference(){
   if(!photoReference)return;
@@ -46,12 +51,13 @@ function updatePhotoReference(pose){
   if(!photoReference)return;
   $("photoReference").hidden=!routeMode||chapterIndex!==jadeChapter;
   if($("photoReference").hidden)return;
-  const {shot,guided,result}=photoReference;
+  const {shot,guided,focus,focusGuided,result}=photoReference;
   const target=shot.jadePose;
   const passed=photoReferencePassed(pose,target);
   $("retryPhotoReference").hidden=guided&&!passed&&!(pose?.cleared&&(!target.cleared||Boolean(pose.waited)!==Boolean(target.waited)));
   const text=guided?(passed?"已滑过旧取景，可以重试。":photoReferenceHint(pose,target))
-    :(result?"复拍已保存，可在手记对照两张图。":"对照旧图取景，拍下后可查看反馈。");
+    :focusGuided?photoFocusHint(pose,target,focus.area)
+    :result?"复拍已保存，可在手记对照两张图。":"对照旧图取景，拍下后可查看反馈。";
   const feedback=$("photoReferenceFeedback");
   feedback.hidden=guided||!result;
   const resultLine=$("photoReferenceResult");
@@ -84,6 +90,17 @@ function photoFocusDistance(pose,target,area){
     case "shoal": return Number(Boolean(pose.shoal)!==Boolean(target.shoal));
     case "side": return Math.max(0,Math.abs(pose.side-target.side)-JADE_PHOTO_SIDE_TOLERANCE);
     case "depth": return Math.max(0,Math.abs(pose.depth-target.depth)-JADE_PHOTO_DEPTH_TOLERANCE);
+  }
+}
+function photoFocusHint(pose,target,area){
+  if(!pose)return "进入取景时段后显示专项提示。";
+  if(photoFocusDistance(pose,target,area)===0)return `${JADE_REPLAY_FOCUS[area]}已接近旧取景。`;
+  switch(area){
+    case "mist": return target.waited?"旧图是在溪心等雾散后拍的。"
+      :target.cleared?"旧图是在循光拨雾后拍的。":"旧图拍下时，雾还没散。";
+    case "shoal": return target.shoal?"留意浅滩倒影入画。":"旧取景里没有浅滩倒影。";
+    case "side": return pose.side<target.side?"旧取景在右侧。":"旧取景在左侧。";
+    case "depth": return pose.depth<target.depth?"再往前滑一点。":"已超过旧图的快门位置。";
   }
 }
 function photoFocusResult(pose,target,focus){
@@ -129,6 +146,7 @@ function savePhoto(){
   const {name,comparison,jadePose}=lastPose;
   const reference=photoReference;
   const compare=reference&&!reference.guided&&routeMode&&chapterIndex===jadeChapter&&name===chapters[jadeChapter].name;
+  const focusGuided=compare&&reference.focusGuided;
   const result=compare&&photoReplayResult(jadePose,reference.shot.jadePose);
   const focusResult=compare&&reference.focus&&photoFocusResult(jadePose,reference.shot.jadePose,reference.focus);
   const attempt=compare&&(reference.attempt=(reference.attempt||0)+1);
@@ -147,7 +165,8 @@ function savePhoto(){
     if(compare){
       const {blob,jadePose}=reference.shot;
       shot.replay={blob,jadePose,result,...(focusResult?{
-        focusResult,practiceArea:reference.focus.area,practiceSeries:reference.focus.series
+        focusResult,practiceArea:reference.focus.area,practiceSeries:reference.focus.series,
+        ...(focusGuided?{practiceGuided:true}:{})
       }:{})};
     }
     snapshots.unshift({...shot,src:URL.createObjectURL(blob)});

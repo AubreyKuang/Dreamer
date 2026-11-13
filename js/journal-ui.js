@@ -61,7 +61,7 @@ function journalReplayComparison(shot){
   result.textContent=shot.replay.result;
   if(typeof shot.replay.focusResult==="string"){
     const practice=document.createElement("p");
-    practice.textContent=shot.replay.focusResult;
+    practice.textContent=(shot.replay.practiceGuided?"拍摄时开启了专项提示。":"")+shot.replay.focusResult;
     feedback.append(practice);
   }
   if(shot.replay.practiceSeries){
@@ -73,7 +73,7 @@ function journalReplayComparison(shot){
       const history=document.createElement("ol");
       for(const entry of recent){
         const item=document.createElement("li");
-        item.textContent=entry.when+" · "+entry.replay.focusResult;
+        item.textContent=entry.when+(entry.replay.practiceGuided?" · 有专项提示 · ":" · ")+entry.replay.focusResult;
         history.append(item);
       }
       feedback.append(heading,history);
