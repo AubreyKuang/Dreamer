@@ -1,6 +1,7 @@
 "use strict";
 
 let photoReference=null;
+let jadePairRun=null;
 const JADE_PHOTO_SIDE_TOLERANCE=12, JADE_PHOTO_DEPTH_TOLERANCE=35;
 const JADE_REPLAY_FOCUS={mist:"雾况或散雾方式",shoal:"浅滩倒影",side:"左右位置",depth:"快门早晚"};
 const JADE_REPLAY_PLANS={
@@ -52,13 +53,29 @@ function syncPhotoGuidance(){
   $("photoFocusGuidance").setAttribute("aria-pressed",String(photoReference.focusGuided));
 }
 function hidePhotoReference(){
+  jadePairRun=null;
+  $("jadePairStatus").hidden=true;
   if(!photoReference)return;
   URL.revokeObjectURL(photoReference.src);
   photoReference=null;
   $("photoReferenceImage").removeAttribute("src");
   $("photoReference").hidden=true;
 }
+function updateJadePairRun(pose){
+  const status=$("jadePairStatus");
+  status.hidden=!jadePairRun||!routeMode||chapterIndex!==jadeChapter;
+  if(status.hidden)return;
+  const depth=jadeLight?routeDistance-jadeLight.start:0;
+  const text=jadePairRun.complete?"双峰和浅滩倒影已并排存入手记。"
+    :jadePairRun.first?(pose?.shoal?"浅滩倒影已入画，可以拍第二张。"
+      :depth>JADE_SHOAL.end?"已滑过浅滩，双峰仍保留在手记里。":"双峰已留影。向左滑去浅滩拍倒影。")
+    :depth>=JADE_SHOAL.start?"已滑过溪心，本趟可继续单独留影。"
+    :pose?.waited&&Math.abs(pose.side)<=JADE_MIST_CENTER?"双峰已入画，可以拍第一张。"
+    :"先在溪心等雾散，拍下双峰，再去浅滩。";
+  if(status.textContent!==text)status.textContent=text;
+}
 function updatePhotoReference(pose){
+  updateJadePairRun(pose);
   if(!photoReference)return;
   $("photoReference").hidden=!routeMode||chapterIndex!==jadeChapter;
   if($("photoReference").hidden)return;
@@ -167,6 +184,11 @@ function photoReferenceHint(pose,target){
 function savePhoto(){
   if(!lastPose)return;
   const {name,comparison,jadePose}=lastPose;
+  const run=routeMode&&chapterIndex===jadeChapter&&name===chapters[jadeChapter].name?jadePairRun:null;
+  const first=run?.first;
+  const pairStep=!run||run.pending||run.complete?null:first?(jadePose?.shoal?"second":null)
+    :jadePose?.waited&&jadePose.depth<JADE_SHOAL.start&&Math.abs(jadePose.side)<=JADE_MIST_CENTER?"first":null;
+  if(pairStep)run.pending=true;
   const reference=photoReference;
   const compare=reference&&!reference.guided&&routeMode&&chapterIndex===jadeChapter&&name===chapters[jadeChapter].name;
   const focusGuided=compare&&reference.focusGuided;
@@ -186,8 +208,9 @@ function savePhoto(){
   thumb.getContext("2d").drawImage(canvas,0,0,tw,thumb.height);
   const when=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
   thumb.toBlob(blob=>{
-    if(!blob){reportJournalFailure();return;}
+    if(!blob){if(pairStep)run.pending=false;reportJournalFailure();return;}
     const shot={blob,name,when,...(comparison?{comparison}:{}),...(jadePose?{jadePose}:{})};
+    if(pairStep==="second")shot.jadePair=first;
     if(compare){
       const {blob,jadePose}=reference.shot;
       shot.replay={blob,jadePose,result,...(planResult?{planResult}:{}),...(focusResult?{
@@ -204,14 +227,22 @@ function savePhoto(){
       const keys=photos.getAllKeys();
       keys.onsuccess=()=>keys.result.slice(0,-PHOTO_LIMIT).forEach(key=>photos.delete(key));
     })).then(()=>{
-      if(compare&&photoReference===reference){
+      if(pairStep){
+        run.pending=false;
+        if(pairStep==="first")run.first={blob,when};
+        else run.complete=true;
+        updateJadePairRun(jadePhotoPose());
+      }else if(compare&&photoReference===reference){
         if(attempt===reference.attempt){
           reference.result=[planResult,focusResult,result].filter(Boolean).join("\n");
           if(reference.focus&&jadePose)reference.focus={...reference.focus,previous:jadePose};
           updatePhotoReference(jadePhotoPose());
         }
       }else announce(comparison?"留影已收进手记的「两种走法」。":"留影已存入手记。");
-    },reportJournalFailure);
+    },()=>{
+      if(pairStep)run.pending=false;
+      reportJournalFailure();
+    });
   },"image/jpeg",.82);
   canvas.toBlob(blob=>{
     if(!blob)return;

@@ -52,6 +52,9 @@ kbd{font:inherit;border:1px solid #fff0d34f;border-radius:4px;padding:2px 5px;ma
 #photoReference{position:absolute;inset-inline-end:clamp(12px,4vw,60px);inset-block-start:clamp(70px,14dvh,120px);margin:0;inline-size:clamp(104px,25vw,170px);display:flex;flex-direction:column;gap:5px;background:#242039e8;border:1px solid var(--line);border-radius:8px;padding:6px}
 #photoReference img{display:block;inline-size:100%;block-size:auto;max-block-size:18dvh;object-fit:contain}
 #photoReference figcaption{font-size:12px}
+#jadePairStatus{position:absolute;inset-inline-end:clamp(12px,4vw,60px);inset-block-start:70px;
+  max-inline-size:min(48vw,250px);margin:0;padding:8px 10px;border:1px solid var(--line);
+  border-radius:8px;background:#242039e8;font-size:12px;line-height:1.5;pointer-events:none}
 #photoReference .photo-reference-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px}
 #photoReference button{min-height:44px}
 #photoReferenceFeedback summary{min-height:44px;align-content:center;cursor:pointer;font-size:12px;pointer-events:auto}

@@ -189,6 +189,17 @@ function renderJournal() {
   replayPreviewUrls=[];
   const featured=renderPhotoComparisons(entries);
   for(const shot of snapshots){
+    if(shot.name===chapters[jadeChapter].name&&shot.jadePair?.blob instanceof Blob){
+      const heading=document.createElement("h3");
+      heading.textContent="玉谷双景";
+      const pair=document.createElement("div");
+      pair.className="photo-comparison";
+      const src=URL.createObjectURL(shot.jadePair.blob);
+      replayPreviewUrls.push(src);
+      pair.append(journalPhoto({...shot.jadePair,src},"溪心双峰"),journalPhoto(shot,"浅滩倒影"));
+      entries.append(heading,pair);
+      featured.add(shot);
+    }
     if(shot.name===chapters[jadeChapter].name&&shot.replay?.blob instanceof Blob&&
       Number.isFinite(shot.replay.jadePose?.side)&&Number.isFinite(shot.replay.jadePose.depth)&&
       typeof shot.replay.jadePose.cleared==="boolean"&&typeof shot.replay.result==="string"){
@@ -234,6 +245,10 @@ function showJournal() {
       button.onclick=()=>startReplay(scene);
       replayChoices.append(button);
     }
+    const pair=document.createElement("button");
+    pair.type="button";pair.className="chip";pair.textContent="玉谷 · 同一趟拍双景";
+    pair.onclick=startJadePairRun;
+    replayChoices.append(pair);
   }
   const choices=$("chapterChoices");
   if(!choices.childElementCount){

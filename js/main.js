@@ -58,6 +58,12 @@ function startPhotoReplay(shot,guided=true,focus=null,focusGuided=false,plan="")
   showPhotoReference(shot,guided,focus,focusGuided,plan);
   canvas.focus({preventScroll:true});
 }
+function startJadePairRun(){
+  startReplay(replayScenes.find(scene=>scene.chapter===jadeChapter));
+  jadePairRun={};
+  updateJadePairRun(null);
+  canvas.focus({preventScroll:true});
+}
 function endReplay(){
   hidePhotoReference();
   replaying=false;
