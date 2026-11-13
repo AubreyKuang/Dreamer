@@ -718,6 +718,30 @@ function drawPeachGrove(opacity,world){
     ctx.rotate(sway);
     ctx.globalAlpha=fade;ctx.drawImage(tree,-width/2,-size,width,size*1.06);ctx.restore();
   }
+  if(routeMode&&chapterIndex===groveChapter&&groveBanks)drawGroveBanks(opacity);
+}
+function drawGroveBanks(opacity){
+  const travelled=routeDistance-groveBanks.start;
+  const fade=opacity*smooth((370-travelled)/90);
+  if(fade<=0)return;
+  for(let i=8;i>=0;i--){
+    const z=248+i*18-travelled;
+    if(z<64)continue;
+    const left=project(groveBanks.x-48-i*2,z);
+    const right=project(groveBanks.x+48+i*2,z);
+    const alpha=fade*smooth((z-64)/48);
+    ctx.save();ctx.translate(left.x,left.y);ctx.rotate(-.13);
+    ctx.fillStyle=rgba([57,55,78],alpha*.9);ctx.fillRect(-24*left.scale,-2*left.scale,48*left.scale,11*left.scale);
+    ctx.fillStyle=rgba([201,176,164],alpha*.96);ctx.fillRect(-24*left.scale,-5*left.scale,48*left.scale,8*left.scale);
+    ctx.restore();
+    if(i%2!==0)continue;
+    ellipse(ctx,right.x,right.y,60*right.scale,17*right.scale,rgba([96,162,162],alpha*.28),.15);
+    for(let j=0;j<7;j++){
+      const x=right.x+(hash(i*53+j*17)-.5)*74*right.scale;
+      const y=right.y+(hash(i*61+j*23)-.5)*16*right.scale;
+      ellipse(ctx,x,y,6*right.scale,3*right.scale,rgba(peachPetals[2+j%4],alpha*.98),hash(j+5)-.5);
+    }
+  }
 }
 function forestTree(size,seed,sway){
   const lean=sway+(hash(seed+1)-.5)*size*.16;

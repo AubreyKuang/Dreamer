@@ -48,7 +48,7 @@ if(canContinue){
 $("continueVoyage").onclick=()=>{
   if(!canContinue)return;
   play();
-  seekVoyage(checkpointChapter,checkpoint.line,checkpoint.metTraveller===true,checkpoint.moonReflection);
+  seekVoyage(checkpointChapter,checkpoint.line,checkpoint.metTraveller===true,checkpoint.moonReflection,checkpoint.groveBank);
 };
 $("start").onclick=play;
 $("quickJournal").onclick=showJournal;

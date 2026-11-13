@@ -3,6 +3,12 @@
 const viewingDialog = () => ["dreamDialog","helpDialog","journalDialog"].some(id=>$(id).open);
 const MOON_REFLECTION_STOP=2, MOON_REFLECTION_HOLD=3.5, MOON_REFLECTION_FADE=1.8;
 let moonStillTime=0, moonReflection=null, moonResultAt=null;
+const GROVE_BANK_OFFSET=30, GROVE_BANK_EDGE=54;
+const groveBankVerses={
+  stones:"你贴着左岸滑行。\n桃枝遮住了石阶，只留几级在水边。",
+  petals:"你滑到右侧浅湾。\n岸边的落花聚在一起，水纹从花瓣之间穿过。"
+};
+let groveBanks=null, groveBank=null;
 
 function rememberVerse(chapter,lineIndex,near){
   const [,originalText,source,gesture,id]=chapter.lines[lineIndex];
@@ -15,9 +21,13 @@ function rememberVerse(chapter,lineIndex,near){
   let entryId=id??originalIndex;
   if(near)entryId="passing-boat-near";
   if(moonResult)entryId="reflection-"+(moonReflection??"ribbon");
+  if(gesture==="groveBanks")entryId="grove-bank-invitation";
   const key=chapter.name+"-"+entryId;
+  rememberJournalEntry(key,{name:chapter.name,text,source});
+  return text;
+}
+function rememberJournalEntry(key,entry){
   if (!journal.has(key)) {
-    const entry = {name:chapter.name,text,source};
     journal.set(key, entry);
     journalTransaction("verses", "readwrite", tx => {
       const verses=tx.objectStore("verses");
@@ -27,22 +37,25 @@ function rememberVerse(chapter,lineIndex,near){
       };
     }).catch(reportJournalFailure);
   }
-  return text;
 }
 function storyLine(chapter, lineIndex) {
   const gesture=chapter.lines[lineIndex][3];
+  if(gesture==="groveBanks")groveBanks={x:lateral*.61,start:routeDistance};
   if(gesture==="moonReflectionResult"){
     moonReflection ??= "ribbon";
     moonResultAt=storyTime;
   }
-  const text=rememberVerse(chapter,lineIndex,gesture==="passingBoat"&&metTraveller);
+  const verse=rememberVerse(chapter,lineIndex,gesture==="passingBoat"&&metTraveller);
+  if(gesture==="groveBanksResult"&&groveBank)rememberGroveBank(chapter);
+  const text=gesture==="groveBanksResult"&&groveBank?verse+"\n"+groveBankVerses[groveBank]:verse;
   saveSetting("voyageCheckpoint",{chapter:chapter.name,line:lineIndex,metTraveller,
-    ...(chapter.moonRiver&&moonReflection?{moonReflection}:{})});
+    ...(chapter.moonRiver&&moonReflection?{moonReflection}:{}),
+    ...(chapter.grove&&groveBank?{groveBank}:{})});
   $("storyTitle").textContent=chapter.name;
   $("storyLine").textContent=text;
   $("story").classList.add("show");
   if(gesture==="wave") waveUntil=t+2.8;
-  if(gesture==="petalShower") petalShowerAt=storyTime;
+  if(gesture==="petalShower"||gesture==="groveBanksResult") petalShowerAt=storyTime;
   if(gesture==="peachNight")changeDream({...current,...peachNight});
   if(gesture==="flight"){
     clearTimeout(whisperTimer);
@@ -101,8 +114,26 @@ function travelStory(dt, sideStep=0, holdingBrake=false) {
   if(routePosition<marker||storyTime<nextStoryAt)return;
   // Give a brake already in progress time to reach a complete stop at the cue.
   if(moonResultNext&&holdingBrake&&!moonReflection)return;
-  if(cue) storyLine(chapter,nextLine++);
+  if(cue){
+    if(cue[3]==="groveBanksResult"&&groveBanks){
+      const x=lateral*.61-groveBanks.x;
+      groveBank=x<=-GROVE_BANK_OFFSET?"stones":x>=GROVE_BANK_OFFSET?"petals":null;
+    }
+    storyLine(chapter,nextLine++);
+  }
   else if(next) enterChapter(chapterIndex+1);
+}
+function rememberGroveBank(chapter){
+  const key=chapter.name+"-bank-"+groveBank;
+  rememberJournalEntry(key,{name:chapter.name,text:groveBankVerses[groveBank],source:""});
+}
+function groveSteeringStep(step){
+  if(!routeMode||chapterIndex!==groveChapter||!groveBanks)return step;
+  const remaining=370-(routeDistance-groveBanks.start);
+  const offset=lateral*.61-groveBanks.x;
+  if(remaining<=0||Math.sign(offset)!==Math.sign(step))return step;
+  const edge=smooth((GROVE_BANK_EDGE-Math.abs(offset))/(GROVE_BANK_EDGE-GROVE_BANK_OFFSET));
+  return step*lerp(1,edge,smooth(remaining/80));
 }
 let travellerBank=null;
 let metTraveller=false;
@@ -123,6 +154,7 @@ function sceneForChapter(chapter) {
 function enterChapter(index, jump=false) {
   const chapter=chapters[index];
   travellerBank=null;metTraveller=false;travellerReplyUntil=0;
+  groveBanks=null;groveBank=null;
   if(chapter.moonRiver){moonStillTime=0;moonReflection=null;moonResultAt=null;}
   if(jump) {
     routePosition=routeDistance=chapter.at;
@@ -134,7 +166,7 @@ function enterChapter(index, jump=false) {
   changeDream(sceneForChapter(chapter));
 }
 
-function seekVoyage(index,line=0,met=false,reflection=null){
+function seekVoyage(index,line=0,met=false,reflection=null,bank=null){
   leaveFreeRoam();
   enterChapter(index,true);
   const chapter=chapters[index];
@@ -146,6 +178,15 @@ function seekVoyage(index,line=0,met=false,reflection=null){
     const resultLine=chapter.lines.findIndex(cue=>cue[3]==="moonReflectionResult");
     if(line<=resultLine&&(reflection==="flower"||reflection==="ribbon"))moonReflection=reflection;
   }
-  if(chapter.grove)changeDream(sceneForChapter(chapter));
+  if(chapter.grove){
+    if(Object.hasOwn(groveBankVerses,bank))groveBank=bank;
+    if(chapter.lines[line][3]==="groveBanksResult"){
+      const side=groveBank==="stones"?-1:groveBank==="petals"?1:0;
+      const invitation=chapter.lines.find(cue=>cue[3]==="groveBanks");
+      groveBanks={x:0,start:chapter.at+invitation[0]};
+      lateral=position=side*GROVE_BANK_OFFSET/.61;
+    }
+    changeDream(sceneForChapter(chapter));
+  }
   storyLine(chapter,line);
 }
