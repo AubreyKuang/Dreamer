@@ -34,6 +34,7 @@ function changeDream(next) {
 function setWord(word){
   $("dreamDialog").close();
   play();
+  leaveFreeRoam();
   const phrase=word.trim();
   const newDream=/寒江|江雪|水墨|独钓/.test(phrase)?inkChapter:/镜湖|天姥|剡溪/.test(phrase)?mirrorLakeChapter:
     /箜篌|李凭/.test(phrase)?harpChapter:/春江花月夜/.test(phrase)?moonRiverChapter:-1;

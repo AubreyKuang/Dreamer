@@ -67,6 +67,14 @@ function paintFarmHorizon(c,w,h,p){
     c.fillStyle=wash;c.fill();
     pigmentGlow(c,w*.61,base,w*.58,.092,0,p.light,.38);
   }
+  for(let i=0;i<145;i++){
+    const seed=p.seed+i*37;
+    const x=hash(seed)*w,y=h*(.87+hash(seed+13)*.12);
+    const color=i%3?[107,141,108]:[165,172,123];
+    ellipse(c,x,y,Math.min(w,h)*(.003+hash(seed+29)*.012),
+      h*(.004+hash(seed+47)*.018),rgba(color,.11+hash(seed+8)*.21),-.16);
+  }
+  pigmentGlow(c,w*.57,h*.96,w*.59,.065,0,p.light,.37);
 }
 function paintJadeValley(c,w,h,p){
   const x=w*.64,y=h*.53,r=Math.min(w,h)*.037;
@@ -431,7 +439,7 @@ function drawCompanions(px,py,scale,light){
 function drawCached(b, alpha){
   if(!b||alpha<=0)return;
   sk.globalAlpha=alpha;
-  const shift=-Math.sin(position*.0026)*sky.width*.075;
+  const shift=-Math.sin(position*.0026+facing)*sky.width*.075;
   sk.drawImage(b,-sky.width*.12+shift,0,sky.width*1.24,sky.height);
   sk.globalAlpha=1;
 }
@@ -589,7 +597,7 @@ function iceDetails(light,water,world){
     current.ink?[198,198,198]:iceTints[current.index],smooth(transition));
   const lit=blend(tint,light,.45), shaded=blend(water,tint,.28);
   // Soft patches sit beneath the reflection and move with the ice.
-  for(const {object:{kind:i,seed,x},depth:z,point:p} of world){
+  for(const {object:{kind:i,seed,x,z:worldZ},depth:z,point:p} of world){
     if(i%3!==0)continue;
     const radius=(42+hash(seed+514)*103)*p.scale;
     if(p.x+radius<0||p.x-radius>W)continue;
@@ -598,9 +606,9 @@ function iceDetails(light,water,world){
     ctx.save();ctx.translate(p.x,p.y);ctx.scale(1,.13+hash(seed+604)*.13);
     bloom(ctx,0,0,radius,color,opacity*(.13+hash(seed+229)*.14));ctx.restore();
     if(i%6===0 && z<270){
-      const left=project(x-16,z+13);
-      const fork=project(x+5,z-5);
-      const end=project(x+19,z-14);
+      const left=project(x-16,worldZ-distance+13);
+      const fork=project(x+5,worldZ-distance-5);
+      const end=project(x+19,worldZ-distance-14);
       ctx.beginPath();ctx.moveTo(left.x,left.y);ctx.quadraticCurveTo(p.x,p.y,fork.x,fork.y);ctx.lineTo(end.x,end.y);
       ctx.strokeStyle=rgba(lit,opacity*.22);ctx.lineWidth=.6+p.scale*.75;ctx.stroke();
     }

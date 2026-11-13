@@ -94,7 +94,7 @@ function drawIceRings(light){
     const {x,z,at}=iceRings[i], age=(t-at)/1.5;
     if(age>=1){iceRings.splice(i,1);continue;}
     const depth=z-distance;
-    if(depth<57)continue;
+    if(cameraDepth(x,depth)<57)continue;
     const p=project(x,depth), r=(4+age*94)*p.scale;
     const fade=(1-age)**2;
     if(!reduced){
@@ -141,7 +141,7 @@ function render(ms) {
   const dt=previousFrame?clamp((ms-previousFrame)/1000,0,.045):0;
   previousFrame=ms;t+=dt;timeInDream+=dt;
   const paused=viewingDialog();
-  if(!routeMode && !dreamTheme && timeInDream>53 && !paused){
+  if(!routeMode && !freeRoam && !dreamTheme && timeInDream>53 && !paused){
     const index=(current.index+1)%palettes.length;
     changeDream({...palettes[index],index,seed:Math.round(t*43)%4096,word:""});
   }
@@ -177,17 +177,28 @@ function render(ms) {
   if(!paused){
     const sideSpeed=(reduced?9:17)*Math.min(1,velocity/.86);
     const lateralStep=heading*dt*sideSpeed;
-    lateral+=lateralStep;
+    if(freeRoam){
+      facing=wrap(facing+heading*dt*(reduced?1.2:1.9),TAU);
+      viewSin=Math.sin(facing);viewCos=Math.cos(facing);
+      const pace=throttle<0?throttle*55:36+throttle*105+kick*59;
+      roamVelocity=lerp(roamVelocity,pace,1-Math.exp(-dt*(throttle<0?3.1:2)));
+      lateral+=viewSin*roamVelocity*dt/.61;
+      distance+=viewCos*roamVelocity*dt;
+      velocity=Math.abs(roamVelocity)/44;
+    }else{
+      lateral+=lateralStep;
+      distance+=dt*velocity*(start?32:7);
+    }
     position=lerp(position,lateral,1-Math.exp(-dt*1.5));
-    distance+=dt*velocity*(start?32:7);
     if(start&&routeMode) travelStory(dt,lateralStep);
   }
   const airborne=Boolean(flight);
-  if($("flightHint").hidden===airborne){
+  if($("flightHint").hidden===airborne||$("roamHint").hidden===freeRoam){
     $("flightHint").hidden=!airborne;
-    $("hint").hidden=airborne;
+    $("hint").hidden=airborne||freeRoam;
+    $("roamHint").hidden=!freeRoam;
     $("skateForward").textContent=airborne?"↑ 抬升":"↑ 加速";
-    $("skateBrake").textContent=airborne?"↓ 俯瞰":"↓ 刹停";
+    $("skateBrake").textContent=airborne?"↓ 俯瞰":freeRoam?"↓ 倒滑":"↓ 刹停";
     $("push").hidden=airborne;
     $("touch").setAttribute("aria-label",airborne?"乘风操作":"滑冰操作");
   }

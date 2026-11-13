@@ -52,7 +52,12 @@ function loadJournal() {
   })).then(({verses, photos}) => {
     const current = [...journal];
     journal.clear();
-    for (const {key, entry} of verses.result.sort((a,b)=>a.readAt-b.readAt)) journal.set(key, entry);
+    const peachFeastKeys=new Set(chapters[groveChapter].lines.filter(line=>line[2]===peachFeastSource)
+      .map(line=>chapters[groveChapter].name+"-"+line[4]));
+    for (const {key, entry} of verses.result.sort((a,b)=>a.readAt-b.readAt)){
+      if(key==="不系之舟-6"||(entry.source===peachFeastSource&&!peachFeastKeys.has(key)))continue;
+      journal.set(key, entry);
+    }
     for (const [key, entry] of current) journal.set(key, entry);
     const older = photos.result.slice(-PHOTO_LIMIT).reverse().map(shot => ({
       ...shot, src: URL.createObjectURL(shot.blob),

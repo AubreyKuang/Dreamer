@@ -123,12 +123,9 @@ const chapters = [
       [965,"而浮生若梦，为欢几何？\n古人秉烛夜游，良有以也。",peachFeastSource,null,"feast-2"],
       [1080,"况阳春召我以烟景，\n大块假我以文章。",peachFeastSource,null,"feast-3"],
       [1195,"会桃花之芳园，\n序天伦之乐事。",peachFeastSource,null,"feast-4"],
-      [1310,"群季俊秀，皆为惠连；\n吾人咏歌，独惭康乐。",peachFeastSource,null,"feast-5"],
-      [1425,"幽赏未已，\n高谈转清。",peachFeastSource,null,"feast-6"],
-      [1540,"开琼筵以坐花，\n飞羽觞而醉月。",peachFeastSource,"petalShower","feast-7"],
-      [1600,"我歌月徘徊，\n我舞影零乱。","李白《月下独酌四首·其一》",null,"moon-dance"],
-      [1655,"不有佳咏，何伸雅怀？\n如诗不成，罚依金谷酒数。",peachFeastSource,null,"feast-8"],
-      [1730,"桃花流水窅然去，\n别有天地非人间。","李白《山中问答》",null,"hidden-valley"]
+      [1310,"开琼筵以坐花，\n飞羽觞而醉月。",peachFeastSource,"petalShower","feast-7"],
+      [1450,"我歌月徘徊，\n我舞影零乱。","李白《月下独酌四首·其一》",null,"moon-dance"],
+      [1590,"桃花流水窅然去，\n别有天地非人间。","李白《山中问答》",null,"hidden-valley"]
     ]},
   {at:7040,name:"归园田居",icon:"❧",weather:"田风 · 炊烟",index:0,seed:1261,painting:8,farmland:true,
     sky:[93,135,166],mid:[182,191,169],line:[255,215,151],cloud:[246,218,170],shadow:[112,139,159],hills:[108,149,117],water:[49,81,77],light:[255,229,167],
@@ -152,9 +149,8 @@ const chapters = [
       [510,"惠州。雨停了，屋檐还在滴水。\n你隔着江，看见一扇亮着的窗。"],
       [600,"峨眉山月半轮秋，\n影入平羌江水流。","李白《峨眉山月歌》",null,"emei-moon"],
       [700,"儋州。海风比江风更咸，\n远处那盏灯，摇得快要看不见。"],
-      [880,"人生如逆旅，\n我亦是行人。","苏轼《临江仙·送钱穆父》"],
       [978,"浮云游子意，\n落日故人情。","李白《送友人》",null,"wandering-cloud"],
-      [1065,"天快亮了。那条船还在远处，\n与你隔着一片安静的水。"]
+      [1065,"天快亮了。那条船还在远处，\n与你隔着一片安静的水。",null,null,"7"]
     ]},
   {at:9260,name:"赤壁赋",icon:"☾",weather:"清风 · 明月",index:3,seed:1783,painting:10,river:true,redCliff:true,
     sky:[16,36,62],mid:[48,102,121],line:[153,186,175],cloud:[181,213,205],shadow:[45,75,112],hills:[53,93,104],water:[19,55,77],light:[224,239,211],

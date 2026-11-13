@@ -10,6 +10,27 @@ function openDream(){
   $("dreamDialog").showModal();
   $("word").focus();
 }
+function leaveFreeRoam(){
+  if(!freeRoam)return;
+  freeRoam=false;facing=0;viewCos=1;viewSin=0;
+  suspendedFlight=null;
+}
+function toggleFreeRoam(){
+  $("dreamDialog").close();
+  play();
+  if(freeRoam){
+    const previousFlight=suspendedFlight;
+    routeMode=roamFromRoute;
+    leaveFreeRoam();
+    flight=previousFlight;
+    if(routeMode&&storyTime<storyUntil)$("story").classList.add("show");
+    return;
+  }
+  freeRoam=true;roamFromRoute=routeMode;routeMode=false;
+  suspendedFlight=flight;flight=null;
+  roamVelocity=velocity*32;
+  $("story").classList.remove("show");
+}
 $("start").onclick=play;
 $("quickJournal").onclick=showJournal;
 $("journal").onclick=()=>{ $("helpDialog").close();showJournal(); };
@@ -23,6 +44,7 @@ for(const id of ["dreamDialog","journalDialog","helpDialog"]){
 }
 $("restartRoute").onclick=()=>{
   $("journalDialog").close();play();
+  leaveFreeRoam();
   dreamTheme=null; // a fresh trip starts with no dream picked
   lateral=position=distance=0;
   seen.clear();iceRings.length=0;
@@ -30,10 +52,15 @@ $("restartRoute").onclick=()=>{
 };
 $("resumeRoute").onclick=()=>{
   $("dreamDialog").close();
+  if(freeRoam){
+    if(roamFromRoute){toggleFreeRoam();return;}
+    leaveFreeRoam();
+  }
   routeMode=true;storyUntil=storyTime;
   changeDream(sceneForChapter(chapters[chapterIndex]));
 };
 $("dream").onclick=openDream;
+$("freeRoam").onclick=toggleFreeRoam;
 $("help").onclick=()=>$("helpDialog").showModal();
 $("sound").onclick=toggleSound;
 $("iceSound").checked=settings.iceSound!==false;
@@ -64,7 +91,8 @@ window.addEventListener("keydown",event=>{
     event.preventDefault();if(!event.repeat)pushOff();
   } else if(!event.repeat&&event.code==="Enter"){
     event.preventDefault();openDream();
-  } else if(!event.repeat&&event.code==="KeyH")toggleView();
+  } else if(!event.repeat&&event.code==="KeyG")toggleFreeRoam();
+  else if(!event.repeat&&event.code==="KeyH")toggleView();
   else if(!event.repeat&&event.code==="KeyP")savePhoto();
 });
 window.addEventListener("keyup",event=>keys.delete(event.code));

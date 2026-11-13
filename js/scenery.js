@@ -4,8 +4,10 @@ const worldCellWidth=280, worldCellDepth=260;
 const worldCells=new Map();
 function prepareWorld(){
   // World coordinates determine placement, so revisiting a cell restores the same scenery.
-  const left=Math.floor((lateral*.61-1220)/worldCellWidth), right=Math.floor((lateral*.61+1220)/worldCellWidth);
-  const front=Math.floor((distance+60)/worldCellDepth), back=Math.floor((distance+1240)/worldCellDepth);
+  const sideSpan=freeRoam?1420:1220;
+  const left=Math.floor((lateral*.61-sideSpan)/worldCellWidth), right=Math.floor((lateral*.61+sideSpan)/worldCellWidth);
+  const front=Math.floor((distance+(freeRoam?-1420:60))/worldCellDepth);
+  const back=Math.floor((distance+(freeRoam?1420:1240))/worldCellDepth);
   for(const [key,{column,row}] of worldCells){
     if(column<left||column>right||row<front||row>back)worldCells.delete(key);
   }
@@ -30,9 +32,9 @@ function visibleWorld(){
   const visible=[];
   for(const {objects} of worldCells.values()){
     for(const object of objects){
-      const depth=object.z-distance;
+      const depth=cameraDepth(object.x,object.z-distance);
       if(depth<63||depth>1240)continue;
-      const point=project(object.x,depth);
+      const point=project(object.x,object.z-distance);
       const margin=Math.max(32,220*point.scale);
       if(point.x < -margin || point.x > W+margin)continue;
       visible.push({object,depth,point});
@@ -40,9 +42,13 @@ function visibleWorld(){
   }
   return visible.sort((a,b)=>b.depth-a.depth);
 }
+function cameraDepth(x,z){
+  return (x-lateral*.61)*viewSin+z*viewCos;
+}
 function project(x,z) {
-  const near=62/z, deep=H-horizon;
-  return {x:W*.54+(x-lateral*.61)*near*W*.018,
+  const localX=x-lateral*.61;
+  const near=62/Math.max(62,cameraDepth(x,z)), deep=H-horizon;
+  return {x:W*.54+(localX*viewCos-z*viewSin)*near*W*.018,
     y:horizon+near*deep, scale:near*clamp(Math.min(W/850,H/580),.6,1.65)};
 }
 function drawRouteScenery(light,water,world){
@@ -319,7 +325,7 @@ function drawRiver(opacity,world){
     const y=horizon+(H-horizon)*(.025+depth*.38);
     pigmentGlow(ctx,x,y,W*(.15+depth*.12),.052,-.037,blend([149,150,194],[119,172,179],harbor),opacity*(.11+depth*.14));
   }
-  for(const {object:{kind,seed,x},depth:z,point:p} of world){
+  for(const {object:{kind,seed,x,z:worldZ},depth:z,point:p} of world){
     if(kind!==0)continue;
     const fade=opacity*smooth((z-63)/140)*smooth((1240-z)/590);
     if(hash(seed+14)>.37){
@@ -338,14 +344,14 @@ function drawRiver(opacity,world){
       continue;
     }
     const drift=reduced?0:Math.sin(t*.23+seed*.09)*14;
-    const boat=project(x+drift,z);
+    const boat=project(x+drift,worldZ-distance);
     const size=(.64+hash(seed+51)*.56)*p.scale;
     riverBoat(boat.x,boat.y+3*size,size,fade*.27,true,true);
     riverBoat(boat.x,boat.y,size,fade,true);
   }
   // Let another traveller pass close enough to see their light, then drift away.
   const pass=clamp((stage-220)/380,0,1);
-  const fade=opacity*smooth(pass*6)*smooth((1-pass)*5);
+  const fade=freeRoam?0:opacity*smooth(pass*6)*smooth((1-pass)*5);
   if(fade>0){
     const p=project(lateral*.61+lerp(-125,160,pass),134+138*pass);
     riverBoat(p.x,p.y+3*p.scale,p.scale*1.06,fade*.29,true,true);
@@ -434,51 +440,130 @@ function peachTreeImage(seed){
 const fieldColors=[[119,147,89],[151,171,94],[183,171,103],[102,144,106]];
 function drawFarmland(opacity,world){
   drawCreeks(opacity*.56,false);
-  for(const {object:{kind,seed,x},depth:z,point:p} of world){
-    if(kind>4)continue;
+  for(const {object:{kind,seed,x,z:worldZ},depth:z,point:p} of world){
+    if(kind>6)continue;
     const fade=opacity*smooth((z-63)/78)*smooth((1240-z)/520);
     const s=p.scale, width=(22+hash(seed+9)*27)*s;
     if(kind===0&&hash(seed+22)>.29){
-      const h=width*.74, y=p.y;
-      pigmentGlow(ctx,p.x,y+h*.07,width*1.58,.26,0,[234,179,100],fade*.38);
-      ctx.fillStyle=rgba([218,188,134],fade*.94);
-      ctx.fillRect(p.x-width*.73,y-h,width*1.47,h);
-      ctx.beginPath();ctx.moveTo(p.x-width,y-h*.93);ctx.lineTo(p.x-width*.28,y-h*1.57);
-      ctx.lineTo(p.x+width*.54,y-h*1.42);ctx.lineTo(p.x+width,y-h*.91);
-      ctx.closePath();ctx.fillStyle=rgba([85,84,97],fade*.97);ctx.fill();
-      ctx.fillStyle=rgba([143,110,91],fade*.87);
-      ctx.fillRect(p.x+width*.09,y-h*.52,width*.23,h*.52);
-      ctx.fillStyle=rgba([255,227,147],fade*.91);
-      ctx.fillRect(p.x-width*.52,y-h*.62,width*.27,h*.29);
-      for(let i=0;i<5;i++){
-        const clock=reduced?0:t, rise=i/5;
-        const drift=(rise*.79+Math.sin(clock*.66+i*.6+seed)*.09)*width;
-        pigmentGlow(ctx,p.x+width*.29+drift,y-h*(1.42+rise*1.58),width*(.20+rise*.27),.69,-.23,
-          [246,220,177],fade*(.31-rise*.22));
+      drawThatchHouse(p.x,p.y,width*1.26,fade,seed);
+      if(hash(seed+91)>.42)drawThatchHouse(p.x+width*1.48,p.y-width*.12,width*.62,fade*.91,seed+29);
+      continue;
+    }
+    if(kind===5){
+      const drift=reduced?0:Math.sin(t*.17+seed*.03)*14;
+      const animal=project(x+drift,worldZ-distance);
+      drawFarmOx(animal.x,animal.y,animal.scale*1.86,fade,seed);
+      continue;
+    }
+    if(kind===6){
+      const r=(16+hash(seed+79)*31)*s;
+      ellipse(ctx,p.x,p.y,r*1.65,r*.24,rgba([138,171,94],fade*.55),-.12);
+      for(let i=0;i<9;i++){
+        const lean=(hash(seed+i*9)-.5)*r;
+        ellipse(ctx,p.x+lean,p.y-hash(seed+i*31)*r*.61,r*.26,r*.10,
+          rgba(i%3?[122,160,91]:[218,201,104],fade*.65),-.72);
       }
       continue;
     }
     const length=45+hash(seed+31)*38;
-    const near=Math.max(62,z-length*.42), far=z+length*.58;
+    if(freeRoam&&z<140)continue;
+    const localZ=worldZ-distance;
+    const near=freeRoam?localZ-length*.42:Math.max(62,localZ-length*.42), far=localZ+length*.58;
     const half=34+hash(seed+42)*25, angle=(hash(seed+57)-.5)*22;
     const a=project(x-half,near), b=project(x+half,near);
     const c=project(x+half+angle,far), d=project(x-half+angle,far);
-    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.lineTo(c.x,c.y);ctx.lineTo(d.x,d.y);ctx.closePath();
-    ctx.fillStyle=rgba(fieldColors[kind%4],fade*.75);ctx.fill();
-    ctx.strokeStyle=rgba([240,206,143],fade*.49);ctx.lineWidth=Math.max(.45,2*s);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(a.x,a.y);
+    ctx.quadraticCurveTo((a.x+b.x)*.5,(a.y+b.y)*.5+6*s,b.x,b.y);
+    ctx.quadraticCurveTo((b.x+c.x)*.5+8*s,(b.y+c.y)*.5,c.x,c.y);
+    ctx.quadraticCurveTo((c.x+d.x)*.5,(c.y+d.y)*.5-5*s,d.x,d.y);
+    ctx.quadraticCurveTo((d.x+a.x)*.5-6*s,(d.y+a.y)*.5,a.x,a.y);ctx.closePath();
+    const soil=fieldColors[kind%4], wash=ctx.createLinearGradient(p.x,p.y-13*s,p.x,p.y+16*s);
+    wash.addColorStop(0,rgba(blend(soil,[220,216,147],.22),fade*.72));
+    wash.addColorStop(1,rgba(blend(soil,[92,111,76],.28),fade*.88));
+    ctx.fillStyle=wash;ctx.fill();
+    ctx.strokeStyle=rgba([240,206,143],fade*.32);ctx.lineWidth=Math.max(.5,2.3*s);ctx.stroke();
     for(let row=1;row<=5;row++){
       const rowZ=lerp(near,far,row/6), left=project(x-half*.84+angle*row/6,rowZ), right=project(x+half*.84+angle*row/6,rowZ);
-      ctx.beginPath();ctx.moveTo(left.x,left.y);ctx.lineTo(right.x,right.y);
+      ctx.beginPath();ctx.moveTo(left.x,left.y);
+      ctx.quadraticCurveTo((left.x+right.x)*.5,(left.y+right.y)*.5+3*s,right.x,right.y);
       ctx.strokeStyle=rgba(row%2?[211,202,132]:[75,124,77],fade*.65);
       ctx.lineWidth=Math.max(.43,left.scale*2.1);ctx.stroke();
       if(z>480)continue;
       for(let i=0;i<7;i++){
-        const plantX=lerp(left.x,right.x,(i+.4)/7), sway=reduced?0:Math.sin(t*1.2+i+row)*s*1.7;
-        ellipse(ctx,plantX+sway,left.y-1.6*s,1.9*s,3.2*s,rgba([165,196,116],fade*.80),-.47);
-        if(kind===4&&i%3===0)ellipse(ctx,plantX+sway,left.y-4*s,2.1*s,1.35*s,rgba([255,215,97],fade*.92));
+        const u=(i+.4)/7, plantX=lerp(left.x,right.x,u), plantY=lerp(left.y,right.y,u)+6*s*u*(1-u);
+        const sway=reduced?0:Math.sin(t*1.2+i+row)*s*1.7;
+        ellipse(ctx,plantX+sway,plantY-1.6*s,1.9*s,3.2*s,rgba([165,196,116],fade*.80),-.47);
+        if(kind===4&&i%3===0)ellipse(ctx,plantX+sway,plantY-4*s,2.1*s,1.35*s,rgba([255,215,97],fade*.92));
       }
     }
+    if(kind===2||kind===4)drawFarmWorker(p.x,p.y,Math.max(.09,s)*1.38,fade,seed);
   }
+}
+function drawThatchHouse(x,y,width,fade,seed){
+  ctx.save();ctx.translate(x,y);ctx.scale(width,width);ctx.globalAlpha=fade;
+  ellipse(ctx,0,.03,1.22,.16,"#62675168");
+  ctx.fillStyle="#d4ae78";ctx.fillRect(-.75,-.69,1.50,.69);
+  ctx.fillStyle="#a47b59";ctx.fillRect(.35,-.69,.40,.69);
+  ctx.fillStyle="#675144";ctx.fillRect(-.16,-.48,.26,.48);
+  ctx.fillStyle="#f5d799";ctx.fillRect(-.59,-.47,.23,.23);
+  const roof=ctx.createLinearGradient(0,-1.28,0,-.55);
+  roof.addColorStop(0,"#d0a36a");roof.addColorStop(1,"#8f694f");
+  ctx.beginPath();ctx.moveTo(-1.08,-.56);ctx.quadraticCurveTo(-.62,-.78,-.38,-1.20);
+  ctx.quadraticCurveTo(.07,-1.31,.40,-1.19);ctx.quadraticCurveTo(.64,-.84,1.04,-.59);
+  ctx.quadraticCurveTo(.12,-.70,-1.08,-.56);ctx.fillStyle=roof;ctx.fill();
+  ctx.lineWidth=.025;
+  for(let i=0;i<19;i++){
+    const u=i/18, bend=hash(seed+i*31);
+    ctx.strokeStyle=i%3?"#dfb47c9c":"#775a477f";
+    ctx.beginPath();ctx.moveTo(lerp(-.36,.38,u),-1.19+.06*bend);
+    ctx.quadraticCurveTo(lerp(-.62,.68,u),-.85,lerp(-1,1,u),-.62-.04*bend);ctx.stroke();
+  }
+  for(let i=0;i<5;i++){
+    const clock=reduced?0:t, rise=i/5;
+    const drift=rise*.79+Math.sin(clock*.66+i*.6+seed)*.09;
+    pigmentGlow(ctx,.29+drift,-1.19-rise*1.12,.19+rise*.29,.64,-.23,[246,224,190],.31-rise*.22);
+  }
+  ctx.restore();
+}
+function drawFarmOx(x,y,size,fade,seed){
+  ctx.save();ctx.translate(x,y);ctx.scale(size,size);ctx.globalAlpha=fade;
+  const sway=reduced?0:Math.sin(t*2.1+seed*.13);
+  const rider=hash(seed+11)>.49;
+  ellipse(ctx,0,1,21,4,"#525d485c");
+  ctx.strokeStyle="#4b463d";ctx.lineWidth=2.4;ctx.lineCap="round";
+  for(let i=0;i<4;i++){
+    const leg=-11+i*7;
+    ctx.beginPath();ctx.moveTo(leg,-8);ctx.lineTo(leg+sway*(i%2?1.5:-1.5),0);ctx.stroke();
+  }
+  ellipse(ctx,-2,-13,16,8,"#786650",-.07);
+  ellipse(ctx,-5,-15,11,4,"#a58a65",-.14);
+  const head=-12+(rider?0:sway*2);
+  ellipse(ctx,14,head,6.6,5.6,"#665444",.20);
+  ctx.lineWidth=1.45;ctx.strokeStyle="#dbbd91";
+  ctx.beginPath();ctx.moveTo(13,head-3);ctx.quadraticCurveTo(16,head-9,20,head-7);
+  ctx.moveTo(10,head-3);ctx.quadraticCurveTo(7,head-8,5,head-6);ctx.stroke();
+  ctx.strokeStyle="#5f5142";ctx.beginPath();ctx.moveTo(-17,-15);ctx.quadraticCurveTo(-22,-11,-20+sway,-5);ctx.stroke();
+  if(rider){
+    ctx.strokeStyle="#534c4a";ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(-3,-20);ctx.lineTo(2,-12);ctx.stroke();
+    ellipse(ctx,-5,-25,3.7,6.4,"#557284",-.14);
+    ellipse(ctx,-5,-33,3.1,3.3,"#c3a27a");
+    ellipse(ctx,-5,-35,6.8,1.9,"#b68e59");
+  }
+  ctx.restore();
+}
+function drawFarmWorker(x,y,size,fade,seed){
+  ctx.save();ctx.translate(x,y);ctx.scale(size,size);ctx.globalAlpha=fade;
+  const bend=reduced?0:Math.sin(t*1.46+seed*.12)*.16;
+  ellipse(ctx,0,0,9,2.3,"#53624859");
+  ctx.rotate(bend);
+  ctx.strokeStyle="#5f5647";ctx.lineWidth=2.3;ctx.lineCap="round";
+  ctx.beginPath();ctx.moveTo(-3,-1);ctx.lineTo(0,-12);ctx.lineTo(5,-2);ctx.stroke();
+  ellipse(ctx,2,-14,4.1,7.4,"#6d8291",.84);
+  ellipse(ctx,8,-17,3.3,3.4,"#bd9871");
+  ellipse(ctx,8,-19,6.0,1.8,"#c7a46e",.21);
+  ctx.beginPath();ctx.moveTo(7,-13);ctx.lineTo(12,-8);ctx.lineTo(18,0);
+  ctx.strokeStyle="#94704c";ctx.lineWidth=1.35;ctx.stroke();
+  ctx.restore();
 }
 const creekSpacing=430;
 function creekCenter(column,z){
@@ -492,19 +577,32 @@ function drawCreeks(opacity,petals){
   surface.addColorStop(.76,rgba([80,122,157],opacity*.69));
   surface.addColorStop(1,rgba([60,92,137],opacity*.76));
   for(let column=Math.floor(center/creekSpacing)-3;column<=Math.ceil(center/creekSpacing)+3;column++){
-    const steps=32;
+    const steps=freeRoam?64:32;
     const banks=[[],[]];
     for(let i=0;i<=steps;i++){
-      const z=62*(1170/62)**(i/steps), worldZ=distance+z, x=creekCenter(column,worldZ);
+      const z=freeRoam?lerp(-1420,1420,i/steps):62*(1170/62)**(i/steps);
+      const worldZ=distance+z, x=creekCenter(column,worldZ);
       const width=(petals?18:8)+(petals?8:3)*Math.sin(worldZ*.007+column);
+      if(freeRoam&&Math.min(cameraDepth(x-width,z),cameraDepth(x+width,z))<62){
+        banks[0].push(null);banks[1].push(null);continue;
+      }
       banks[0].push(project(x-width,z));banks[1].push(project(x+width,z));
     }
-    ctx.beginPath();ctx.moveTo(banks[0][0].x,banks[0][0].y);
-    for(const p of banks[0])ctx.lineTo(p.x,p.y);
-    for(let i=steps;i>=0;i--)ctx.lineTo(banks[1][i].x,banks[1][i].y);
-    ctx.closePath();ctx.fillStyle=surface;ctx.fill();
+    for(let from=0;from<=steps;from++){
+      if(!banks[0][from])continue;
+      let to=from;
+      while(to<steps&&banks[0][to+1])to++;
+      if(to===from)continue;
+      ctx.beginPath();ctx.moveTo(banks[0][from].x,banks[0][from].y);
+      for(let i=from+1;i<=to;i++)ctx.lineTo(banks[0][i].x,banks[0][i].y);
+      for(let i=to;i>=from;i--)ctx.lineTo(banks[1][i].x,banks[1][i].y);
+      ctx.closePath();ctx.fillStyle=surface;ctx.fill();
+      from=to;
+    }
     for(let i=1;i<steps;i+=2){
-      const a=banks[0][i], b=banks[1][i], width=b.x-a.x;
+      const a=banks[0][i], b=banks[1][i];
+      if(!a||!b)continue;
+      const width=Math.abs(b.x-a.x);
       const shimmer=.5+.5*Math.sin((reduced?0:t*1.35)+i*.72+column);
       if(a.x>W+50||b.x< -50)continue;
       ellipse(ctx,(a.x+b.x)*.5+width*.12*shimmer,a.y,width*.28,.5+shimmer*.85,rgba([255,212,231],opacity*shimmer*.45));
@@ -522,11 +620,13 @@ function drawCreeks(opacity,petals){
     if(!petals)continue;
     for(let i=0;i<15;i++){
       const seed=column*503+i*73, offset=i*77-distance+(reduced?0:t*7.4);
-      const z=64+wrap(offset,1155);
+      const z=freeRoam?wrap(offset,2500)-1250:64+wrap(offset,1155);
       const x=creekCenter(column,distance+z)+(hash(seed+9)-.5)*19;
+      const depth=cameraDepth(x,z);
+      if(depth<63||depth>1240)continue;
       const p=project(x,z);
       if(p.x< -12||p.x>W+12)continue;
-      const fade=opacity*smooth((z-64)/64)*smooth((1220-z)/420);
+      const fade=opacity*smooth((depth-64)/64)*smooth((1220-depth)/420);
       ellipse(ctx,p.x,p.y,1+p.scale*5,.6+p.scale*1.7,rgba(peachPetals[3+i%3],fade*.82),hash(seed+4)-.5);
     }
   }
@@ -541,17 +641,18 @@ function drawPeachGrove(opacity,world){
     trees.push({seed,z,p});
   }
   const center=Math.round(lateral*.61/creekSpacing);
-  const firstRow=Math.floor((distance+63)/96), lastRow=Math.floor((distance+920)/96);
+  const firstRow=Math.floor((distance+(freeRoam?-1000:63))/96), lastRow=Math.floor((distance+1000)/96);
   for(let column=center-2;column<=center+2;column++){
     for(let row=firstRow;row<=lastRow;row++){
       for(const side of [-1,1]){
         const seed=column*12097+row*871+side*47;
         const worldZ=(row+hash(seed+39))*96, z=worldZ-distance;
-        if(z<63||z>920)continue;
         const x=creekCenter(column,worldZ)+side*(42+hash(seed+43)*43);
+        const depth=cameraDepth(x,z);
+        if(depth<63||depth>920)continue;
         const p=project(x,z);
         if(p.x< -115||p.x>W+115)continue;
-        trees.push({seed,z,p});
+        trees.push({seed,z:depth,p});
       }
     }
   }
@@ -596,7 +697,7 @@ function forestTree(size,seed,sway){
   }
 }
 function drawForest(opacity,world){
-  for(const {object:{kind,seed,x},depth:z,point:p} of world){
+  for(const {object:{kind,seed,x,z:worldZ},depth:z,point:p} of world){
     if(kind>3)continue;
     const size=(135+hash(seed+26)*205)*p.scale;
     if(p.x+size<0||p.x-size>W)continue;
@@ -609,7 +710,7 @@ function drawForest(opacity,world){
     ctx.globalAlpha=fade*.89;forestTree(size,seed,sway);
     ctx.restore();
     if(kind>1)continue;
-    const lamp=project(x+(hash(seed+14)-.5)*36,z), height=clamp((48+hash(seed+32)*25)*p.scale,2,85);
+    const lamp=project(x+(hash(seed+14)-.5)*36,worldZ-distance), height=clamp((48+hash(seed+32)*25)*p.scale,2,85);
     const y=lamp.y-height, r=Math.max(.7,height*.093);
     const flicker=fade*(reduced?.76:.76+.12*Math.sin(t*1.24+seed)+.08*Math.sin(t*2.5+seed));
     ctx.fillStyle=rgba([48,61,66],fade*.86);ctx.fillRect(lamp.x-r*.20,y,r*.4,height);
