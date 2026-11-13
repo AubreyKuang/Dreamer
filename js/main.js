@@ -92,18 +92,26 @@ $("retryPhotoReference").onclick=()=>{
   if(photoReference)startPhotoReplay(photoReference.shot,photoReference.guided,photoReference.focus,photoReference.focusGuided);
 };
 $("photoReferenceGuidance").onclick=()=>{
-  if(!photoReference||photoReference.focus?.checkAgainst)return;
+  if(!photoReference||photoReference.focus?.checkAgainst||photoReference.focus?.singleHint)return;
   photoReference.guided=!photoReference.guided;
   photoReference.focusGuided=false;
   syncPhotoGuidance();
   updatePhotoReference(jadePhotoPose());
 };
 $("photoFocusGuidance").onclick=()=>{
-  if(!photoReference?.focus||photoReference.focus.checkAgainst)return;
+  if(!photoReference?.focus||photoReference.focus.checkAgainst||photoReference.focus.singleHint)return;
   photoReference.focusGuided=!photoReference.focusGuided;
   photoReference.guided=false;
   syncPhotoGuidance();
   updatePhotoReference(jadePhotoPose());
+};
+$("photoSingleHint").onclick=()=>{
+  if(!photoReference?.focus?.singleHint||photoReference.singleHintText)return;
+  const pose=jadePhotoPose();
+  if(!pose)return;
+  photoReference.singleHintText="已用本趟提示："+photoFocusHint(pose,photoReference.shot.jadePose,photoReference.focus.area);
+  updatePhotoReference(pose);
+  canvas.focus({preventScroll:true});
 };
 $("closePhotoReference").onclick=()=>{
   hidePhotoReference();

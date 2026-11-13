@@ -61,7 +61,7 @@ function journalReplayComparison(shot){
   result.textContent=shot.replay.result;
   if(typeof shot.replay.focusResult==="string"){
     const practice=document.createElement("p");
-    practice.textContent=(shot.replay.practiceGuided?"拍摄时开启了专项提示。":"")+shot.replay.focusResult;
+    practice.textContent=(shot.replay.practiceHint?"拍摄前用过单次提示。":shot.replay.practiceGuided?"拍摄时开启了专项提示。":"")+shot.replay.focusResult;
     feedback.append(practice);
   }
   if(shot.replay.practiceSeries){
@@ -73,7 +73,8 @@ function journalReplayComparison(shot){
       const history=document.createElement("ol");
       for(const entry of recent){
         const item=document.createElement("li");
-        item.textContent=entry.when+(entry.replay.practiceGuided?" · 有专项提示 · ":" · ")+entry.replay.focusResult;
+        const help=entry.replay.practiceHint?"用过单次提示 · ":entry.replay.practiceGuided?"有专项提示 · ":"";
+        item.textContent=entry.when+" · "+help+entry.replay.focusResult;
         history.append(item);
       }
       feedback.append(heading,history);
@@ -120,9 +121,14 @@ function journalReplayComparison(shot){
   if(Object.hasOwn(JADE_REPLAY_FOCUS,shot.replay.practiceArea))area.value=shot.replay.practiceArea;
   focusPicker.append(area);
   retry.addEventListener("click",()=>startPhotoReplay(reference,false,area.value?startJadePractice(shot,area.value):null));
-  details.append(summary,pair,picker,feedback,focusPicker,retry);
-  const {practiceArea,practiceGuided}=shot.replay;
-  if(practiceGuided&&shot.jadePose&&Object.hasOwn(JADE_REPLAY_FOCUS,practiceArea)){
+  const single=document.createElement("button");
+  single.type="button";single.className="chip";single.textContent="带一次提示重试";
+  single.disabled=!area.value;
+  area.addEventListener("change",()=>{single.disabled=!area.value;});
+  single.onclick=()=>startPhotoReplay(reference,false,{...startJadePractice(shot,area.value),singleHint:true});
+  details.append(summary,pair,picker,feedback,focusPicker,retry,single);
+  const {practiceArea,practiceGuided,practiceHint}=shot.replay;
+  if((practiceGuided||practiceHint)&&shot.jadePose&&Object.hasOwn(JADE_REPLAY_FOCUS,practiceArea)){
     const verify=document.createElement("button");
     verify.type="button";verify.className="chip";
     verify.textContent=`盲拍验证 · ${JADE_REPLAY_FOCUS[practiceArea]}`;

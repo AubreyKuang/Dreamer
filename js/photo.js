@@ -30,11 +30,13 @@ function showPhotoReference(shot,guided=true,focus=null,focusGuided=false){
   photoReference={shot,guided,focus,focusGuided,src:URL.createObjectURL(shot.blob)};
   $("photoReferenceFocus").hidden=!focus;
   $("photoReferenceFocus").textContent=focus
-    ?`${focus.checkAgainst?"盲拍验证":"本趟专练"}：${JADE_REPLAY_FOCUS[focus.area]}`:"";
+    ?`${focus.checkAgainst?"盲拍验证":focus.singleHint?"单次提示练习":"本趟专练"}：${JADE_REPLAY_FOCUS[focus.area]}`:"";
   $("photoReferenceFeedback").open=false;
   $("photoReferenceImage").src=photoReference.src;
-  $("photoReferenceGuidance").hidden=Boolean(focus?.checkAgainst);
-  $("photoFocusGuidance").hidden=!focus||Boolean(focus.checkAgainst);
+  const limited=Boolean(focus?.checkAgainst||focus?.singleHint);
+  $("photoReferenceGuidance").hidden=limited;
+  $("photoFocusGuidance").hidden=!focus||limited;
+  $("photoSingleHint").hidden=!focus?.singleHint;
   syncPhotoGuidance();
   updatePhotoReference(null);
 }
@@ -53,13 +55,16 @@ function updatePhotoReference(pose){
   if(!photoReference)return;
   $("photoReference").hidden=!routeMode||chapterIndex!==jadeChapter;
   if($("photoReference").hidden)return;
-  const {shot,guided,focus,focusGuided,result}=photoReference;
+  const {shot,guided,focus,focusGuided,result,singleHintText}=photoReference;
   const target=shot.jadePose;
   const passed=photoReferencePassed(pose,target);
   $("retryPhotoReference").hidden=guided&&!passed&&!(pose?.cleared&&(!target.cleared||Boolean(pose.waited)!==Boolean(target.waited)));
+  if(focus?.singleHint)$("photoSingleHint").disabled=!pose||Boolean(singleHintText);
   const text=guided?(passed?"已滑过旧取景，可以重试。":photoReferenceHint(pose,target))
     :focusGuided?photoFocusHint(pose,target,focus.area)
-    :result?"复拍已保存，可在手记对照两张图。":"对照旧图取景，拍下后可查看反馈。";
+    :singleHintText|| (result?"复拍已保存，可在手记对照两张图。"
+    :focus?.singleHint?"进入取景时段后，可查看一次专项提示。"
+    :"对照旧图取景，拍下后可查看反馈。");
   const feedback=$("photoReferenceFeedback");
   feedback.hidden=guided||!result;
   const resultLine=$("photoReferenceResult");
@@ -158,6 +163,7 @@ function savePhoto(){
   const reference=photoReference;
   const compare=reference&&!reference.guided&&routeMode&&chapterIndex===jadeChapter&&name===chapters[jadeChapter].name;
   const focusGuided=compare&&reference.focusGuided;
+  const singleHintUsed=compare&&Boolean(reference.singleHintText);
   const result=compare&&photoReplayResult(jadePose,reference.shot.jadePose);
   const focusResult=compare&&reference.focus&&photoFocusResult(jadePose,reference.shot.jadePose,reference.focus);
   const attempt=compare&&(reference.attempt=(reference.attempt||0)+1);
@@ -177,7 +183,7 @@ function savePhoto(){
       const {blob,jadePose}=reference.shot;
       shot.replay={blob,jadePose,result,...(focusResult?{
         focusResult,practiceArea:reference.focus.area,practiceSeries:reference.focus.series,
-        ...(focusGuided?{practiceGuided:true}:{})
+        ...(focusGuided?{practiceGuided:true}:singleHintUsed?{practiceHint:true}:{})
       }:{})};
     }
     snapshots.unshift({...shot,src:URL.createObjectURL(blob)});
