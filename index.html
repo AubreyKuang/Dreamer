@@ -288,7 +288,7 @@ const chapters = [
       [190,"忽逢桃花林，\n夹岸数百步。","陶渊明《桃花源记》"],
       [360,"花影落进溪里，水把它轻轻带远了。"],
       [530,"如果今天可以在这里坐一会儿，\n你会选哪棵树？"],
-      [714,"芳草鲜美，\n落英缤纷。","陶渊明《桃花源记》"]
+      [714,"芳草鲜美，\n落英缤纷。","陶渊明《桃花源记》","petalShower"]
     ]},
   {at:6080,name:"归园田居",icon:"❧",weather:"田风 · 炊烟",index:0,seed:1261,painting:8,farmland:true,
     sky:[93,135,166],mid:[182,191,169],line:[255,215,151],cloud:[246,218,170],shadow:[112,139,159],hills:[108,149,117],water:[49,81,77],light:[255,229,167],
@@ -316,6 +316,7 @@ const chapters = [
 const original = {...palettes[0],...chapters[0],word:"",whale:false};
 let chapterIndex=0, routeDistance=0, routePosition=0, routeMode=true, nextLine=0, storyTime=0, storyUntil=0, nextStoryAt=0, waveUntil=0;
 let flight=null, flightWind=0;
+let petalShowerAt=null;
 const cloudChapter=3;
 const forestChapter=chapters.findIndex(chapter=>chapter.forest);
 const jadeChapter=chapters.findIndex(chapter=>chapter.jade);
@@ -333,6 +334,7 @@ function storyLine(chapter, lineIndex) {
   $("storyLine").textContent=text;
   $("story").classList.add("show");
   if(gesture==="wave") waveUntil=t+2.8;
+  if(gesture==="petalShower") petalShowerAt=storyTime;
   if(gesture==="flight"){
     clearTimeout(whisperTimer);
     $("whisper").classList.remove("show");
@@ -386,7 +388,7 @@ function enterChapter(index, jump=false) {
   if(jump) {
     routePosition=routeDistance=chapter.at;
     roamDistance=roamChapter=0;
-    storyUntil=nextStoryAt=storyTime;waveUntil=0;flight=null;pendingWhisper=false;
+    storyUntil=nextStoryAt=storyTime;waveUntil=0;flight=null;pendingWhisper=false;petalShowerAt=null;
     $("story").classList.remove("show");
   }
   routeMode=true;chapterIndex=index;nextLine=0;
@@ -505,7 +507,7 @@ function setWord(word){
   if(/鲲|北冥/.test(phrase)){enterChapter(2,true);return;}
   if(/云海|云涛|天接/.test(phrase)){enterChapter(3,true);return;}
   if(/海棠/.test(phrase)){enterChapter(0,true);return;}
-  routeMode=false;flight=null;pendingWhisper=false;
+  routeMode=false;flight=null;pendingWhisper=false;petalShowerAt=null;
   $("story").classList.remove("show");
   const next=phrase?dreamFor(phrase):{...palettes[(current.index+1)%palettes.length],index:(current.index+1)%palettes.length,seed:Math.floor(t*13)+19,word:""};
   // A named dream stays picked until the trip is restarted; an empty word
@@ -1723,6 +1725,36 @@ function particles(p,light){
     }
   }
 }
+const showerColors=[[255,211,218],[246,138,183],[255,174,164],[255,233,191],[216,158,223]];
+function drawPetalShower(){
+  if(petalShowerAt===null)return;
+  const age=storyTime-petalShowerAt;
+  if(age>=12){petalShowerAt=null;return;}
+  const opacity=smooth(age/.65)*(1-smooth((age-8.2)/3.8));
+  const count=reduced?36:170;
+  for(let i=0;i<count;i++){
+    const seed=i*37+121, depth=hash(seed+2);
+    const elapsed=age-hash(seed+3)**1.5*6.1;
+    if(elapsed<0)continue;
+    const phase=hash(seed+7)*TAU;
+    const y=-H*(.022+hash(seed+4)*.095)+elapsed*H*(reduced?.09:.13+depth*.15);
+    if(y< -14||y>H+14)continue;
+    const breeze=reduced?0:Math.sin(phase+elapsed*.85)*W*(.016+depth*.031)+elapsed*W*.013;
+    const x=wrap(hash(seed)*W+breeze+20,W+40)-20;
+    const r=1.8+depth**2.2*7.2, angle=phase+(reduced?0:elapsed*(.47+depth*.57));
+    const width=r*(reduced?.64:.25+.65*Math.abs(Math.cos(angle)));
+    ctx.save();ctx.translate(x,y);ctx.rotate(angle);
+    ctx.globalAlpha=opacity*(.45+depth*.48);
+    ctx.fillStyle=rgba(showerColors[i%showerColors.length],1);
+    ctx.beginPath();ctx.moveTo(0,r);
+    ctx.bezierCurveTo(-width,r*.34,-width*1.25,-r*.88,-width*.39,-r*.9);
+    ctx.quadraticCurveTo(0,-r*.66,width*.25,-r);
+    ctx.bezierCurveTo(width*1.24,-r*.87,width*.97,r*.36,0,r);
+    ctx.fill();
+    if(depth>.74)ellipse(ctx,-width*.24,-r*.22,width*.30,r*.49,"#fff2df",-.12);
+    ctx.restore();
+  }
+}
 function drawDriftingDetails({drift,tones},opacity){
   if(opacity<=0)return;
   const n=reduced?18:54, clock=reduced?0:t;
@@ -1964,6 +1996,7 @@ function render(ms) {
   ctx.save();ctx.globalAlpha=1-river;
   traveler(ctx,px,py,scale,false,air);ctx.restore();
   if(!flight)drawCompanions(px,py,scale,light);
+  drawPetalShower();
   if(t>0){
     const weather = flight?"乘风 · 鹤引":!routeMode && !dreamTheme && current.index===0 && timeInDream>25 ? "薄暮 · 湖雾" : current.weather;
     if($("weather").textContent!==weather) $("weather").textContent=weather;
