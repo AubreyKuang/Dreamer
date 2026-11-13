@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#212345">
 <meta name="description" content="浮梦之境。循着一尾巨鲲，滑过海棠、北冥与云海。">
 <title>浮梦之境 · Reverie</title>
-<link rel="stylesheet" href="style.css?v=jade-pair-run-1">
+<link rel="stylesheet" href="style.css?v=jade-pair-retake-1">
 </head>
 <body>
 <canvas id="world" tabindex="-1" aria-label="梦境航路，左右拖动转向，上下拖动加速或减速"></canvas>
@@ -33,7 +33,11 @@
   </section>
   <section class="story" id="story" role="status" aria-atomic="true"><strong id="storyTitle"></strong><p id="storyLine"></p></section>
   <div id="whisper" role="status"></div>
-  <p id="jadePairStatus" class="panel" role="status" hidden></p>
+  <section id="jadePairPanel" aria-label="玉谷双景" hidden>
+    <p id="jadePairStatus" role="status"></p>
+    <img id="jadePairPreview" alt="当前用于配对的溪心双峰" hidden>
+    <button type="button" class="chip" id="jadePairRetake" hidden>重拍溪心</button>
+  </section>
   <figure id="photoReference" hidden>
     <img id="photoReferenceImage" alt="蓝田日暖的旧留影">
     <figcaption id="photoReferenceStatus" role="status"></figcaption>
@@ -130,8 +134,8 @@
 <script src="js/scenery.js?v=jade-shoal-1"></script>
 <script src="js/render.js?v=jade-pair-1"></script>
 <script src="js/controls.js"></script>
-<script src="js/photo.js?v=jade-pair-run-1"></script>
+<script src="js/photo.js?v=jade-pair-retake-1"></script>
 <script src="js/audio.js?v=harp-duet-1"></script>
-<script src="js/main.js?v=jade-pair-run-1"></script>
+<script src="js/main.js?v=jade-pair-retake-1"></script>
 </body>
 </html>

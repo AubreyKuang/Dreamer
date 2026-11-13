@@ -154,7 +154,11 @@ $("iceSound").onchange=()=>{
   if(skateAudio) skateAudio.bus.gain.setTargetAtTime($("iceSound").checked?1:0,audio.currentTime,.06);
 };
 $("view").onclick=toggleView;
-$("photo").onclick=savePhoto;
+$("photo").onclick=()=>savePhoto();
+$("jadePairRetake").onclick=()=>{
+  savePhoto(true);
+  canvas.focus({preventScroll:true});
+};
 $("push").onclick=pushOff;
 $("dismissSkateTip").onclick=()=>{
   saveSetting("skateTipDone",true);

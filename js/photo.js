@@ -53,24 +53,36 @@ function syncPhotoGuidance(){
   $("photoFocusGuidance").setAttribute("aria-pressed",String(photoReference.focusGuided));
 }
 function hidePhotoReference(){
+  if(jadePairRun?.preview)URL.revokeObjectURL(jadePairRun.preview);
   jadePairRun=null;
-  $("jadePairStatus").hidden=true;
+  $("jadePairPanel").hidden=true;
+  $("jadePairPreview").removeAttribute("src");
   if(!photoReference)return;
   URL.revokeObjectURL(photoReference.src);
   photoReference=null;
   $("photoReferenceImage").removeAttribute("src");
   $("photoReference").hidden=true;
 }
+function jadeCenterInView(pose){
+  return pose?.waited&&pose.depth<JADE_SHOAL.start&&Math.abs(pose.side)<=JADE_MIST_CENTER;
+}
 function updateJadePairRun(pose){
+  const panel=$("jadePairPanel");
+  panel.hidden=!jadePairRun||!routeMode||chapterIndex!==jadeChapter;
+  if(panel.hidden)return;
   const status=$("jadePairStatus");
-  status.hidden=!jadePairRun||!routeMode||chapterIndex!==jadeChapter;
-  if(status.hidden)return;
+  const retake=$("jadePairRetake");
+  const canRetake=jadePairRun.first&&!jadePairRun.complete&&!jadePairRun.retaken&&jadeCenterInView(pose);
+  retake.hidden=!canRetake;
+  retake.disabled=Boolean(jadePairRun.pending);
+  $("jadePairPreview").hidden=!jadePairRun.first||jadePairRun.complete;
   const depth=jadeLight?routeDistance-jadeLight.start:0;
   const text=jadePairRun.complete?"双峰和浅滩倒影已并排存入手记。"
     :jadePairRun.first?(pose?.shoal?"浅滩倒影已入画，可以拍第二张。"
-      :depth>JADE_SHOAL.end?"已滑过浅滩，双峰仍保留在手记里。":"双峰已留影。向左滑去浅滩拍倒影。")
+      :depth>JADE_SHOAL.end?"已滑过浅滩，双峰仍保留在手记里。"
+      :canRetake?"双峰已留影。可重拍一次，或向左滑去浅滩。":"双峰已留影。向左滑去浅滩拍倒影。")
     :depth>=JADE_SHOAL.start?"已滑过溪心，本趟可继续单独留影。"
-    :pose?.waited&&Math.abs(pose.side)<=JADE_MIST_CENTER?"双峰已入画，可以拍第一张。"
+    :jadeCenterInView(pose)?"双峰已入画，可以拍第一张。"
     :"先在溪心等雾散，拍下双峰，再去浅滩。";
   if(status.textContent!==text)status.textContent=text;
 }
@@ -181,14 +193,19 @@ function photoReferenceHint(pose,target){
   return photoReferenceMatches(pose,target)?"已接近旧取景":"已滑过旧取景，可以重试。";
 }
 
-function savePhoto(){
+function savePhoto(retake=false){
   if(!lastPose)return;
   const {name,comparison,jadePose}=lastPose;
   const run=routeMode&&chapterIndex===jadeChapter&&name===chapters[jadeChapter].name?jadePairRun:null;
   const first=run?.first;
-  const pairStep=!run||run.pending||run.complete?null:first?(jadePose?.shoal?"second":null)
-    :jadePose?.waited&&jadePose.depth<JADE_SHOAL.start&&Math.abs(jadePose.side)<=JADE_MIST_CENTER?"first":null;
-  if(pairStep)run.pending=true;
+  const ready=run&&!run.pending&&!run.complete;
+  const pairStep=ready&&(retake?first&&!run.retaken&&jadeCenterInView(jadePose)&&"retake"
+    :first?jadePose?.shoal&&"second":jadeCenterInView(jadePose)&&"first");
+  if(retake&&pairStep!=="retake")return;
+  if(pairStep){
+    run.pending=true;
+    updateJadePairRun(jadePose);
+  }
   const reference=photoReference;
   const compare=reference&&!reference.guided&&routeMode&&chapterIndex===jadeChapter&&name===chapters[jadeChapter].name;
   const focusGuided=compare&&reference.focusGuided;
@@ -208,7 +225,10 @@ function savePhoto(){
   thumb.getContext("2d").drawImage(canvas,0,0,tw,thumb.height);
   const when=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
   thumb.toBlob(blob=>{
-    if(!blob){if(pairStep)run.pending=false;reportJournalFailure();return;}
+    if(!blob){
+      if(pairStep){run.pending=false;updateJadePairRun(jadePhotoPose());}
+      reportJournalFailure();return;
+    }
     const shot={blob,name,when,...(comparison?{comparison}:{}),...(jadePose?{jadePose}:{})};
     if(pairStep==="second")shot.jadePair=first;
     if(compare){
@@ -229,8 +249,16 @@ function savePhoto(){
     })).then(()=>{
       if(pairStep){
         run.pending=false;
-        if(pairStep==="first")run.first={blob,when};
-        else run.complete=true;
+        if(pairStep==="second")run.complete=true;
+        else{
+          run.first={blob,when};
+          run.retaken=pairStep==="retake";
+          if(jadePairRun===run){
+            if(run.preview)URL.revokeObjectURL(run.preview);
+            run.preview=URL.createObjectURL(blob);
+            $("jadePairPreview").src=run.preview;
+          }
+        }
         updateJadePairRun(jadePhotoPose());
       }else if(compare&&photoReference===reference){
         if(attempt===reference.attempt){
@@ -240,7 +268,7 @@ function savePhoto(){
         }
       }else announce(comparison?"留影已收进手记的「两种走法」。":"留影已存入手记。");
     },()=>{
-      if(pairStep)run.pending=false;
+      if(pairStep){run.pending=false;updateJadePairRun(jadePhotoPose());}
       reportJournalFailure();
     });
   },"image/jpeg",.82);
