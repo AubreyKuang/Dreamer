@@ -41,7 +41,7 @@ function updatePhotoReference(pose){
   const passed=photoReferencePassed(pose,target);
   $("retryPhotoReference").hidden=guided&&!passed&&!(pose?.cleared&&(!target.cleared||Boolean(pose.waited)!==Boolean(target.waited)));
   const text=guided?(passed?"已滑过旧取景，可以重试。":photoReferenceHint(pose,target))
-    :"对照旧图取景，拍下后查看结果。";
+    :(photoReference.result||"对照旧图取景，拍下后查看结果。");
   const status=$("photoReferenceStatus");
   if(status.textContent!==text)status.textContent=text;
 }
@@ -55,6 +55,20 @@ function photoReferenceMatches(pose,target){
   return !!pose&&pose.cleared===target.cleared&&Boolean(pose.waited)===(target.waited===true)&&
     Boolean(pose.shoal)===(target.shoal===true)&&Math.abs(pose.side-target.side)<=JADE_PHOTO_SIDE_TOLERANCE&&
     Math.abs(pose.depth-target.depth)<=JADE_PHOTO_DEPTH_TOLERANCE;
+}
+function photoReplayResult(pose,target){
+  if(photoReferenceMatches(pose,target))return "复拍已保存。你找回了旧取景。";
+  let clue;
+  if(!pose)clue="快门落在取景时段之外。";
+  else if(pose.cleared!==target.cleared||Boolean(pose.waited)!==(target.waited===true)){
+    clue=target.waited===true?"旧图是在溪心等雾散后拍的。"
+      :target.cleared?"旧图是在循光拨雾后拍的。":"旧图拍下时，雾还没散。";
+  }else if(Boolean(pose.shoal)!==(target.shoal===true)){
+    clue=target.shoal===true?"旧图里有浅滩倒影。":"这次拍进了浅滩倒影，旧图里没有。";
+  }else if(Math.abs(pose.side-target.side)>JADE_PHOTO_SIDE_TOLERANCE){
+    clue=pose.side<target.side?"这次的位置比旧图偏左。":"这次的位置比旧图偏右。";
+  }else clue=pose.depth<target.depth?"这次比旧图更早按下快门。":"这次比旧图更晚按下快门。";
+  return "复拍已保存。"+clue;
 }
 function photoReferenceHint(pose,target){
   if(!pose)return "对照旧留影找角度";
@@ -75,7 +89,8 @@ function savePhoto(){
   const {name,comparison,jadePose}=lastPose;
   const reference=photoReference;
   const compare=reference&&!reference.guided&&routeMode&&chapterIndex===jadeChapter&&name===chapters[jadeChapter].name;
-  const matched=compare&&photoReferenceMatches(jadePose,reference.shot.jadePose);
+  const result=compare&&photoReplayResult(jadePose,reference.shot.jadePose);
+  const attempt=compare&&(reference.attempt=(reference.attempt||0)+1);
   const thumb=document.createElement("canvas"), tw=320;
   thumb.width=tw;thumb.height=Math.max(1,Math.round(tw*canvas.height/canvas.width));
   thumb.getContext("2d").drawImage(canvas,0,0,tw,thumb.height);
@@ -93,7 +108,10 @@ function savePhoto(){
       keys.onsuccess=()=>keys.result.slice(0,-PHOTO_LIMIT).forEach(key=>photos.delete(key));
     })).then(()=>{
       if(compare&&photoReference===reference){
-        announce(matched?"复拍已保存。你找回了旧取景。":"复拍已保存。与旧取景还有差别，可再试一次。",5);
+        if(attempt===reference.attempt){
+          reference.result=result;
+          updatePhotoReference(jadePhotoPose());
+        }
       }else announce(comparison?"留影已收进手记的「两种走法」。":"留影已存入手记。");
     },reportJournalFailure);
   },"image/jpeg",.82);
