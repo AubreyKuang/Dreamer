@@ -5,6 +5,7 @@ const photoComparisons=[
   {chapter:moonRiverChapter,cue:"moonReflection",views:[["flower","停船 · 花影"],["ribbon","顺流 · 银带"]]},
 ];
 const replayScenes=[
+  {chapter:mirrorLakeChapter,line:chapters[mirrorLakeChapter].lines.findIndex(line=>line[3]==="flight"),label:"镜湖飞渡 · 云上月与水中月"},
   {chapter:riverChapter,line:chapters[riverChapter].lines.findIndex(line=>line[3]==="passingBoat")-1,label:"不系之舟 · 江心船灯"},
   {chapter:harpChapter,line:chapters[harpChapter].lines.findIndex(line=>line[3]==="harpListen"),label:"李凭箜篌引 · 两岸弦声"},
   ...photoComparisons.map(({chapter,cue})=>({

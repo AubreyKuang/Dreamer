@@ -11,6 +11,11 @@ const groveBankVerses={
   petals:"你滑到右侧浅湾。\n岸边的落花聚在一起，水纹从花瓣之间穿过。"
 };
 let groveBanks=null, groveBank=null;
+const mirrorVerses={
+  sky:"你抬升到云上。\n月从云沿升起，山只剩一线。",
+  water:"你低头俯瞰。\n月影铺在湖心，像另一轮月。"
+};
+let mirrorView=null;
 const HARP_BANK_OFFSET=25, HARP_PHRASE_TIME=1.8, HARP_BANK_INTERVAL=4;
 const harpBankVerses={
   left:"左岸的低弦穿过花丛。\n余音贴着水面，慢慢远了。",
@@ -100,12 +105,15 @@ function storyLine(chapter, lineIndex) {
   if(gesture==="harpResult"&&harpBank)text=harpBankVerses[harpBank]+"\n"+(harpDuet?harpDuetVerse:"也可横渡，去听对岸的回应。");
   if(gesture==="harpResult"&&!harpBank)harpListening=null;
   if(gesture==="harpDuet"&&harpDuet)text=verse+"\n"+harpDuetVerse;
+  if(gesture==="mirrorLanding"&&mirrorView)text=mirrorVerses[mirrorView];
+  if(gesture==="flight"&&chapter.mirrorLake)text=verse+"\n按住抬升看云上月，或按住俯瞰看水中月。";
   saveVoyageCheckpoint({chapter:chapter.name,line:lineIndex,metTraveller,
     ...(chapterIndex===riverChapter&&sailedTogether?{sailedTogether:true}:{}),
     ...(chapterIndex===riverChapter&&landedAtPier?{landedAtPier:true}:{}),
     ...(chapter.moonRiver&&moonReflection?{moonReflection}:{}),
     ...(chapter.harp&&harpBank?{harpBank}:{}),
     ...(chapter.harp&&harpDuet?{harpDuet:true}:{}),
+    ...(chapter.mirrorLake&&mirrorView?{mirrorView}:{}),
     ...(chapter.grove&&groveBank?{groveBank}:{})});
   $("storyTitle").textContent=chapter.name;
   $("storyLine").textContent=text;
@@ -118,6 +126,7 @@ function storyLine(chapter, lineIndex) {
     $("whisper").classList.remove("show");
     announcementUntil=t;
     flight={elapsed:0,duration:22,height:0,glide:0,mirrorLake:chapter.mirrorLake===true};
+    if(flight.mirrorLake){flight.moonTime=0;flight.moonSide=null;}
     note(4);
   }
   const characters=Array.from(text.replace(/\s/g,"")).length;
@@ -125,6 +134,18 @@ function storyLine(chapter, lineIndex) {
   nextStoryAt=Math.max(storyUntil+2.8,gesture==="flight"?storyTime+flight.duration:0);
   if(gesture==="harpResult"&&harpBank&&!harpDuet)nextStoryAt=Math.max(nextStoryAt,storyTime+HARP_CROSSING_TIME);
   if(chapter.redCliff&&lineIndex===chapter.lines.length-1)nextStoryAt+=5;
+}
+function watchMirrorFlight(dt,throttle){
+  if(!flight.mirrorLake||mirrorView||flight.elapsed<4||flight.elapsed>17)return;
+  const view=throttle>=.65?"sky":throttle<=-.65?"water":null;
+  flight.moonTime=view?(flight.moonSide===view?flight.moonTime:0)+dt:0;
+  flight.moonSide=view;
+  if(flight.moonTime<2)return;
+  mirrorView=view;
+  const chapter=chapters[mirrorLakeChapter];
+  rememberJournalEntry(chapter.name+"-moon-"+view,{name:chapter.name,text:mirrorVerses[view],source:""});
+  announce(view==="sky"?"云上月":"水中月",3.5);
+  saveVoyageCheckpoint({chapter:chapter.name,line:nextLine-1,mirrorView});
 }
 function travelStory(dt, sideStep=0, holdingBrake=false) {
   if(!holdingBrake||storyTime>=storyUntil)storyTime+=dt;
@@ -262,6 +283,7 @@ function enterChapter(index, jump=false) {
   riverPier=null;landedAtPier=false;
   groveBanks=null;groveBank=null;
   harpListening=null;harpBank=null;harpDuet=false;
+  mirrorView=null;
   if(chapter.moonRiver){moonStillTime=0;moonReflection=null;moonResultAt=null;}
   if(jump) {
     routePosition=routeDistance=chapter.at;
@@ -273,7 +295,7 @@ function enterChapter(index, jump=false) {
   changeDream(sceneForChapter(chapter));
 }
 
-function seekVoyage(index,line=0,met=false,reflection=null,bank=null,shared=false,landed=false,heardBank=null,duet=false){
+function seekVoyage(index,line=0,met=false,reflection=null,bank=null,shared=false,landed=false,heardBank=null,duet=false,moonView=null){
   leaveFreeRoam();
   enterChapter(index,true);
   const chapter=chapters[index];
@@ -283,6 +305,7 @@ function seekVoyage(index,line=0,met=false,reflection=null,bank=null,shared=fals
   sailedTogether=index===riverChapter&&shared;
   landedAtPier=sailedTogether&&landed;
   metTraveller=met||sailedTogether;
+  if(chapter.mirrorLake&&Object.hasOwn(mirrorVerses,moonView))mirrorView=moonView;
   if(chapter.harp&&Object.hasOwn(harpBankVerses,heardBank)){
     harpBank=heardBank;
     harpDuet=duet;

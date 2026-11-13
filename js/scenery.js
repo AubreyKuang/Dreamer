@@ -73,7 +73,16 @@ function drawRouteScenery(light,water,world){
   if(moonRiver>0) drawMoonRiver(moonRiver,world);
   if(ink>0)drawInkRiver(ink,world);
   if(harp>0) drawHarpBanks(harp,world);
-  if(mirror>0) drawMirrorMoon(mirror*(1-(flight?.height??0)));
+  if(mirror>0){
+    const view=routeMode&&chapterIndex===mirrorLakeChapter?mirrorView:null;
+    const air=flight?.height??0;
+    drawMirrorMoon(mirror*(view==="water"?1:1-air),view==="water");
+    if(view==="sky"){
+      const radius=Math.min(W,H)*.045, x=W*.69, y=horizon*.57;
+      bloom(ctx,x,y,radius*2.8,[253,227,188],mirror*.7);
+      ellipse(ctx,x,y,radius,radius,rgba([253,239,211],mirror*.94));
+    }
+  }
   if(moonRiver+harp+mirror>0)drawColorReflections(moonRiver,harp,mirror);
   const base=Math.max(0,1-forest-jade-grove-farm-river-harp);
   if(base===0)return;
@@ -302,7 +311,7 @@ function drawInkRiver(opacity,world){
     if(depth>.77)ellipse(ctx,x+.6,y+.8,radius*.63,radius*.61,rgba([115,115,115],opacity*.15));
   }
 }
-function drawMirrorMoon(opacity){
+function drawMirrorMoon(opacity,focused=false){
   const x=W*.54+heading*W*.028, deep=H-horizon;
   const clock=reduced?0:t;
   const color=[250,231,199];
@@ -312,7 +321,7 @@ function drawMirrorMoon(opacity){
     pigmentGlow(ctx,x+ripple*W*(.003+u*.011),y,
       W*(.012+u*.056),.105,0,color,opacity*(.13+u*.12));
   }
-  const y=horizon+deep*.53, radius=Math.min(W,H)*.029;
+  const y=horizon+deep*.53, radius=Math.min(W,H)*(focused?.059:.029);
   pigmentGlow(ctx,x,y,radius*2.4,.54,0,color,opacity*.46);
   ellipse(ctx,x,y,radius,radius*.64,rgba(color,opacity*.72));
 }

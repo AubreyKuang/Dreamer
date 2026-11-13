@@ -179,6 +179,7 @@ function render(ms) {
     const rise=smooth(flight.elapsed/4.1), fall=smooth((flight.duration-flight.elapsed)/5.4);
     flight.glide=lerp(flight.glide,throttle,1-Math.exp(-dt*1.8));
     flight.height=rise*fall*(.88+flight.glide*.12);
+    watchMirrorFlight(dt,throttle);
     if(flight.elapsed>=flight.duration){
       flight=null;
       skateBurst("edge");

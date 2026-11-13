@@ -836,7 +836,8 @@ function drawCrane(x,y,size,alpha,phase){
 }
 function drawFlight(px,py,scale){
   if(!flight)return;
-  const {elapsed,height}=flight, fade=smooth(height*2.6);
+  const {elapsed,height}=flight;
+  const fade=smooth(height*2.6)*(flight.mirrorLake&&mirrorView==="water"?.24:1);
   const colors=flight.mirrorLake?pigments[13]:flightColors;
   const progress=elapsed/flight.duration, w=Math.min(W,H*1.55);
   const cloudTop=H*(.83-.32*height);
