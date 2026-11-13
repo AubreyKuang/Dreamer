@@ -397,6 +397,13 @@ function drawRiver(opacity,world){
     const {pass,x,z}=traveller, fade=opacity*smooth(pass*6)*smooth((1-pass)*5);
     const p=project(x,z);
     const reply=t<travellerReplyUntil;
+    if(t<sharedLightsUntil){
+      const own=project(lateral*.61,z);
+      const light=fade*smooth((sharedLightsUntil-t)/.7);
+      for(const lamp of [p,own]){
+        pigmentGlow(ctx,lamp.x,lamp.y+10*lamp.scale,27*lamp.scale,1.9,0,riverLamp,light*.7);
+      }
+    }
     if(!metTraveller||reply){
       const sway=reply&&!reduced?Math.sin(t*12)*3:0;
       bloom(ctx,p.x+12*p.scale+sway,p.y-27*p.scale,(reply?34:18)*p.scale,riverLamp,fade*(reply?1:.64));
