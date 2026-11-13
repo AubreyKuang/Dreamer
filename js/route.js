@@ -33,6 +33,7 @@ function storyLine(chapter, lineIndex) {
   const characters=Array.from(text.replace(/\s/g,"")).length;
   storyUntil=storyTime+clamp(7+characters*.18,8,15);
   nextStoryAt=Math.max(storyUntil+2.8,gesture==="flight"?storyTime+flight.duration:0);
+  if(chapter.redCliff&&lineIndex===chapter.lines.length-1)nextStoryAt+=5;
 }
 function travelStory(dt, sideStep=0) {
   storyTime+=dt;

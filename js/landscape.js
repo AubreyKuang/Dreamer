@@ -687,13 +687,15 @@ function skyDetail(c,w,h,p){
   }
   if((cold&&!p.jade)||p.peachNight){
     const mx=w*.81,my=h*.24,r=h*.077;
-    bloom(c,mx,my,r*2.9,p.light,.27);
+    if(p.moonRiver)bloom(c,mx,my,r*5,[196,225,255],.38);
+    bloom(c,mx,my,r*2.9,p.light,p.moonRiver?.65:.27);
     const moon=c.createLinearGradient(mx-r,my-r,mx+r,my+r);
-    moon.addColorStop(0,rgba(p.light,.85));moon.addColorStop(1,rgba(p.mid,.44));
+    moon.addColorStop(0,p.moonRiver?"#fffff6":rgba(p.light,.85));
+    moon.addColorStop(1,p.moonRiver?"#cce7ff":rgba(p.mid,.44));
     ellipse(c,mx,my,r,r,moon);
     for(let i=0;i<10;i++){
       const xx=(hash(i+371)-.5)*r*1.18,yy=(hash(i+432)-.5)*r*1.18;
-      ellipse(c,mx+xx,my+yy,r*(.06+hash(i+139)*.13),r*.073,rgba(p.mid,.20));
+      ellipse(c,mx+xx,my+yy,r*(.06+hash(i+139)*.13),r*.073,rgba(p.mid,p.moonRiver?.08:.20));
     }
   }
 }

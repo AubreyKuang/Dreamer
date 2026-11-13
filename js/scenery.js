@@ -165,6 +165,12 @@ function drawRedCliff(opacity,world){
 }
 const moonFlowers=["#c5d8eb","#e5e9f7","#fff0d8","#d4c8ee"];
 function drawMoonRiver(opacity,world){
+  for(let i=0;i<18;i++){
+    const depth=(i+.5)/18, ripple=Math.sin((reduced?0:t)*.61+i*.77);
+    const x=W*(.81+(ripple*.016+Math.sin(position*.0026)*-.093)*depth);
+    pigmentGlow(ctx,x,horizon+(H-horizon)*depth,W*(.018+depth*.067),.11,0,
+      [216,238,255],opacity*(.32-depth*.11));
+  }
   for(const {object:{kind,seed},depth:z,point:p} of world){
     if(kind>4)continue;
     const bank=smooth((Math.abs(p.x/W-.54)-.10)/.085);
@@ -229,6 +235,20 @@ function drawHarpBanks(opacity,world){
   }
 }
 function drawInkRiver(opacity,world){
+  const snowDistance=routeDistance-chapters[inkChapter].at;
+  if(routeMode&&chapterIndex===inkChapter){
+    const pavilion=smooth((snowDistance-470)/140)*(1-smooth((snowDistance-745)/120))*opacity;
+    const x=W*.65-Math.sin(position*.003)*W*.035,y=horizon+(H-horizon)*.105;
+    const size=Math.min(W,H)*.023;
+    ellipse(ctx,x-size*.58,y+size*.13,size*4.2,size*.095,rgba([99,99,99],pavilion*.40),-.015);
+    ctx.fillStyle=rgba([53,53,53],pavilion*.8);
+    ctx.beginPath();ctx.moveTo(x-size,y-size*.42);ctx.quadraticCurveTo(x-size*.22,y-size*.53,x,y-size*.94);
+    ctx.quadraticCurveTo(x+size*.32,y-size*.56,x+size,y-size*.42);
+    ctx.quadraticCurveTo(x,y-size*.34,x-size,y-size*.42);ctx.fill();
+    ctx.fillRect(x-size*.49,y-size*.39,size*.085,size*.48);
+    ctx.fillRect(x+size*.40,y-size*.39,size*.085,size*.48);
+    pigmentGlow(ctx,x,y+size*.45,size,.22,0,[95,95,95],pavilion*.25);
+  }
   for(const {object:{kind,seed},depth:z,point:p} of world){
     if(kind!==1||Math.abs(p.x/W-.54)<.19)continue;
     const fade=opacity*smooth((z-63)/96)*smooth((1240-z)/610);
