@@ -1,16 +1,16 @@
 "use strict";
 
 const photoComparisons=[
-  {chapter:groveChapter,cue:"groveBanks",views:[["stones","左岸石径"],["petals","右岸浮花"]]},
-  {chapter:moonRiverChapter,cue:"moonReflection",views:[["flower","停船 · 花影"],["ribbon","顺流 · 银带"]]},
+  {chapter:groveChapter,cue:"groveBanks",label:"左右两岸",views:[["stones","左岸石径"],["petals","右岸浮花"]]},
+  {chapter:moonRiverChapter,cue:"moonReflection",label:"停船或顺流",views:[["flower","停船 · 花影"],["ribbon","顺流 · 银带"]]},
+  {chapter:mirrorLakeChapter,cue:"flight",label:"云上月与水中月",views:[["sky","抬升 · 云上月"],["water","俯瞰 · 水中月"]]},
 ];
 const replayScenes=[
-  {chapter:mirrorLakeChapter,line:chapters[mirrorLakeChapter].lines.findIndex(line=>line[3]==="flight"),label:"镜湖飞渡 · 云上月与水中月"},
   {chapter:riverChapter,line:chapters[riverChapter].lines.findIndex(line=>line[3]==="passingBoat")-1,label:"不系之舟 · 江心船灯"},
   {chapter:harpChapter,line:chapters[harpChapter].lines.findIndex(line=>line[3]==="harpListen"),label:"李凭箜篌引 · 两岸弦声"},
-  ...photoComparisons.map(({chapter,cue})=>({
+  ...photoComparisons.map(({chapter,cue,label})=>({
     chapter,line:chapters[chapter].lines.findIndex(line=>line[3]===cue),
-    label:chapters[chapter].name+(chapter===groveChapter?" · 左右两岸":" · 停船或顺流"),
+    label:chapters[chapter].name+" · "+label,
   })),
 ];
 function journalPhoto(shot,label=shot.name){

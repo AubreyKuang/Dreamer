@@ -54,6 +54,7 @@ function comparisonInView(){
   }
   if(chapterIndex===moonRiverChapter&&moonReflection&&
       (moonResultAt===null||storyTime-moonResultAt<MOON_REFLECTION_HOLD+MOON_REFLECTION_FADE/2))return moonReflection;
+  if(chapterIndex===mirrorLakeChapter&&mirrorView)return mirrorView;
   return null;
 }
 
@@ -144,7 +145,7 @@ function watchMirrorFlight(dt,throttle){
   mirrorView=view;
   const chapter=chapters[mirrorLakeChapter];
   rememberJournalEntry(chapter.name+"-moon-"+view,{name:chapter.name,text:mirrorVerses[view],source:""});
-  announce(view==="sky"?"云上月":"水中月",3.5);
+  announce(view==="sky"?"云上月 · 可留影":"水中月 · 可留影",3.5);
   saveVoyageCheckpoint({chapter:chapter.name,line:nextLine-1,mirrorView});
 }
 function travelStory(dt, sideStep=0, holdingBrake=false) {
