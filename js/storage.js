@@ -69,17 +69,33 @@ function loadJournal() {
     if ($("journalDialog").open) renderJournal();
   }).catch(reportJournalFailure);
 }
-async function saveJadePairOrder(shot, shoalFirst) {
+async function updateJadePair(shot, update) {
   await journalTransaction("photos", "readwrite", tx => {
     const photos = tx.objectStore("photos");
     const request = photos.get(shot.storageKey);
     request.onsuccess = () => {
       const saved = request.result;
       if (!saved?.jadePair) { tx.abort(); return; }
-      photos.put({...saved, jadePairShoalFirst: shoalFirst}, shot.storageKey);
+      photos.put(update(saved), shot.storageKey);
     };
   });
+}
+async function saveJadePairOrder(shot, shoalFirst) {
+  await updateJadePair(shot, saved => ({...saved, jadePairShoalFirst: shoalFirst}));
   shot.jadePairShoalFirst = shoalFirst;
+}
+async function replaceJadePairPhoto(shot, photo, shoal) {
+  const {blob,when,jadePose}=photo;
+  if(shoal){
+    await updateJadePair(shot, saved => ({...saved,blob,when,jadePose}));
+    URL.revokeObjectURL(shot.src);
+    Object.assign(shot,{blob,when,jadePose,src:URL.createObjectURL(blob)});
+    if(!snapshots.includes(shot))URL.revokeObjectURL(shot.src);
+  }else{
+    const jadePair={blob,when};
+    await updateJadePair(shot, saved => ({...saved,jadePair}));
+    shot.jadePair=jadePair;
+  }
 }
 function trimJournalPhotos() {
   for (const old of snapshots.splice(PHOTO_LIMIT)) URL.revokeObjectURL(old.src);

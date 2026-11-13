@@ -200,6 +200,14 @@ function renderJournal() {
       replayPreviewUrls.push(src);
       const peaks=journalPhoto({...shot.jadePair,src},"溪心双峰");
       const shoal=journalPhoto(shot,"浅滩倒影");
+      for(const [figure,isShoal,label] of [[peaks,false,"溪心双峰"],[shoal,true,"浅滩倒影"]]){
+        const replace=document.createElement("button");
+        replace.type="button";replace.className="chip";
+        replace.textContent=`补拍${label}并替换`;
+        replace.disabled=shot.storageKey===undefined;
+        replace.onclick=()=>startJadePairReplacement(shot,isShoal);
+        figure.append(replace);
+      }
       const order=document.createElement("button");
       order.type="button";order.className="chip photo-revisit";
       order.textContent="浅滩倒影放在前面";

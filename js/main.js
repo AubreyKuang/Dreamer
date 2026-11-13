@@ -61,6 +61,16 @@ function startPhotoReplay(shot,guided=true,focus=null,focusGuided=false,plan="")
 function startJadePairRun(){
   startReplay(replayScenes.find(scene=>scene.chapter===jadeChapter));
   jadePairRun={};
+  $("jadePairPreview").alt="当前用于配对的溪心双峰";
+  updateJadePairRun(null);
+  canvas.focus({preventScroll:true});
+}
+function startJadePairReplacement(shot,shoal){
+  startReplay(replayScenes.find(scene=>scene.chapter===jadeChapter));
+  const preview=URL.createObjectURL(shoal?shot.blob:shot.jadePair.blob);
+  jadePairRun={replacement:shot,shoal,preview};
+  $("jadePairPreview").alt=shoal?"补拍前的浅滩倒影":"补拍前的溪心双峰";
+  $("jadePairPreview").src=preview;
   updateJadePairRun(null);
   canvas.focus({preventScroll:true});
 }

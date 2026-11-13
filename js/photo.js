@@ -75,8 +75,20 @@ function updateJadePairRun(pose){
   const canRetake=jadePairRun.first&&!jadePairRun.complete&&!jadePairRun.retaken&&jadeCenterInView(pose);
   retake.hidden=!canRetake;
   retake.disabled=Boolean(jadePairRun.pending);
-  $("jadePairPreview").hidden=!jadePairRun.first||jadePairRun.complete;
+  $("jadePairPreview").hidden=!(jadePairRun.first||jadePairRun.replacement)||jadePairRun.complete;
   const depth=jadeLight?routeDistance-jadeLight.start:0;
+  if(jadePairRun.replacement){
+    const {shoal,complete,pending,error}=jadePairRun;
+    const target=shoal?"浅滩倒影":"溪心双峰";
+    const text=complete?`${target}已替换，可在手记查看双景。`
+      :pending?`正在保存${target}。`
+      :error?`未能替换${target}，手记仍保留原照片。`
+      :(shoal?pose?.shoal:jadeCenterInView(pose))?`${target}已入画，按快门替换这张照片。`
+      :(shoal?depth>JADE_SHOAL.end:depth>=JADE_SHOAL.start)?`已滑过${target}，手记仍保留原照片。`
+      :shoal?"先等溪心散雾，再向左滑去浅滩补拍倒影。":"留在溪心等雾散，补拍双峰。";
+    if(status.textContent!==text)status.textContent=text;
+    return;
+  }
   const text=jadePairRun.complete?"双峰和浅滩倒影已并排存入手记。"
     :jadePairRun.first?(pose?.shoal?"浅滩倒影已入画，可以拍第二张。"
       :depth>JADE_SHOAL.end?"已滑过浅滩，双峰仍保留在手记里。"
@@ -197,8 +209,18 @@ function savePhoto(retake=false){
   if(!lastPose)return;
   const {name,comparison,jadePose}=lastPose;
   const run=routeMode&&chapterIndex===jadeChapter&&name===chapters[jadeChapter].name?jadePairRun:null;
+  if(run?.replacement){
+    if(retake||run.pending||run.complete)return;
+    if(!(run.shoal?jadePose?.shoal:jadeCenterInView(jadePose))){
+      announce("到选定的取景点再按快门，手记仍保留原照片。");
+      return;
+    }
+    run.pending=true;
+    run.error=false;
+    updateJadePairRun(jadePose);
+  }
   const first=run?.first;
-  const ready=run&&!run.pending&&!run.complete;
+  const ready=run&&!run.replacement&&!run.pending&&!run.complete;
   const pairStep=ready&&(retake?first&&!run.retaken&&jadeCenterInView(jadePose)&&"retake"
     :first?jadePose?.shoal&&"second":jadeCenterInView(jadePose)&&"first");
   if(retake&&pairStep!=="retake")return;
@@ -224,7 +246,22 @@ function savePhoto(retake=false){
   thumb.width=tw;thumb.height=Math.max(1,Math.round(tw*canvas.height/canvas.width));
   thumb.getContext("2d").drawImage(canvas,0,0,tw,thumb.height);
   const when=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
-  thumb.toBlob(blob=>{
+  thumb.toBlob(async blob=>{
+    if(run?.replacement){
+      try{
+        if(!blob)throw new Error("Could not capture replacement photo");
+        await replaceJadePairPhoto(run.replacement,{blob,when,jadePose},run.shoal);
+        run.complete=true;
+        if($("journalDialog").open)renderJournal();
+      }catch{
+        run.error=true;
+        announce("未能保存补拍，手记仍保留原照片。");
+      }finally{
+        run.pending=false;
+        updateJadePairRun(jadePhotoPose());
+      }
+      return;
+    }
     if(!blob){
       if(pairStep){run.pending=false;updateJadePairRun(jadePhotoPose());}
       reportJournalFailure();return;
