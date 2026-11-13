@@ -45,6 +45,30 @@ if(canContinue){
   $("continueVoyage").hidden=false;
   $("continueVoyage").textContent="继续上次航程 · "+checkpoint.chapter;
 }
+function startReplay(scene){
+  $("journalDialog").close();
+  play();
+  replaying=true;
+  $("returnFromReplay").hidden=false;
+  seekVoyage(scene.chapter,scene.line);
+}
+function endReplay(){
+  replaying=false;
+  $("returnFromReplay").hidden=true;
+}
+$("returnFromReplay").onclick=()=>{
+  const saved=settings.voyageCheckpoint;
+  const index=chapters.findIndex(chapter=>chapter.name===saved?.chapter);
+  endReplay();
+  if(index>=0&&Number.isInteger(saved.line)&&chapters[index].lines[saved.line]){
+    seekVoyage(index,saved.line,saved.metTraveller===true,saved.moonReflection,saved.groveBank);
+  }else{
+    leaveFreeRoam();
+    lateral=position=distance=0;
+    enterChapter(0,true);
+  }
+  canvas.focus({preventScroll:true});
+};
 $("continueVoyage").onclick=()=>{
   if(!canContinue)return;
   play();
@@ -62,6 +86,7 @@ for(const id of ["dreamDialog","journalDialog","helpDialog"]){
 $("restartRoute").onclick=()=>{
   $("journalDialog").close();play();
   leaveFreeRoam();
+  endReplay();
   lateral=position=distance=0;
   seen.clear();iceRings.length=0;
   enterChapter(0,true);

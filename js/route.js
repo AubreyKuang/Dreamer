@@ -10,6 +10,10 @@ const groveBankVerses={
   petals:"你滑到右侧浅湾。\n岸边的落花聚在一起，水纹从花瓣之间穿过。"
 };
 let groveBanks=null, groveBank=null;
+let replaying=false;
+function saveVoyageCheckpoint(checkpoint){
+  if(!replaying)saveSetting("voyageCheckpoint",checkpoint);
+}
 
 function comparisonInView(){
   if(!routeMode)return null;
@@ -62,7 +66,7 @@ function storyLine(chapter, lineIndex) {
   const verse=rememberVerse(chapter,lineIndex,gesture==="passingBoat"&&metTraveller);
   if(gesture==="groveBanksResult"&&groveBank)rememberGroveBank(chapter);
   const text=gesture==="groveBanksResult"&&groveBank?verse+"\n"+groveBankVerses[groveBank]:verse;
-  saveSetting("voyageCheckpoint",{chapter:chapter.name,line:lineIndex,metTraveller,
+  saveVoyageCheckpoint({chapter:chapter.name,line:lineIndex,metTraveller,
     ...(chapter.moonRiver&&moonReflection?{moonReflection}:{}),
     ...(chapter.grove&&groveBank?{groveBank}:{})});
   $("storyTitle").textContent=chapter.name;
@@ -98,7 +102,7 @@ function travelStory(dt, sideStep=0, holdingBrake=false) {
     moonStillTime=holdingBrake&&velocity===0?moonStillTime+dt:0;
     if(moonStillTime>=MOON_REFLECTION_STOP){
       moonReflection="flower";
-      saveSetting("voyageCheckpoint",{chapter:chapter.name,line:nextLine-1,moonReflection});
+      saveVoyageCheckpoint({chapter:chapter.name,line:nextLine-1,moonReflection});
     }
   }
   if(chapterIndex===riverChapter&&!metTraveller){
@@ -110,7 +114,7 @@ function travelStory(dt, sideStep=0, holdingBrake=false) {
       const verse=chapter.lines.findIndex(line=>line[3]==="passingBoat");
       if(nextLine>verse){
         rememberVerse(chapter,verse,true);
-        saveSetting("voyageCheckpoint",{chapter:chapter.name,line:nextLine-1,metTraveller});
+        saveVoyageCheckpoint({chapter:chapter.name,line:nextLine-1,metTraveller});
       }
     }
   }

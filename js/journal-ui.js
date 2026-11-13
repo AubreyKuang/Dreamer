@@ -4,6 +4,13 @@ const photoComparisons=[
   {chapter:groveChapter,cue:"groveBanks",views:[["stones","左岸石径"],["petals","右岸浮花"]]},
   {chapter:moonRiverChapter,cue:"moonReflection",views:[["flower","停船 · 花影"],["ribbon","顺流 · 银带"]]},
 ];
+const replayScenes=[
+  {chapter:riverChapter,line:chapters[riverChapter].lines.findIndex(line=>line[3]==="passingBoat")-1,label:"不系之舟 · 江心船灯"},
+  ...photoComparisons.map(({chapter,cue})=>({
+    chapter,line:chapters[chapter].lines.findIndex(line=>line[3]===cue),
+    label:chapters[chapter].name+(chapter===groveChapter?" · 左右两岸":" · 停船或顺流"),
+  })),
+];
 function journalPhoto(shot,label=shot.name){
   const figure=document.createElement("figure");
   const img=document.createElement("img");
@@ -15,7 +22,7 @@ function journalPhoto(shot,label=shot.name){
 }
 function renderPhotoComparisons(entries){
   const featured=new Set();
-  for(const {chapter,cue,views} of photoComparisons){
+  for(const {chapter,views} of photoComparisons){
     const stage=chapters[chapter];
     const photos=views.map(([id])=>snapshots.find(shot=>shot.name===stage.name&&shot.comparison===id));
     if(!photos.some(Boolean))continue;
@@ -35,10 +42,7 @@ function renderPhotoComparisons(entries){
     const revisit=document.createElement("button");
     revisit.type="button";revisit.className="chip photo-revisit";
     revisit.textContent="重访"+stage.name+"的分岔";
-    revisit.onclick=()=>{
-      $("journalDialog").close();play();
-      seekVoyage(chapter,stage.lines.findIndex(line=>line[3]===cue));
-    };
+    revisit.onclick=()=>startReplay(replayScenes.find(scene=>scene.chapter===chapter));
     entries.append(heading,pair,revisit);
   }
   return featured;
@@ -78,13 +82,24 @@ function renderJournal() {
   }
 }
 function showJournal() {
+  const replayChoices=$("replayChoices");
+  if(!replayChoices.childElementCount){
+    for(const scene of replayScenes){
+      const button=document.createElement("button");
+      button.type="button";button.className="chip";button.textContent=scene.label;
+      button.onclick=()=>startReplay(scene);
+      replayChoices.append(button);
+    }
+  }
   const choices=$("chapterChoices");
   if(!choices.childElementCount){
     const add=(label,index,line=0)=>{
       const button=document.createElement("button");
       button.type="button";button.className="chip";button.textContent=label;
       button.onclick=()=>{
-        $("journalDialog").close();play();seekVoyage(index,line);
+        $("journalDialog").close();play();
+        endReplay();
+        seekVoyage(index,line);
       };
       choices.append(button);
     };

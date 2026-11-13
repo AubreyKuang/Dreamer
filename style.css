@@ -55,7 +55,7 @@ kbd{font:inherit;border:1px solid #fff0d34f;border-radius:4px;padding:2px 5px;ma
 #journalEntries .photo-comparison img{aspect-ratio:4/3;object-fit:contain;background:#171425}
 #journalEntries .photo-comparison p{margin:0;min-height:64px;align-content:center;padding:8px;text-align:center;border:1px dashed var(--line);border-radius:10px}
 .photo-revisit{margin:8px 0 15px;min-height:24px}
-@media(pointer:coarse){.photo-revisit{min-height:44px}}
+@media(pointer:coarse){.photo-revisit,#replayChoices button{min-height:44px}}
 @media(max-width:680px){.story{top:19vh}.story p{font-size:17px}}
 @media(prefers-reduced-motion:reduce){.story{transition:none}}
 dialog{width:min(430px,calc(100% - 32px));padding:25px;color:var(--ink);border:1px solid var(--line);border-radius:22px;background:#28243ce8;backdrop-filter:blur(25px);box-shadow:0 22px 90px #100b325c}
