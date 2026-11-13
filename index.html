@@ -173,6 +173,9 @@ body.clean:not(.playing) .hud .intro{visibility:visible}
       <button class="chip" type="button" data-word="归园田居">归园田居</button>
       <button class="chip" type="button" data-word="不系之舟">不系之舟</button>
       <button class="chip" type="button" data-word="赤壁赋">赤壁赋</button>
+      <button class="chip" type="button" data-word="春江花月夜">春江花月夜</button>
+      <button class="chip" type="button" data-word="李凭箜篌引">李凭箜篌引</button>
+      <button class="chip" type="button" data-word="镜湖飞渡">镜湖飞渡</button>
       <button class="chip" type="button" data-word="晚霞">晚霞</button>
       <button class="chip" type="button" data-word="极光">极光</button>
       <button class="chip" type="button" data-word="花海">花海</button>
@@ -279,6 +282,7 @@ const chapters = [
       [150,"青光亮了。\n此刻，有什么让你想多看一眼？"],
       [280,"它抬起背脊。\n几颗水珠停在你眼前，映着同一轮月亮。"],
       [430,"海上生明月，\n天涯共此时。","张九龄《望月怀远》"],
+      [490,"银台出倒景，\n白浪翻长鲸。","李白《游泰山六首·其四》",null,"silver-terrace"],
       [555,"鲲游过月亮。\n你低下头，它却还在冰里。"]
     ]},
   {at:1740, name:"天接云涛", icon:"☁", weather:"云浪 · 天河", index:2, seed:313, painting:3,
@@ -309,6 +313,7 @@ const chapters = [
       [190,"平林漠漠烟如织。","《菩萨蛮》"],
       [355,"树影一摇，\n倒映在冰上的灯火也轻轻晃了一下。"],
       [530,"想在这一盏灯旁，多留一会儿吗？"],
+      [635,"深林人不知，\n明月来相照。","王维《竹里馆》",null,"bamboo-moon"],
       [720,"风从林梢过去。\n你回头时，那些灯还亮着。"]
     ]},
   {at:4300, name:"蓝田日暖", icon:"☼", weather:"晴岚 · 玉光", index:5, seed:966, painting:6, jade:true,
@@ -336,7 +341,9 @@ const chapters = [
       [1310,"群季俊秀，皆为惠连；\n吾人咏歌，独惭康乐。",peachFeastSource,null,"feast-5"],
       [1425,"幽赏未已，\n高谈转清。",peachFeastSource,null,"feast-6"],
       [1540,"开琼筵以坐花，\n飞羽觞而醉月。",peachFeastSource,"petalShower","feast-7"],
-      [1655,"不有佳咏，何伸雅怀？\n如诗不成，罚依金谷酒数。",peachFeastSource,null,"feast-8"]
+      [1600,"我歌月徘徊，\n我舞影零乱。","李白《月下独酌四首·其一》",null,"moon-dance"],
+      [1655,"不有佳咏，何伸雅怀？\n如诗不成，罚依金谷酒数。",peachFeastSource,null,"feast-8"],
+      [1730,"桃花流水窅然去，\n别有天地非人间。","李白《山中问答》",null,"hidden-valley"]
     ]},
   {at:7040,name:"归园田居",icon:"❧",weather:"田风 · 炊烟",index:0,seed:1261,painting:8,farmland:true,
     sky:[93,135,166],mid:[182,191,169],line:[255,215,151],cloud:[246,218,170],shadow:[112,139,159],hills:[108,149,117],water:[49,81,77],light:[255,229,167],
@@ -354,11 +361,14 @@ const chapters = [
     lines:[
       [25,"黄州。夜深了，岸上只剩一盏灯。"],
       [170,"小舟从此逝，\n江海寄余生。","苏轼《临江仙·夜归临皋》"],
+      [248,"山花如绣颊，\n江火似流萤。","李白《夜下征虏亭》",null,"river-fireflies"],
       [330,"江心也有人赶路。\n两盏灯靠近了一会儿，又各自远去。"],
       [420,"我自飘零\n亦是行人"],
       [510,"惠州。雨停了，屋檐还在滴水。\n你隔着江，看见一扇亮着的窗。"],
+      [600,"峨眉山月半轮秋，\n影入平羌江水流。","李白《峨眉山月歌》",null,"emei-moon"],
       [700,"儋州。海风比江风更咸，\n远处那盏灯，摇得快要看不见。"],
       [880,"人生如逆旅，\n我亦是行人。","苏轼《临江仙·送钱穆父》"],
+      [978,"浮云游子意，\n落日故人情。","李白《送友人》",null,"wandering-cloud"],
       [1065,"天快亮了。那条船还在远处，\n与你隔着一片安静的水。"]
     ]},
   {at:9260,name:"赤壁赋",icon:"☾",weather:"清风 · 明月",index:3,seed:1783,painting:10,river:true,redCliff:true,
@@ -370,6 +380,33 @@ const chapters = [
       [470,"耳得之而为声，\n目遇之而成色。",redCliffSource],
       [630,"取之无禁，\n用之不竭。",redCliffSource],
       [800,"是造物者之无尽藏也，\n而吾与子之所共适。",redCliffSource]
+    ]},
+  {at:10280,name:"春江花月夜",icon:"☾",weather:"春江 · 银花",index:3,seed:1913,painting:11,river:true,moonRiver:true,
+    sky:[24,42,82],mid:[79,116,153],line:[189,212,227],cloud:[205,223,237],shadow:[75,86,139],hills:[61,87,116],water:[33,67,107],light:[229,241,250],
+    lines:[
+      [25,"春江潮水连海平，\n海上明月共潮生。","张若虚《春江花月夜》"],
+      [200,"江流宛转绕芳甸，\n月照花林皆似霰。","张若虚《春江花月夜》"],
+      [370,"你划近了。银白的是花，\n风一过，细枝还在轻轻摇。"],
+      [540,"江天一色无纤尘，\n皎皎空中孤月轮。","张若虚《春江花月夜》"],
+      [720,"不知乘月几人归，\n落月摇情满江树。","张若虚《春江花月夜》"]
+    ]},
+  {at:11180,name:"李凭箜篌引",icon:"♫",weather:"花洲 · 寻弦",index:1,seed:2053,painting:12,harp:true,
+    sky:[25,27,68],mid:[69,81,132],line:[171,133,170],cloud:[177,166,211],shadow:[62,64,120],hills:[64,82,113],water:[28,55,88],light:[235,210,183],
+    lines:[
+      [25,"花洲深处，\n有一根弦轻轻响了。"],
+      [180,"吴丝蜀桐张高秋，\n空山凝云颓不流。","李贺《李凭箜篌引》"],
+      [340,"昆山玉碎凤凰叫，\n芙蓉泣露香兰笑。","李贺《李凭箜篌引》"],
+      [510,"哪一岸先亮起来，\n弦声就从那一岸传来。"],
+      [680,"女娲炼石补天处，\n石破天惊逗秋雨。","李贺《李凭箜篌引》"]
+    ]},
+  {at:12080,name:"镜湖飞渡",icon:"✦",weather:"镜湖 · 月影",index:3,seed:2203,painting:13,mirrorLake:true,
+    sky:[30,41,89],mid:[87,99,159],line:[214,176,193],cloud:[209,189,224],shadow:[70,82,139],hills:[70,95,129],water:[42,58,103],light:[248,228,196],
+    lines:[
+      [25,"我欲因之梦吴越，\n一夜飞度镜湖月。","李白《梦游天姥吟留别》"],
+      [185,"湖月照我影，\n送我至剡溪。","李白《梦游天姥吟留别》"],
+      [345,"脚著谢公屐，\n身登青云梯。","李白《梦游天姥吟留别》"],
+      [520,"霓为衣兮风为马，\n云之君兮纷纷而来下。","李白《梦游天姥吟留别》","flight"],
+      [690,"湖面又近了。\n云散开，那轮月还在等你。"]
     ]}
 ];
 const original = {...palettes[0],...chapters[0],word:"",whale:false};
@@ -383,6 +420,9 @@ const groveChapter=chapters.findIndex(chapter=>chapter.grove);
 const farmChapter=chapters.findIndex(chapter=>chapter.farmland);
 const riverChapter=chapters.findIndex(chapter=>chapter.river);
 const redCliffChapter=chapters.findIndex(chapter=>chapter.redCliff);
+const moonRiverChapter=chapters.findIndex(chapter=>chapter.moonRiver);
+const harpChapter=chapters.findIndex(chapter=>chapter.harp);
+const mirrorLakeChapter=chapters.findIndex(chapter=>chapter.mirrorLake);
 const flightVerse=chapters[cloudChapter].lines.findIndex(line=>line[3]==="flight");
 const journal = new Map();
 const snapshots = [];
@@ -474,7 +514,7 @@ function storyLine(chapter, lineIndex) {
     clearTimeout(whisperTimer);
     $("whisper").classList.remove("show");
     announcementUntil=t;
-    flight={elapsed:0,duration:22,height:0,glide:0};
+    flight={elapsed:0,duration:22,height:0,glide:0,mirrorLake:chapter.mirrorLake===true};
     note(4);
   }
   const characters=Array.from(text.replace(/\s/g,"")).length;
@@ -613,6 +653,13 @@ function setWord(word){
   $("dreamDialog").close();
   play();
   const phrase=word.trim();
+  const newDream=/镜湖|天姥|剡溪/.test(phrase)?mirrorLakeChapter:
+    /箜篌|李凭/.test(phrase)?harpChapter:/春江花月夜/.test(phrase)?moonRiverChapter:-1;
+  if(newDream>=0){
+    dreamTheme=null;
+    enterChapter(newDream,true);
+    return;
+  }
   if(/赤壁|水光接天|无尽藏/.test(phrase)){
     dreamTheme=null;
     enterChapter(redCliffChapter,true);
@@ -795,6 +842,7 @@ function paintSky(p) {
     if(p.jade) paintJadeValley(c,w,h,p);
     if(p.farmland) paintFarmHorizon(c,w,h,p);
     if(p.redCliff) paintRedCliffBank(c,w,h,p);
+    if(p.mirrorLake) paintMirrorPass(c,w,h,p);
     for(let i=0;i<10;i++){
       const x=w*hash(i+320+p.seed), y=h*(.81+hash(i+621)*.20), r=w*(.12+hash(i+312)*.21);
       c.save();c.translate(x,y);c.scale(1,.10+hash(i+901)*.14);
@@ -803,6 +851,28 @@ function paintSky(p) {
   }
   paintAtmosphere(c,w,h,sceneAtmosphere(p));
   return b;
+}
+function paintMirrorPass(c,w,h,p){
+  for(const side of [-1,1]){
+    const edge=side===-1?0:w, inner=w*(.53+side*.11);
+    c.beginPath();c.moveTo(edge,h);
+    for(let i=0;i<=32;i++){
+      const u=i/32;
+      const peak=(1-u)**.74*(.69+.17*Math.sin(u*9+side)+.065*Math.sin(u*37));
+      c.lineTo(lerp(edge,inner,u),h*(.98-peak*.64));
+    }
+    c.lineTo(inner,h);c.closePath();
+    const stone=c.createLinearGradient(0,h*.38,0,h);
+    stone.addColorStop(0,rgba(p.shadow,.94));stone.addColorStop(1,rgba(p.hills,.57));
+    c.fillStyle=stone;c.fill();c.save();c.clip();
+    for(let i=0;i<44;i++){
+      const k=p.seed+side*77+i*17;
+      pigmentGlow(c,lerp(edge,inner,hash(k)),h*(.40+hash(k+5)*.6),Math.min(w,h)*.11,
+        .16,side*.61,p.light,.15+hash(k+8)*.19);
+    }
+    c.restore();
+  }
+  pigmentGlow(c,w*.53,h*.94,w*.39,.15,0,p.cloud,.44);
 }
 function paintRedCliffBank(c,w,h,p){
   const span=w*.59;
@@ -840,7 +910,10 @@ const pigments = [
   [[253,132,177],[255,180,171],[134,141,218],[218,119,186],[114,198,188],[255,223,192]],
   [[179,198,124],[246,194,119],[119,163,175],[215,154,143],[143,185,126],[255,229,159]],
   [[109,135,191],[164,159,208],[79,131,160],[192,129,157],[116,173,182],[242,178,117]],
-  [[106,170,182],[175,211,201],[96,134,166],[168,139,164],[121,195,178],[235,224,178]]
+  [[106,170,182],[175,211,201],[96,134,166],[168,139,164],[121,195,178],[235,224,178]],
+  [[161,196,228],[229,237,245],[113,162,211],[173,171,220],[135,199,195],[244,228,209]],
+  [[121,163,216],[230,160,204],[114,199,179],[166,137,215],[225,183,124],[244,224,182]],
+  [[158,190,234],[218,171,217],[132,152,226],[191,155,212],[150,219,212],[255,223,186]]
 ];
 const skyLighting = [
   null,
@@ -853,7 +926,10 @@ const skyLighting = [
   {point:[.59,.67], veil:[.36,.40], tilt:-.16},
   {point:[.73,.69], veil:[.32,.44], tilt:-.12},
   {point:[.74,.33], veil:[.42,.52], tilt:-.10},
-  {point:[.75,.36], veil:[.38,.61], tilt:-.06}
+  {point:[.75,.36], veil:[.38,.61], tilt:-.06},
+  {point:[.78,.26], veil:[.35,.58], tilt:-.08},
+  {point:[.53,.57], veil:[.31,.45], tilt:-.22},
+  {point:[.71,.32], veil:[.44,.62], tilt:-.13}
 ];
 const atmospheres = [
   {focus:[.29,.66], tones:[[255,190,161],[226,152,208],[137,182,240]], veil:.32, drift:"petal"},
@@ -866,7 +942,10 @@ const atmospheres = [
   {focus:[.57,.66], tones:[[255,215,154],[244,135,190],[154,199,213]], veil:.49, drift:"petal"},
   {focus:[.73,.64], tones:[[255,220,154],[162,202,138],[156,191,203]], veil:.38, drift:"glint"},
   {focus:[.76,.30], tones:[[196,196,234],[122,158,191],[172,129,169]], veil:.47, drift:"mist"},
-  {focus:[.76,.35], tones:[[221,235,208],[109,193,184],[156,176,211]], veil:.56, drift:"mist"}
+  {focus:[.76,.35], tones:[[221,235,208],[109,193,184],[156,176,211]], veil:.56, drift:"mist"},
+  {focus:[.80,.28], tones:[[231,245,255],[159,207,231],[188,175,232]], veil:.49, drift:"petal"},
+  {focus:[.53,.50], tones:[[244,213,168],[164,225,209],[212,158,231]], veil:.35, drift:"glint"},
+  {focus:[.70,.29], tones:[[250,231,203],[170,193,244],[215,165,227]], veil:.50, drift:"mist"}
 ];
 function sceneAtmosphere(scene){
   return atmospheres[scene.painting ?? [0,2,3,4][scene.index]];
@@ -1404,13 +1483,14 @@ function drawCrane(x,y,size,alpha,phase){
 function drawFlight(px,py,scale){
   if(!flight)return;
   const {elapsed,height}=flight, fade=smooth(height*2.6);
+  const colors=flight.mirrorLake?pigments[13]:flightColors;
   const progress=elapsed/flight.duration, w=Math.min(W,H*1.55);
   const cloudTop=H*(.83-.32*height);
   const cloudDeck=ctx.createLinearGradient(0,cloudTop-H*.08,0,H);
-  cloudDeck.addColorStop(0,rgba(flightColors[0],0));
-  cloudDeck.addColorStop(.32,rgba(flightColors[0],fade*.35));
-  cloudDeck.addColorStop(.62,rgba(flightColors[1],fade*.24));
-  cloudDeck.addColorStop(1,rgba(flightColors[2],fade*.38));
+  cloudDeck.addColorStop(0,rgba(colors[0],0));
+  cloudDeck.addColorStop(.32,rgba(colors[0],fade*.35));
+  cloudDeck.addColorStop(.62,rgba(colors[1],fade*.24));
+  cloudDeck.addColorStop(1,rgba(colors[2],fade*.38));
   ctx.fillStyle=cloudDeck;ctx.fillRect(0,cloudTop-H*.08,W,H-cloudTop+H*.08);
   for(let i=0;i<31;i++){
     const depth=hash(i+773), drift=wrap(hash(i+7)+elapsed*(.025+depth*.043),1);
@@ -1418,9 +1498,10 @@ function drawFlight(px,py,scale){
     const y=cloudTop+drift*H*.50+Math.sin(i*2.1)*H*.045;
     const width=w*(.14+hash(i+127)*.31);
     const alpha=fade*Math.sin(drift*Math.PI)*(.20+depth*.36);
-    pigmentGlow(ctx,x,y,width,.17+depth*.12,-.09+depth*.22,flightColors[i%5],alpha);
-    pigmentGlow(ctx,x+width*.11,y+12,width*.71,.12,0,flightColors[(i+1)%5],alpha*.77);
+    pigmentGlow(ctx,x,y,width,.17+depth*.12,-.09+depth*.22,colors[i%5],alpha);
+    pigmentGlow(ctx,x+width*.11,y+12,width*.71,.12,0,colors[(i+1)%5],alpha*.77);
   }
+  if(flight.mirrorLake)return;
   const rocAlpha=smooth(elapsed/2.6)*(1-smooth((elapsed-14)/7));
   const climb=smooth(progress*1.43);
   drawRoc(W*(.59+.14*climb)-heading*w*.029,
@@ -1501,10 +1582,18 @@ function drawRouteScenery(light,water,world){
   if(grove>0) drawPeachGrove(grove,world);
   if(farm>0) drawFarmland(farm,world);
   const cliff=lerp(Number(Boolean(previous.redCliff)),Number(Boolean(current.redCliff)),mix);
-  if(river>cliff) drawRiver(river-cliff,world);
+  const moonRiver=lerp(Number(Boolean(previous.moonRiver)),Number(Boolean(current.moonRiver)),mix);
+  const harp=lerp(Number(Boolean(previous.harp)),Number(Boolean(current.harp)),mix);
+  const mirror=lerp(Number(Boolean(previous.mirrorLake)),Number(Boolean(current.mirrorLake)),mix);
+  const openRiver=river-cliff-moonRiver;
+  if(openRiver>0) drawRiver(openRiver,world);
   if(cliff>0) drawRedCliff(cliff,world);
-  if(forest+jade+grove+farm+river>=1) return;
-  ctx.save();ctx.globalAlpha=1-forest-jade-grove-farm-river;
+  if(moonRiver>0) drawMoonRiver(moonRiver,world);
+  if(harp>0) drawHarpBanks(harp,world);
+  if(mirror>0) drawMirrorMoon(mirror*(1-(flight?.height??0)));
+  const base=Math.max(0,1-forest-jade-grove-farm-river-harp);
+  if(base===0)return;
+  ctx.save();ctx.globalAlpha=base;
   const shadow=routeMode?smooth((travel-665)/265)*(1-smooth((travel-980)/440)):0;
   if(shadow>.001){
     kun(ctx,W*(.6+Math.sin(t*.46)*.06)-Math.sin(position*.003)*W*.12,
@@ -1574,6 +1663,73 @@ function drawRedCliff(opacity,world){
     ctx.lineTo(p.x+width,p.y);ctx.closePath();ctx.fill();
     pigmentGlow(ctx,p.x,p.y+height*.16,width,.16,0,[156,128,135],alpha*.31);
   }
+}
+const moonFlowers=["#c5d8eb","#e5e9f7","#fff0d8","#d4c8ee"];
+function drawMoonRiver(opacity,world){
+  for(const {object:{kind,seed},depth:z,point:p} of world){
+    if(kind>4)continue;
+    const bank=smooth((Math.abs(p.x/W-.54)-.10)/.085);
+    if(bank===0)continue;
+    const fade=opacity*bank*smooth((z-63)/85)*smooth((1240-z)/520);
+    const height=(66+hash(seed+41)*128)*p.scale;
+    const wind=reduced?0:Math.sin(t*.82+seed)*height*.085;
+    ctx.strokeStyle=rgba([90,114,153],fade*.82);
+    ctx.lineWidth=Math.max(.6,height*.028);
+    ctx.beginPath();ctx.moveTo(p.x,p.y);
+    ctx.quadraticCurveTo(p.x-height*.12,p.y-height*.63,p.x+wind,p.y-height);ctx.stroke();
+    for(let i=0;i<7;i++){
+      const spread=(hash(seed+i*21+17)-.5)*height*1.12;
+      const y=p.y-height*(.73+hash(seed+i*29+3)*.34), x=p.x+wind+spread;
+      ctx.beginPath();ctx.moveTo(p.x,p.y-height*.50);
+      ctx.quadraticCurveTo(p.x+spread*.34,y+height*.12,x,y);ctx.stroke();
+      const radius=Math.max(.55,height*(.055+hash(seed+i*13)*.055));
+      if(i%3===0)pigmentGlow(ctx,x,y,radius*3.4,.75,0,[214,229,251],fade*.36);
+      ctx.save();ctx.globalAlpha=fade*.89;
+      for(let petal=0;petal<5;petal++){
+        const angle=petal*TAU/5+i;
+        ellipse(ctx,x+Math.cos(angle)*radius*.64,y+Math.sin(angle)*radius*.59,
+          radius*.78,radius*.45,moonFlowers[(i+petal)%4],angle);
+      }
+      ctx.restore();
+      pigmentGlow(ctx,x,p.y+(p.y-y)*.36,radius*2.4,.37,0,[212,232,250],fade*.23);
+    }
+  }
+}
+function harpSide(step){return Math.floor(step/3)%2?-1:1;}
+function drawHarpBanks(opacity,world){
+  const active=scoreLayer?.score===scores[harpChapter]&&audioOn?(scoreLayer.pluckSide??1):harpSide(Math.floor(timeInDream/2.28));
+  const glowX=W*(.54+active*.26);
+  pigmentGlow(ctx,glowX,horizon+(H-horizon)*.20,W*.25,.28,0,[177,155,238],opacity*.32);
+  for(const {object:{kind,seed},depth:z,point:p} of world){
+    if(kind<2||kind>6)continue;
+    const side=p.x<W*.54?-1:1;
+    const pulse=reduced?.55:.52+.43*Math.sin(t*1.1+seed*.018);
+    const fade=opacity*smooth((z-63)/90)*smooth((1240-z)/480);
+    const power=side===active?(.55+pulse*.45):.25;
+    const r=(20+hash(seed+29)*44)*p.scale;
+    const color=kind%2?[244,151,197]:[151,219,193];
+    pigmentGlow(ctx,p.x,p.y,r*2.8,.25,0,color,fade*power*.55);
+    for(let i=0;i<6;i++){
+      const angle=i*TAU/6;
+      ellipse(ctx,p.x+Math.cos(angle)*r*.33,p.y-r*.21+Math.sin(angle)*r*.19,
+        r*.41,r*.18,rgba(color,fade*power*.87),angle);
+    }
+    ellipse(ctx,p.x,p.y-r*.21,r*.19,r*.12,rgba([255,228,156],fade*power));
+  }
+}
+function drawMirrorMoon(opacity){
+  const x=W*.54+heading*W*.028, deep=H-horizon;
+  const clock=reduced?0:t;
+  const color=[250,231,199];
+  for(let i=0;i<21;i++){
+    const u=(i+1)/22, y=horizon+deep*(.12+u*.83);
+    const ripple=Math.sin(clock*.62+i*.97);
+    pigmentGlow(ctx,x+ripple*W*(.003+u*.011),y,
+      W*(.012+u*.056),.105,0,color,opacity*(.13+u*.12));
+  }
+  const y=horizon+deep*.53, radius=Math.min(W,H)*.029;
+  pigmentGlow(ctx,x,y,radius*2.4,.54,0,color,opacity*.46);
+  ellipse(ctx,x,y,radius,radius*.64,rgba(color,opacity*.72));
 }
 const riverLamp=[255,188,114];
 function riverBoat(x,y,size,opacity,lantern,reflection=false,bearing=0){
@@ -2209,7 +2365,7 @@ function render(ms) {
   if(!flight)drawCompanions(px,py,scale,light);
   drawPetalShower();
   if(t>0){
-    const weather = flight?"乘风 · 鹤引":!routeMode && !dreamTheme && current.index===0 && timeInDream>25 ? "薄暮 · 湖雾" : current.weather;
+    const weather = flight?(flight.mirrorLake?"青云 · 飞渡":"乘风 · 鹤引"):!routeMode && !dreamTheme && current.index===0 && timeInDream>25 ? "薄暮 · 湖雾" : current.weather;
     if($("weather").textContent!==weather) $("weather").textContent=weather;
   }
   updateSkateSound(paused,throttle);
@@ -2397,7 +2553,10 @@ const scores = [
   {chord:[53,60,67,69], melody:[72,77,null,81,79,null,77,74,null,72], beat:1.57, wind:620, voice:"sine"},
   {chord:[48,55,64,69], melody:[67,72,null,76,74,null,72,69,67,null], beat:1.79, wind:460, voice:"triangle"},
   {chord:[43,50,58,62], melody:[67,null,null,74,null,70,null,null,65,null], beat:2.24, wind:350, voice:"sine"},
-  {chord:[45,52,57,64], melody:[69,null,76,null,74,72,null,67,null,69], beat:2.07, wind:400, voice:"sine"}
+  {chord:[45,52,57,64], melody:[69,null,76,null,74,72,null,67,null,69], beat:2.07, wind:400, voice:"sine"},
+  {chord:[48,55,62,69], melody:[72,null,79,81,null,76,null,74], beat:2.18, wind:360, voice:"sine"},
+  {chord:[50,57,65,69], melody:[null,74,null,77,null,81,null,69], beat:2.28, wind:310, voice:"sine"},
+  {chord:[48,55,60,67], melody:[67,null,74,79,null,84,79,null], beat:1.81, wind:470, voice:"sine"}
 ];
 const frequencyFor = midi => 440*Math.pow(2,(midi-69)/12);
 function scoreFor(scene){
@@ -2437,8 +2596,15 @@ function scoreTick(){
   const layer=scoreLayer, now=audio.currentTime;
   if(layer.next>now+.075)return;
   const time=Math.max(now+.015,layer.next);
-  const midi=layer.score.melody[layer.step++%layer.score.melody.length];
+  const step=layer.step++;
+  const midi=layer.score.melody[step%layer.score.melody.length];
   if(midi!==null){
+    if(layer.score===scores[harpChapter]){
+      layer.pluckSide=harpSide(step);
+      pluckHarp(midi,time,layer.gain,layer.pluckSide);
+      layer.next=time+layer.score.beat;
+      return;
+    }
     const oscillator=audio.createOscillator(), envelope=audio.createGain();
     oscillator.frequency.value=frequencyFor(midi);oscillator.type="sine";
     envelope.gain.setValueAtTime(.0001,time);
@@ -2447,6 +2613,20 @@ function scoreTick(){
     oscillator.connect(envelope).connect(layer.gain);oscillator.start(time);oscillator.stop(time+2.75);
   }
   layer.next=time+layer.score.beat;
+}
+function pluckHarp(midi,time,destination,side){
+  const pan=audio.createStereoPanner?.();
+  if(pan){pan.pan.value=side*.73;pan.connect(destination);}
+  for(const [partial,volume,decay] of [[1,.16,1.9],[2,.047,.7],[3,.022,.36]]){
+    const string=audio.createOscillator(), envelope=audio.createGain();
+    string.frequency.value=frequencyFor(midi)*partial;
+    envelope.gain.setValueAtTime(.0001,time);
+    envelope.gain.exponentialRampToValueAtTime(volume*(.79+.21*heading*side),time+.018);
+    envelope.gain.exponentialRampToValueAtTime(.0001,time+decay);
+    string.connect(envelope).connect(pan??destination);
+    string.onended=()=>{string.disconnect();envelope.disconnect();if(partial===1)pan?.disconnect();};
+    string.start(time);string.stop(time+decay+.025);
+  }
 }
 function note(index){
   if(!audioOn||!audio||audio.state!=="running")return;
