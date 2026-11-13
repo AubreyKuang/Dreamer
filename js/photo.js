@@ -1,6 +1,7 @@
 "use strict";
 
 let photoReference=null;
+const JADE_PHOTO_SIDE_TOLERANCE=12, JADE_PHOTO_DEPTH_TOLERANCE=35;
 function jadePhotoPose(){
   if(!routeMode||chapterIndex!==jadeChapter||!jadeLight||storyTime>=storyUntil)return null;
   const cue=chapters[jadeChapter].lines[nextLine-1]?.[3];
@@ -9,7 +10,7 @@ function jadePhotoPose(){
 }
 function showPhotoReference(shot){
   hidePhotoReference();
-  photoReference={pose:shot.jadePose,src:URL.createObjectURL(shot.blob)};
+  photoReference={shot,src:URL.createObjectURL(shot.blob)};
   $("photoReferenceImage").src=photoReference.src;
   updatePhotoReference(null);
 }
@@ -24,11 +25,23 @@ function updatePhotoReference(pose){
   if(!photoReference)return;
   $("photoReference").hidden=!routeMode||chapterIndex!==jadeChapter;
   if($("photoReference").hidden)return;
-  const target=photoReference.pose;
-  const close=pose&&pose.cleared===target.cleared&&Math.abs(pose.side-target.side)<=12&&Math.abs(pose.depth-target.depth)<=35;
-  const text=close?"已接近旧取景":"对照旧留影找角度";
+  const target=photoReference.shot.jadePose;
+  const passed=(jadeLight&&routeDistance-jadeLight.start>target.depth+JADE_PHOTO_DEPTH_TOLERANCE)||
+    (!pose&&chapters[jadeChapter].lines[nextLine-1]?.[3]!=="jadeLight");
+  $("retryPhotoReference").hidden=!passed&&!(pose?.cleared&&!target.cleared);
+  const text=passed?"已滑过旧取景，可以重试。":photoReferenceHint(pose,target);
   const status=$("photoReferenceStatus");
   if(status.textContent!==text)status.textContent=text;
+}
+function photoReferenceHint(pose,target){
+  if(!pose)return "对照旧留影找角度";
+  const side=target.side-pose.side;
+  const depth=target.depth-pose.depth;
+  if(pose.cleared!==target.cleared)return target.cleared?"旧图的雾已散开，先向右循光。":"旧图仍有雾，这次已拨雾。";
+  if(side>JADE_PHOTO_SIDE_TOLERANCE)return "旧取景在右侧。";
+  if(side< -JADE_PHOTO_SIDE_TOLERANCE)return "旧取景在左侧。";
+  if(depth>JADE_PHOTO_DEPTH_TOLERANCE)return "横向已接近，再往前滑。";
+  return "已接近旧取景";
 }
 
 function savePhoto(){

@@ -53,6 +53,11 @@ function startReplay(scene){
   $("returnFromReplay").hidden=false;
   seekVoyage(scene.chapter,scene.line);
 }
+function startPhotoReplay(shot){
+  startReplay(replayScenes.find(scene=>scene.chapter===jadeChapter));
+  showPhotoReference(shot);
+  canvas.focus({preventScroll:true});
+}
 function endReplay(){
   hidePhotoReference();
   replaying=false;
@@ -83,6 +88,9 @@ function resumeCheckpoint(index,saved){
 }
 $("start").onclick=play;
 $("quickJournal").onclick=showJournal;
+$("retryPhotoReference").onclick=()=>{
+  if(photoReference)startPhotoReplay(photoReference.shot);
+};
 $("closePhotoReference").onclick=()=>{
   hidePhotoReference();
   canvas.focus({preventScroll:true});
