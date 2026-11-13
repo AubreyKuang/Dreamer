@@ -15,6 +15,7 @@ const replayScenes=[
     label:chapters[chapter].name+" · "+label,
   })),
 ];
+let replayPreviewUrls=[];
 function journalPhoto(shot,label=shot.name){
   const figure=document.createElement("figure");
   const img=document.createElement("img");
@@ -30,6 +31,30 @@ function journalPhoto(shot,label=shot.name){
     figure.append(compare);
   }
   return figure;
+}
+function journalReplayComparison(shot){
+  const details=document.createElement("details");
+  details.className="replay-comparison";
+  const summary=document.createElement("summary");
+  summary.textContent="对照复拍 · "+shot.when;
+  const pair=document.createElement("div");
+  pair.className="photo-comparison";
+  const reference={name:shot.name,...shot.replay};
+  reference.src=URL.createObjectURL(reference.blob);
+  replayPreviewUrls.push(reference.src);
+  const old=journalPhoto(reference,"旧取景");
+  old.querySelector("figcaption").textContent="旧取景";
+  const retry=old.querySelector("button");
+  retry.textContent="沿用旧图重试";
+  retry.onclick=()=>startPhotoReplay(reference,false);
+  const next=journalPhoto(shot,"本次复拍");
+  const reuse=next.querySelector("button");
+  if(reuse)reuse.textContent="用新角度重访";
+  pair.append(old,next);
+  const result=document.createElement("p");
+  result.textContent=shot.replay.result;
+  details.append(summary,pair,result);
+  return details;
 }
 function renderPhotoComparisons(entries){
   const featured=new Set();
@@ -65,7 +90,17 @@ function renderJournal() {
   const entries=$("journalEntries");
   const previousFocus=entries.contains(document.activeElement)&&document.activeElement.textContent;
   entries.replaceChildren();
+  for(const url of replayPreviewUrls)URL.revokeObjectURL(url);
+  replayPreviewUrls=[];
   const featured=renderPhotoComparisons(entries);
+  for(const shot of snapshots){
+    if(shot.name===chapters[jadeChapter].name&&shot.replay?.blob instanceof Blob&&
+      Number.isFinite(shot.replay.jadePose?.side)&&Number.isFinite(shot.replay.jadePose.depth)&&
+      typeof shot.replay.jadePose.cleared==="boolean"&&typeof shot.replay.result==="string"){
+      entries.append(journalReplayComparison(shot));
+      featured.add(shot);
+    }
+  }
   if(snapshots.length>featured.size){
     const shots=document.createElement("h3");
     shots.textContent="留影";entries.append(shots);

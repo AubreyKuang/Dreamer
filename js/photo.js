@@ -98,6 +98,10 @@ function savePhoto(){
   thumb.toBlob(blob=>{
     if(!blob){reportJournalFailure();return;}
     const shot={blob,name,when,...(comparison?{comparison}:{}),...(jadePose?{jadePose}:{})};
+    if(compare){
+      const {blob,jadePose}=reference.shot;
+      shot.replay={blob,jadePose,result};
+    }
     snapshots.unshift({...shot,src:URL.createObjectURL(blob)});
     trimJournalPhotos();
     if ($("journalDialog").open) renderJournal();
