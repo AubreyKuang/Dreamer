@@ -4,12 +4,12 @@ const photoComparisons=[
   {chapter:groveChapter,cue:"groveBanks",label:"左右两岸",views:[["stones","左岸石径"],["petals","右岸浮花"]]},
   {chapter:moonRiverChapter,cue:"moonReflection",label:"停船或顺流",views:[["flower","停船 · 花影"],["ribbon","顺流 · 银带"]]},
   {chapter:mirrorLakeChapter,cue:"flight",label:"云上月与水中月",views:[["sky","抬升 · 云上月"],["water","俯瞰 · 水中月"]]},
+  {chapter:jadeChapter,cue:"jadeLight",label:"循光看山",views:[["jade-light","循光 · 玉色山脚"],["jade-wait","等雾 · 溪心双峰"]]},
 ];
 const replayScenes=[
   {chapter:riverChapter,line:chapters[riverChapter].lines.findIndex(line=>line[3]==="passingBoat")-1,label:"不系之舟 · 江心船灯"},
   {chapter:harpChapter,line:chapters[harpChapter].lines.findIndex(line=>line[3]==="harpListen"),label:"李凭箜篌引 · 两岸弦声"},
   {chapter:fireflyChapter,line:chapters[fireflyChapter].lines.findIndex(line=>line[3]==="fireflyPause"),label:"天河星原 · 袖口萤火"},
-  {chapter:jadeChapter,line:chapters[jadeChapter].lines.findIndex(line=>line[3]==="jadeLight"),label:"蓝田日暖 · 循光看山"},
   ...photoComparisons.map(({chapter,cue,label})=>({
     chapter,line:chapters[chapter].lines.findIndex(line=>line[3]===cue),
     label:chapters[chapter].name+" · "+label,
@@ -35,7 +35,7 @@ function renderPhotoComparisons(entries){
   const featured=new Set();
   for(const {chapter,views} of photoComparisons){
     const stage=chapters[chapter];
-    const photos=views.map(([id])=>snapshots.find(shot=>shot.name===stage.name&&shot.comparison===id));
+    const photos=views.map(([id])=>snapshots.find(shot=>shot.name===stage.name&&photoComparison(shot)===id));
     if(!photos.some(Boolean))continue;
     const heading=document.createElement("h3");
     heading.textContent=stage.name+" · 两种走法";
@@ -52,7 +52,10 @@ function renderPhotoComparisons(entries){
     }
     const revisit=document.createElement("button");
     revisit.type="button";revisit.className="chip photo-revisit";
-    revisit.textContent="重访"+stage.name+"的分岔";
+    const missing=photos.findIndex(shot=>!shot);
+    revisit.textContent=chapter===jadeChapter&&missing!==-1
+      ? "重访蓝田日暖 · 补拍"+(missing===0?"山脚":"双峰")
+      : "重访"+stage.name+"的分岔";
     revisit.onclick=()=>startReplay(replayScenes.find(scene=>scene.chapter===chapter));
     entries.append(heading,pair,revisit);
   }
@@ -69,7 +72,7 @@ function renderJournal() {
     for(const shot of snapshots){
       if(featured.has(shot))continue;
       const comparison=photoComparisons.find(({chapter})=>chapters[chapter].name===shot.name);
-      const label=comparison?.views.find(([id])=>id===shot.comparison)?.[1];
+      const label=comparison?.views.find(([id])=>id===photoComparison(shot))?.[1];
       entries.append(journalPhoto(shot,label?shot.name+" · "+label:shot.name));
     }
   }

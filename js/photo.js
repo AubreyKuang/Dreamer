@@ -2,6 +2,13 @@
 
 let photoReference=null;
 const JADE_PHOTO_SIDE_TOLERANCE=12, JADE_PHOTO_DEPTH_TOLERANCE=35;
+function jadeComparison(pose){
+  if(pose?.cleared!==true||!Number.isFinite(pose.side)||!Number.isFinite(pose.depth))return null;
+  return pose.waited===true?"jade-wait":"jade-light";
+}
+function photoComparison(shot){
+  return shot.name===chapters[jadeChapter].name?jadeComparison(shot.jadePose):shot.comparison;
+}
 function jadePhotoPose(){
   if(!routeMode||chapterIndex!==jadeChapter||!jadeLight||storyTime>=storyUntil)return null;
   const cue=chapters[jadeChapter].lines[nextLine-1]?.[3];

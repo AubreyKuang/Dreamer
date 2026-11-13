@@ -226,7 +226,7 @@ function updateJadeLight(chapter,dt,holdingBrake){
   if(jadeLight.still>=JADE_MIST_WAIT){
     waitedForJadeMist=true;
     rememberJournalEntry(chapter.name+"-jade-wait",{name:chapter.name,text:jadeWaitVerse,source:""});
-    announce("雾散了。松开刹车继续，或留在这里看山。",4);
+    announce("雾散了。可留影，也可松开刹车继续。",4);
     saveVoyageCheckpoint({chapter:chapter.name,line:nextLine-1,waitedForJadeMist});
     return;
   }
@@ -235,7 +235,7 @@ function updateJadeLight(chapter,dt,holdingBrake){
   if(jadeLight.held<JADE_LIGHT_HOLD)return;
   followedJadeLight=true;
   rememberJournalEntry(chapter.name+"-jade-light",{name:chapter.name,text:jadeLightVerse,source:""});
-  announce("沿光滑过，山脚的薄雾散开了。",4);
+  announce("沿光滑过，山脚的薄雾散开了。可以留影。",4);
   saveVoyageCheckpoint({chapter:chapter.name,line:nextLine-1,followedJadeLight});
 }
 function updateFirefly(chapter,dt,holdingBrake){
@@ -399,4 +399,11 @@ function seekVoyage(index,line=0,met=false,reflection=null,bank=null,shared=fals
     changeDream(sceneForChapter(chapter));
   }
   storyLine(chapter,line);
+  if(chapter.jade&&(followedJadeLight||waitedForJadeMist)){
+    if(chapter.lines[line][3]==="jadeLightResult"){
+      const invitation=chapter.lines.find(cue=>cue[3]==="jadeLight");
+      jadeLight={x:0,start:chapter.at+invitation[0],held:0,still:0};
+    }
+    if(jadeLight&&followedJadeLight)lateral=position=jadeLightOffset()/.61;
+  }
 }

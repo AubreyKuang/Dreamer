@@ -289,7 +289,7 @@ function render(ms) {
   updateSkateSound(paused,throttle);
   scoreTick();
   const jadePose=jadePhotoPose();
-  lastPose={name:current.name,comparison:comparisonInView(),jadePose};
+  lastPose={name:current.name,comparison:jadeComparison(jadePose)||comparisonInView(),jadePose};
   updatePhotoReference(jadePose);
   requestAnimationFrame(render);
 }
