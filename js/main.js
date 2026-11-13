@@ -58,10 +58,10 @@ function startPhotoReplay(shot,guided=true,focus=null,focusGuided=false,plan="")
   showPhotoReference(shot,guided,focus,focusGuided,plan);
   canvas.focus({preventScroll:true});
 }
-function startJadePairRun(){
+function startJadePairRun(reflections=false){
   startReplay(replayScenes.find(scene=>scene.chapter===jadeChapter));
-  jadePairRun={};
-  $("jadePairPreview").alt="当前用于配对的溪心双峰";
+  jadePairRun={reflections};
+  $("jadePairPreview").alt=reflections?"已拍下的浅滩水纹":"当前用于配对的溪心双峰";
   updateJadePairRun(null);
   canvas.focus({preventScroll:true});
 }

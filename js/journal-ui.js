@@ -193,6 +193,17 @@ function renderJournal() {
   replayPreviewUrls=[];
   const featured=renderPhotoComparisons(entries);
   for(const shot of snapshots){
+    if(shot.jadeWaterPair?.blob instanceof Blob){
+      const heading=document.createElement("h3");
+      heading.textContent="浅滩 · 水纹与静影";
+      const pair=document.createElement("div");
+      pair.className="photo-comparison";
+      const src=URL.createObjectURL(shot.jadeWaterPair.blob);
+      replayPreviewUrls.push(src);
+      pair.append(journalPhoto({...shot.jadeWaterPair,src},"水纹"),journalPhoto(shot,"浅滩倒影"));
+      entries.append(heading,pair);
+      featured.add(shot);
+    }
     if(shot.name===chapters[jadeChapter].name&&shot.jadePair?.blob instanceof Blob){
       const heading=document.createElement("h3");
       heading.textContent="玉谷双景";
@@ -295,8 +306,11 @@ function showJournal() {
     }
     const pair=document.createElement("button");
     pair.type="button";pair.className="chip";pair.textContent="玉谷 · 同一趟拍双景";
-    pair.onclick=startJadePairRun;
-    replayChoices.append(pair);
+    pair.onclick=()=>startJadePairRun();
+    const water=document.createElement("button");
+    water.type="button";water.className="chip";water.textContent="玉谷 · 同一趟拍水纹与静影";
+    water.onclick=()=>startJadePairRun(true);
+    replayChoices.append(pair,water);
   }
   const choices=$("chapterChoices");
   if(!choices.childElementCount){

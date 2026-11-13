@@ -78,6 +78,17 @@ function updateJadePairRun(pose){
   retake.disabled=Boolean(jadePairRun.pending);
   $("jadePairPreview").hidden=!(jadePairRun.first||jadePairRun.replacement)||jadePairRun.complete;
   const depth=jadeLight?routeDistance-jadeLight.start:0;
+  if(jadePairRun.reflections){
+    const {first,complete,pending}=jadePairRun;
+    const text=complete?"水纹和静影已并排存入手记。"
+      :pending?"正在保存留影。"
+      :depth>JADE_SHOAL.end?(first?"已滑过浅滩，水纹仍保留在手记里。":"已滑过浅滩，可回手记重试。")
+      :!pose?.shoal?(first?"回到浅滩，等水纹散开再拍。":"等溪心散雾，再向左滑入浅滩，先拍水纹。")
+      :first?(pose.shoalCalm?"水面已静，按快门拍下第二张。":"停稳并持续刹停，等水纹散开再拍。")
+      :pose.shoalCalm?"松开刹车等水纹回来，再拍第一张。":"按快门拍下水纹，再停稳等静影。";
+    if(status.textContent!==text)status.textContent=text;
+    return;
+  }
   if(jadePairRun.replacement){
     const {shoal,complete,pending,error}=jadePairRun;
     const target=shoal?"浅滩倒影":"溪心双峰";
@@ -213,6 +224,13 @@ function savePhoto(retake=false){
   if(!lastPose)return;
   const {name,comparison,jadePose}=lastPose;
   const run=routeMode&&chapterIndex===jadeChapter&&name===chapters[jadeChapter].name?jadePairRun:null;
+  if(run?.reflections&&!run.complete){
+    if(run.pending||retake)return;
+    if(!jadePose?.shoal||jadePose.shoalCalm!==Boolean(run.first)){
+      announce(run.first?"请在浅滩等水面平静后再拍。":"请先在浅滩拍下带水纹的倒影。");
+      return;
+    }
+  }
   if(run?.replacement){
     if(retake||run.pending||run.complete)return;
     if(!(run.shoal?jadePose?.shoal:jadeCenterInView(jadePose))){
@@ -225,7 +243,8 @@ function savePhoto(retake=false){
   }
   const first=run?.first;
   const ready=run&&!run.replacement&&!run.pending&&!run.complete;
-  const pairStep=ready&&(retake?first&&!run.retaken&&jadeCenterInView(jadePose)&&"retake"
+  const pairStep=ready&&(run.reflections?(first?"second":"first")
+    :retake?first&&!run.retaken&&jadeCenterInView(jadePose)&&"retake"
     :first?jadePose?.shoal&&"second":jadeCenterInView(jadePose)&&"first");
   if(retake&&pairStep!=="retake")return;
   if(pairStep){
@@ -271,7 +290,10 @@ function savePhoto(retake=false){
       reportJournalFailure();return;
     }
     const shot={blob,name,when,...(comparison?{comparison}:{}),...(jadePose?{jadePose}:{})};
-    if(pairStep==="second")shot.jadePair=first;
+    if(pairStep==="second"){
+      if(run.reflections)shot.jadeWaterPair=first;
+      else shot.jadePair=first;
+    }
     if(compare){
       const {blob,jadePose}=reference.shot;
       shot.replay={blob,jadePose,result,...(planResult?{planResult}:{}),...(focusResult?{
