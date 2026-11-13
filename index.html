@@ -143,6 +143,7 @@ body.clean:not(.playing) .hud .intro{visibility:visible}
   </div>
   <div class="hint" id="flightHint" hidden><kbd>←</kbd><kbd>→</kbd> 乘风转向　<kbd>↑</kbd><kbd>↓</kbd> 抬升 / 俯瞰</div>
   <div class="hint" id="hint"><kbd>←</kbd><kbd>→</kbd> 转向　<kbd>↑</kbd><kbd>↓</kbd> 加速 / 刹停　<kbd>空格</kbd> 蹬冰</div>
+  <div class="hint" id="roamHint" hidden><kbd>←</kbd><kbd>→</kbd> 改变朝向　<kbd>↑</kbd><kbd>↓</kbd> 加速 / 倒滑　<kbd>G</kbd> 回到航程</div>
   <div class="bottom">
     <button class="pill" id="photo" type="button" title="留影 · P" aria-label="留影">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h4l2-3h4l2 3h4v12H4z"/><circle cx="12" cy="13" r="3"/></svg>留影
@@ -182,7 +183,8 @@ body.clean:not(.playing) .hud .intro{visibility:visible}
       <button class="chip" type="button" data-word="花海">花海</button>
       <button class="chip" type="button" data-word="星雨">星雨</button>
     </div>
-    <p><button class="chip" id="resumeRoute" type="button">回到航程</button></p>
+    <p><button class="chip" id="freeRoam" type="button">自由漫游 · G</button>
+      <button class="chip" id="resumeRoute" type="button">回到航程</button></p>
   </dialog>
   <dialog id="journalDialog" aria-labelledby="journalTitle">
     <button class="tool close" type="button" aria-label="关闭">×</button>
@@ -196,6 +198,7 @@ body.clean:not(.playing) .hud .intro{visibility:visible}
     <p><kbd>←</kbd> <kbd>→</kbd> 或左右拖动转向。<kbd>空格</kbd> 蹬冰，<kbd>↑</kbd> / <kbd>↓</kbd> 加速或刹停。触屏可上下拖动，或按住「加速」「刹停」。</p>
     <p><kbd>Enter</kbd> 换梦，<kbd>H</kbd> 观景，<kbd>P</kbd> 留影。靠近冰面的光点，偶尔会遇见一句轻声问候。可以想一想，也可以继续滑。</p>
     <p>随大鹏离开冰面时，左右仍可转向。向上迎风抬升，向下俯瞰云海。「换一个梦」里选「扶摇」，可以直接飞这一段。</p>
+    <p>按 <kbd>G</kbd> 切换自由漫游。漫游时左右改变朝向，向上加速，向下先减速再倒滑。手机上可在「换一个梦」开启，再拖动转向。</p>
     <p>松开按键后，你会凭惯性继续滑。按住刹停可以留在原地看风景。海棠、海雾、鲲与云海会依次出现。配乐会随场景变化，点右上角扬声器可以开关。</p>
     <p><label><input type="checkbox" id="iceSound" checked> 冰面音效</label></p>
     <button class="chip" id="journal" type="button">滑行手记</button>
@@ -339,12 +342,9 @@ const chapters = [
       [965,"而浮生若梦，为欢几何？\n古人秉烛夜游，良有以也。",peachFeastSource,null,"feast-2"],
       [1080,"况阳春召我以烟景，\n大块假我以文章。",peachFeastSource,null,"feast-3"],
       [1195,"会桃花之芳园，\n序天伦之乐事。",peachFeastSource,null,"feast-4"],
-      [1310,"群季俊秀，皆为惠连；\n吾人咏歌，独惭康乐。",peachFeastSource,null,"feast-5"],
-      [1425,"幽赏未已，\n高谈转清。",peachFeastSource,null,"feast-6"],
-      [1540,"开琼筵以坐花，\n飞羽觞而醉月。",peachFeastSource,"petalShower","feast-7"],
-      [1600,"我歌月徘徊，\n我舞影零乱。","李白《月下独酌四首·其一》",null,"moon-dance"],
-      [1655,"不有佳咏，何伸雅怀？\n如诗不成，罚依金谷酒数。",peachFeastSource,null,"feast-8"],
-      [1730,"桃花流水窅然去，\n别有天地非人间。","李白《山中问答》",null,"hidden-valley"]
+      [1310,"开琼筵以坐花，\n飞羽觞而醉月。",peachFeastSource,"petalShower","feast-7"],
+      [1450,"我歌月徘徊，\n我舞影零乱。","李白《月下独酌四首·其一》",null,"moon-dance"],
+      [1590,"桃花流水窅然去，\n别有天地非人间。","李白《山中问答》",null,"hidden-valley"]
     ]},
   {at:7040,name:"归园田居",icon:"❧",weather:"田风 · 炊烟",index:0,seed:1261,painting:8,farmland:true,
     sky:[93,135,166],mid:[182,191,169],line:[255,215,151],cloud:[246,218,170],shadow:[112,139,159],hills:[108,149,117],water:[49,81,77],light:[255,229,167],
@@ -368,9 +368,8 @@ const chapters = [
       [510,"惠州。雨停了，屋檐还在滴水。\n你隔着江，看见一扇亮着的窗。"],
       [600,"峨眉山月半轮秋，\n影入平羌江水流。","李白《峨眉山月歌》",null,"emei-moon"],
       [700,"儋州。海风比江风更咸，\n远处那盏灯，摇得快要看不见。"],
-      [880,"人生如逆旅，\n我亦是行人。","苏轼《临江仙·送钱穆父》"],
       [978,"浮云游子意，\n落日故人情。","李白《送友人》",null,"wandering-cloud"],
-      [1065,"天快亮了。那条船还在远处，\n与你隔着一片安静的水。"]
+      [1065,"天快亮了。那条船还在远处，\n与你隔着一片安静的水。",null,null,"7"]
     ]},
   {at:9260,name:"赤壁赋",icon:"☾",weather:"清风 · 明月",index:3,seed:1783,painting:10,river:true,redCliff:true,
     sky:[16,36,62],mid:[48,102,121],line:[153,186,175],cloud:[181,213,205],shadow:[45,75,112],hills:[53,93,104],water:[19,55,77],light:[224,239,211],
@@ -484,7 +483,12 @@ const savedJournal = journalTransaction(["verses", "photos"], "readonly", tx => 
 })).then(({verses, photos}) => {
   const current = [...journal];
   journal.clear();
-  for (const {key, entry} of verses.result.sort((a,b)=>a.readAt-b.readAt)) journal.set(key, entry);
+  const peachFeastKeys=new Set(chapters[groveChapter].lines.filter(line=>line[2]===peachFeastSource)
+    .map(line=>chapters[groveChapter].name+"-"+line[4]));
+  for (const {key, entry} of verses.result.sort((a,b)=>a.readAt-b.readAt)){
+    if(key==="不系之舟-6"||(entry.source===peachFeastSource&&!peachFeastKeys.has(key)))continue;
+    journal.set(key, entry);
+  }
   for (const [key, entry] of current) journal.set(key, entry);
   const older = photos.result.slice(-PHOTO_LIMIT).reverse().map(shot => ({
     ...shot, src: URL.createObjectURL(shot.blob),
@@ -620,6 +624,7 @@ let position=0, heading=0, velocity=0, distance=0, found=0, roamDistance=0, roam
 let whisperIndex=0, pendingWhisper=false, nextWhisperAt=0, announcementUntil=0;
 let drag=null, clean=false, lastPose=null, lateral=0;
 let stridePhase=0, edgeLean=0, kick=0, brake=0;
+let freeRoam=false, facing=0, roamVelocity=0, viewCos=1, viewSin=0, suspendedFlight=null, roamFromRoute=false;
 const touchControls=new Map();
 const keys = new Set();
 const sky = document.createElement("canvas"), sk = sky.getContext("2d",{alpha:false});
@@ -661,6 +666,7 @@ function changeDream(next) {
 function setWord(word){
   $("dreamDialog").close();
   play();
+  leaveFreeRoam();
   const phrase=word.trim();
   const newDream=/寒江|江雪|水墨|独钓/.test(phrase)?inkChapter:/镜湖|天姥|剡溪/.test(phrase)?mirrorLakeChapter:
     /箜篌|李凭/.test(phrase)?harpChapter:/春江花月夜/.test(phrase)?moonRiverChapter:-1;
@@ -785,6 +791,14 @@ function paintFarmHorizon(c,w,h,p){
     c.fillStyle=wash;c.fill();
     pigmentGlow(c,w*.61,base,w*.58,.092,0,p.light,.38);
   }
+  for(let i=0;i<145;i++){
+    const seed=p.seed+i*37;
+    const x=hash(seed)*w,y=h*(.87+hash(seed+13)*.12);
+    const color=i%3?[107,141,108]:[165,172,123];
+    ellipse(c,x,y,Math.min(w,h)*(.003+hash(seed+29)*.012),
+      h*(.004+hash(seed+47)*.018),rgba(color,.11+hash(seed+8)*.21),-.16);
+  }
+  pigmentGlow(c,w*.57,h*.96,w*.59,.065,0,p.light,.37);
 }
 function paintJadeValley(c,w,h,p){
   const x=w*.64,y=h*.53,r=Math.min(w,h)*.037;
@@ -1149,7 +1163,7 @@ function drawCompanions(px,py,scale,light){
 function drawCached(b, alpha){
   if(!b||alpha<=0)return;
   sk.globalAlpha=alpha;
-  const shift=-Math.sin(position*.0026)*sky.width*.075;
+  const shift=-Math.sin(position*.0026+facing)*sky.width*.075;
   sk.drawImage(b,-sky.width*.12+shift,0,sky.width*1.24,sky.height);
   sk.globalAlpha=1;
 }
@@ -1307,7 +1321,7 @@ function iceDetails(light,water,world){
     current.ink?[198,198,198]:iceTints[current.index],smooth(transition));
   const lit=blend(tint,light,.45), shaded=blend(water,tint,.28);
   // Soft patches sit beneath the reflection and move with the ice.
-  for(const {object:{kind:i,seed,x},depth:z,point:p} of world){
+  for(const {object:{kind:i,seed,x,z:worldZ},depth:z,point:p} of world){
     if(i%3!==0)continue;
     const radius=(42+hash(seed+514)*103)*p.scale;
     if(p.x+radius<0||p.x-radius>W)continue;
@@ -1316,9 +1330,9 @@ function iceDetails(light,water,world){
     ctx.save();ctx.translate(p.x,p.y);ctx.scale(1,.13+hash(seed+604)*.13);
     bloom(ctx,0,0,radius,color,opacity*(.13+hash(seed+229)*.14));ctx.restore();
     if(i%6===0 && z<270){
-      const left=project(x-16,z+13);
-      const fork=project(x+5,z-5);
-      const end=project(x+19,z-14);
+      const left=project(x-16,worldZ-distance+13);
+      const fork=project(x+5,worldZ-distance-5);
+      const end=project(x+19,worldZ-distance-14);
       ctx.beginPath();ctx.moveTo(left.x,left.y);ctx.quadraticCurveTo(p.x,p.y,fork.x,fork.y);ctx.lineTo(end.x,end.y);
       ctx.strokeStyle=rgba(lit,opacity*.22);ctx.lineWidth=.6+p.scale*.75;ctx.stroke();
     }
@@ -1591,8 +1605,10 @@ const worldCellWidth=280, worldCellDepth=260;
 const worldCells=new Map();
 function prepareWorld(){
   // World coordinates determine placement, so revisiting a cell restores the same scenery.
-  const left=Math.floor((lateral*.61-1220)/worldCellWidth), right=Math.floor((lateral*.61+1220)/worldCellWidth);
-  const front=Math.floor((distance+60)/worldCellDepth), back=Math.floor((distance+1240)/worldCellDepth);
+  const sideSpan=freeRoam?1420:1220;
+  const left=Math.floor((lateral*.61-sideSpan)/worldCellWidth), right=Math.floor((lateral*.61+sideSpan)/worldCellWidth);
+  const front=Math.floor((distance+(freeRoam?-1420:60))/worldCellDepth);
+  const back=Math.floor((distance+(freeRoam?1420:1240))/worldCellDepth);
   for(const [key,{column,row}] of worldCells){
     if(column<left||column>right||row<front||row>back)worldCells.delete(key);
   }
@@ -1617,9 +1633,9 @@ function visibleWorld(){
   const visible=[];
   for(const {objects} of worldCells.values()){
     for(const object of objects){
-      const depth=object.z-distance;
+      const depth=cameraDepth(object.x,object.z-distance);
       if(depth<63||depth>1240)continue;
-      const point=project(object.x,depth);
+      const point=project(object.x,object.z-distance);
       const margin=Math.max(32,220*point.scale);
       if(point.x < -margin || point.x > W+margin)continue;
       visible.push({object,depth,point});
@@ -1627,9 +1643,13 @@ function visibleWorld(){
   }
   return visible.sort((a,b)=>b.depth-a.depth);
 }
+function cameraDepth(x,z){
+  return (x-lateral*.61)*viewSin+z*viewCos;
+}
 function project(x,z) {
-  const near=62/z, deep=H-horizon;
-  return {x:W*.54+(x-lateral*.61)*near*W*.018,
+  const localX=x-lateral*.61;
+  const near=62/Math.max(62,cameraDepth(x,z)), deep=H-horizon;
+  return {x:W*.54+(localX*viewCos-z*viewSin)*near*W*.018,
     y:horizon+near*deep, scale:near*clamp(Math.min(W/850,H/580),.6,1.65)};
 }
 function drawRouteScenery(light,water,world){
@@ -1906,7 +1926,7 @@ function drawRiver(opacity,world){
     const y=horizon+(H-horizon)*(.025+depth*.38);
     pigmentGlow(ctx,x,y,W*(.15+depth*.12),.052,-.037,blend([149,150,194],[119,172,179],harbor),opacity*(.11+depth*.14));
   }
-  for(const {object:{kind,seed,x},depth:z,point:p} of world){
+  for(const {object:{kind,seed,x,z:worldZ},depth:z,point:p} of world){
     if(kind!==0)continue;
     const fade=opacity*smooth((z-63)/140)*smooth((1240-z)/590);
     if(hash(seed+14)>.37){
@@ -1925,14 +1945,14 @@ function drawRiver(opacity,world){
       continue;
     }
     const drift=reduced?0:Math.sin(t*.23+seed*.09)*14;
-    const boat=project(x+drift,z);
+    const boat=project(x+drift,worldZ-distance);
     const size=(.64+hash(seed+51)*.56)*p.scale;
     riverBoat(boat.x,boat.y+3*size,size,fade*.27,true,true);
     riverBoat(boat.x,boat.y,size,fade,true);
   }
   // Let another traveller pass close enough to see their light, then drift away.
   const pass=clamp((stage-220)/380,0,1);
-  const fade=opacity*smooth(pass*6)*smooth((1-pass)*5);
+  const fade=freeRoam?0:opacity*smooth(pass*6)*smooth((1-pass)*5);
   if(fade>0){
     const p=project(lateral*.61+lerp(-125,160,pass),134+138*pass);
     riverBoat(p.x,p.y+3*p.scale,p.scale*1.06,fade*.29,true,true);
@@ -2021,51 +2041,130 @@ function peachTreeImage(seed){
 const fieldColors=[[119,147,89],[151,171,94],[183,171,103],[102,144,106]];
 function drawFarmland(opacity,world){
   drawCreeks(opacity*.56,false);
-  for(const {object:{kind,seed,x},depth:z,point:p} of world){
-    if(kind>4)continue;
+  for(const {object:{kind,seed,x,z:worldZ},depth:z,point:p} of world){
+    if(kind>6)continue;
     const fade=opacity*smooth((z-63)/78)*smooth((1240-z)/520);
     const s=p.scale, width=(22+hash(seed+9)*27)*s;
     if(kind===0&&hash(seed+22)>.29){
-      const h=width*.74, y=p.y;
-      pigmentGlow(ctx,p.x,y+h*.07,width*1.58,.26,0,[234,179,100],fade*.38);
-      ctx.fillStyle=rgba([218,188,134],fade*.94);
-      ctx.fillRect(p.x-width*.73,y-h,width*1.47,h);
-      ctx.beginPath();ctx.moveTo(p.x-width,y-h*.93);ctx.lineTo(p.x-width*.28,y-h*1.57);
-      ctx.lineTo(p.x+width*.54,y-h*1.42);ctx.lineTo(p.x+width,y-h*.91);
-      ctx.closePath();ctx.fillStyle=rgba([85,84,97],fade*.97);ctx.fill();
-      ctx.fillStyle=rgba([143,110,91],fade*.87);
-      ctx.fillRect(p.x+width*.09,y-h*.52,width*.23,h*.52);
-      ctx.fillStyle=rgba([255,227,147],fade*.91);
-      ctx.fillRect(p.x-width*.52,y-h*.62,width*.27,h*.29);
-      for(let i=0;i<5;i++){
-        const clock=reduced?0:t, rise=i/5;
-        const drift=(rise*.79+Math.sin(clock*.66+i*.6+seed)*.09)*width;
-        pigmentGlow(ctx,p.x+width*.29+drift,y-h*(1.42+rise*1.58),width*(.20+rise*.27),.69,-.23,
-          [246,220,177],fade*(.31-rise*.22));
+      drawThatchHouse(p.x,p.y,width*1.26,fade,seed);
+      if(hash(seed+91)>.42)drawThatchHouse(p.x+width*1.48,p.y-width*.12,width*.62,fade*.91,seed+29);
+      continue;
+    }
+    if(kind===5){
+      const drift=reduced?0:Math.sin(t*.17+seed*.03)*14;
+      const animal=project(x+drift,worldZ-distance);
+      drawFarmOx(animal.x,animal.y,animal.scale*1.86,fade,seed);
+      continue;
+    }
+    if(kind===6){
+      const r=(16+hash(seed+79)*31)*s;
+      ellipse(ctx,p.x,p.y,r*1.65,r*.24,rgba([138,171,94],fade*.55),-.12);
+      for(let i=0;i<9;i++){
+        const lean=(hash(seed+i*9)-.5)*r;
+        ellipse(ctx,p.x+lean,p.y-hash(seed+i*31)*r*.61,r*.26,r*.10,
+          rgba(i%3?[122,160,91]:[218,201,104],fade*.65),-.72);
       }
       continue;
     }
     const length=45+hash(seed+31)*38;
-    const near=Math.max(62,z-length*.42), far=z+length*.58;
+    if(freeRoam&&z<140)continue;
+    const localZ=worldZ-distance;
+    const near=freeRoam?localZ-length*.42:Math.max(62,localZ-length*.42), far=localZ+length*.58;
     const half=34+hash(seed+42)*25, angle=(hash(seed+57)-.5)*22;
     const a=project(x-half,near), b=project(x+half,near);
     const c=project(x+half+angle,far), d=project(x-half+angle,far);
-    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.lineTo(c.x,c.y);ctx.lineTo(d.x,d.y);ctx.closePath();
-    ctx.fillStyle=rgba(fieldColors[kind%4],fade*.75);ctx.fill();
-    ctx.strokeStyle=rgba([240,206,143],fade*.49);ctx.lineWidth=Math.max(.45,2*s);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(a.x,a.y);
+    ctx.quadraticCurveTo((a.x+b.x)*.5,(a.y+b.y)*.5+6*s,b.x,b.y);
+    ctx.quadraticCurveTo((b.x+c.x)*.5+8*s,(b.y+c.y)*.5,c.x,c.y);
+    ctx.quadraticCurveTo((c.x+d.x)*.5,(c.y+d.y)*.5-5*s,d.x,d.y);
+    ctx.quadraticCurveTo((d.x+a.x)*.5-6*s,(d.y+a.y)*.5,a.x,a.y);ctx.closePath();
+    const soil=fieldColors[kind%4], wash=ctx.createLinearGradient(p.x,p.y-13*s,p.x,p.y+16*s);
+    wash.addColorStop(0,rgba(blend(soil,[220,216,147],.22),fade*.72));
+    wash.addColorStop(1,rgba(blend(soil,[92,111,76],.28),fade*.88));
+    ctx.fillStyle=wash;ctx.fill();
+    ctx.strokeStyle=rgba([240,206,143],fade*.32);ctx.lineWidth=Math.max(.5,2.3*s);ctx.stroke();
     for(let row=1;row<=5;row++){
       const rowZ=lerp(near,far,row/6), left=project(x-half*.84+angle*row/6,rowZ), right=project(x+half*.84+angle*row/6,rowZ);
-      ctx.beginPath();ctx.moveTo(left.x,left.y);ctx.lineTo(right.x,right.y);
+      ctx.beginPath();ctx.moveTo(left.x,left.y);
+      ctx.quadraticCurveTo((left.x+right.x)*.5,(left.y+right.y)*.5+3*s,right.x,right.y);
       ctx.strokeStyle=rgba(row%2?[211,202,132]:[75,124,77],fade*.65);
       ctx.lineWidth=Math.max(.43,left.scale*2.1);ctx.stroke();
       if(z>480)continue;
       for(let i=0;i<7;i++){
-        const plantX=lerp(left.x,right.x,(i+.4)/7), sway=reduced?0:Math.sin(t*1.2+i+row)*s*1.7;
-        ellipse(ctx,plantX+sway,left.y-1.6*s,1.9*s,3.2*s,rgba([165,196,116],fade*.80),-.47);
-        if(kind===4&&i%3===0)ellipse(ctx,plantX+sway,left.y-4*s,2.1*s,1.35*s,rgba([255,215,97],fade*.92));
+        const u=(i+.4)/7, plantX=lerp(left.x,right.x,u), plantY=lerp(left.y,right.y,u)+6*s*u*(1-u);
+        const sway=reduced?0:Math.sin(t*1.2+i+row)*s*1.7;
+        ellipse(ctx,plantX+sway,plantY-1.6*s,1.9*s,3.2*s,rgba([165,196,116],fade*.80),-.47);
+        if(kind===4&&i%3===0)ellipse(ctx,plantX+sway,plantY-4*s,2.1*s,1.35*s,rgba([255,215,97],fade*.92));
       }
     }
+    if(kind===2||kind===4)drawFarmWorker(p.x,p.y,Math.max(.09,s)*1.38,fade,seed);
   }
+}
+function drawThatchHouse(x,y,width,fade,seed){
+  ctx.save();ctx.translate(x,y);ctx.scale(width,width);ctx.globalAlpha=fade;
+  ellipse(ctx,0,.03,1.22,.16,"#62675168");
+  ctx.fillStyle="#d4ae78";ctx.fillRect(-.75,-.69,1.50,.69);
+  ctx.fillStyle="#a47b59";ctx.fillRect(.35,-.69,.40,.69);
+  ctx.fillStyle="#675144";ctx.fillRect(-.16,-.48,.26,.48);
+  ctx.fillStyle="#f5d799";ctx.fillRect(-.59,-.47,.23,.23);
+  const roof=ctx.createLinearGradient(0,-1.28,0,-.55);
+  roof.addColorStop(0,"#d0a36a");roof.addColorStop(1,"#8f694f");
+  ctx.beginPath();ctx.moveTo(-1.08,-.56);ctx.quadraticCurveTo(-.62,-.78,-.38,-1.20);
+  ctx.quadraticCurveTo(.07,-1.31,.40,-1.19);ctx.quadraticCurveTo(.64,-.84,1.04,-.59);
+  ctx.quadraticCurveTo(.12,-.70,-1.08,-.56);ctx.fillStyle=roof;ctx.fill();
+  ctx.lineWidth=.025;
+  for(let i=0;i<19;i++){
+    const u=i/18, bend=hash(seed+i*31);
+    ctx.strokeStyle=i%3?"#dfb47c9c":"#775a477f";
+    ctx.beginPath();ctx.moveTo(lerp(-.36,.38,u),-1.19+.06*bend);
+    ctx.quadraticCurveTo(lerp(-.62,.68,u),-.85,lerp(-1,1,u),-.62-.04*bend);ctx.stroke();
+  }
+  for(let i=0;i<5;i++){
+    const clock=reduced?0:t, rise=i/5;
+    const drift=rise*.79+Math.sin(clock*.66+i*.6+seed)*.09;
+    pigmentGlow(ctx,.29+drift,-1.19-rise*1.12,.19+rise*.29,.64,-.23,[246,224,190],.31-rise*.22);
+  }
+  ctx.restore();
+}
+function drawFarmOx(x,y,size,fade,seed){
+  ctx.save();ctx.translate(x,y);ctx.scale(size,size);ctx.globalAlpha=fade;
+  const sway=reduced?0:Math.sin(t*2.1+seed*.13);
+  const rider=hash(seed+11)>.49;
+  ellipse(ctx,0,1,21,4,"#525d485c");
+  ctx.strokeStyle="#4b463d";ctx.lineWidth=2.4;ctx.lineCap="round";
+  for(let i=0;i<4;i++){
+    const leg=-11+i*7;
+    ctx.beginPath();ctx.moveTo(leg,-8);ctx.lineTo(leg+sway*(i%2?1.5:-1.5),0);ctx.stroke();
+  }
+  ellipse(ctx,-2,-13,16,8,"#786650",-.07);
+  ellipse(ctx,-5,-15,11,4,"#a58a65",-.14);
+  const head=-12+(rider?0:sway*2);
+  ellipse(ctx,14,head,6.6,5.6,"#665444",.20);
+  ctx.lineWidth=1.45;ctx.strokeStyle="#dbbd91";
+  ctx.beginPath();ctx.moveTo(13,head-3);ctx.quadraticCurveTo(16,head-9,20,head-7);
+  ctx.moveTo(10,head-3);ctx.quadraticCurveTo(7,head-8,5,head-6);ctx.stroke();
+  ctx.strokeStyle="#5f5142";ctx.beginPath();ctx.moveTo(-17,-15);ctx.quadraticCurveTo(-22,-11,-20+sway,-5);ctx.stroke();
+  if(rider){
+    ctx.strokeStyle="#534c4a";ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(-3,-20);ctx.lineTo(2,-12);ctx.stroke();
+    ellipse(ctx,-5,-25,3.7,6.4,"#557284",-.14);
+    ellipse(ctx,-5,-33,3.1,3.3,"#c3a27a");
+    ellipse(ctx,-5,-35,6.8,1.9,"#b68e59");
+  }
+  ctx.restore();
+}
+function drawFarmWorker(x,y,size,fade,seed){
+  ctx.save();ctx.translate(x,y);ctx.scale(size,size);ctx.globalAlpha=fade;
+  const bend=reduced?0:Math.sin(t*1.46+seed*.12)*.16;
+  ellipse(ctx,0,0,9,2.3,"#53624859");
+  ctx.rotate(bend);
+  ctx.strokeStyle="#5f5647";ctx.lineWidth=2.3;ctx.lineCap="round";
+  ctx.beginPath();ctx.moveTo(-3,-1);ctx.lineTo(0,-12);ctx.lineTo(5,-2);ctx.stroke();
+  ellipse(ctx,2,-14,4.1,7.4,"#6d8291",.84);
+  ellipse(ctx,8,-17,3.3,3.4,"#bd9871");
+  ellipse(ctx,8,-19,6.0,1.8,"#c7a46e",.21);
+  ctx.beginPath();ctx.moveTo(7,-13);ctx.lineTo(12,-8);ctx.lineTo(18,0);
+  ctx.strokeStyle="#94704c";ctx.lineWidth=1.35;ctx.stroke();
+  ctx.restore();
 }
 const creekSpacing=430;
 function creekCenter(column,z){
@@ -2079,19 +2178,32 @@ function drawCreeks(opacity,petals){
   surface.addColorStop(.76,rgba([80,122,157],opacity*.69));
   surface.addColorStop(1,rgba([60,92,137],opacity*.76));
   for(let column=Math.floor(center/creekSpacing)-3;column<=Math.ceil(center/creekSpacing)+3;column++){
-    const steps=32;
+    const steps=freeRoam?64:32;
     const banks=[[],[]];
     for(let i=0;i<=steps;i++){
-      const z=62*(1170/62)**(i/steps), worldZ=distance+z, x=creekCenter(column,worldZ);
+      const z=freeRoam?lerp(-1420,1420,i/steps):62*(1170/62)**(i/steps);
+      const worldZ=distance+z, x=creekCenter(column,worldZ);
       const width=(petals?18:8)+(petals?8:3)*Math.sin(worldZ*.007+column);
+      if(freeRoam&&Math.min(cameraDepth(x-width,z),cameraDepth(x+width,z))<62){
+        banks[0].push(null);banks[1].push(null);continue;
+      }
       banks[0].push(project(x-width,z));banks[1].push(project(x+width,z));
     }
-    ctx.beginPath();ctx.moveTo(banks[0][0].x,banks[0][0].y);
-    for(const p of banks[0])ctx.lineTo(p.x,p.y);
-    for(let i=steps;i>=0;i--)ctx.lineTo(banks[1][i].x,banks[1][i].y);
-    ctx.closePath();ctx.fillStyle=surface;ctx.fill();
+    for(let from=0;from<=steps;from++){
+      if(!banks[0][from])continue;
+      let to=from;
+      while(to<steps&&banks[0][to+1])to++;
+      if(to===from)continue;
+      ctx.beginPath();ctx.moveTo(banks[0][from].x,banks[0][from].y);
+      for(let i=from+1;i<=to;i++)ctx.lineTo(banks[0][i].x,banks[0][i].y);
+      for(let i=to;i>=from;i--)ctx.lineTo(banks[1][i].x,banks[1][i].y);
+      ctx.closePath();ctx.fillStyle=surface;ctx.fill();
+      from=to;
+    }
     for(let i=1;i<steps;i+=2){
-      const a=banks[0][i], b=banks[1][i], width=b.x-a.x;
+      const a=banks[0][i], b=banks[1][i];
+      if(!a||!b)continue;
+      const width=Math.abs(b.x-a.x);
       const shimmer=.5+.5*Math.sin((reduced?0:t*1.35)+i*.72+column);
       if(a.x>W+50||b.x< -50)continue;
       ellipse(ctx,(a.x+b.x)*.5+width*.12*shimmer,a.y,width*.28,.5+shimmer*.85,rgba([255,212,231],opacity*shimmer*.45));
@@ -2109,11 +2221,13 @@ function drawCreeks(opacity,petals){
     if(!petals)continue;
     for(let i=0;i<15;i++){
       const seed=column*503+i*73, offset=i*77-distance+(reduced?0:t*7.4);
-      const z=64+wrap(offset,1155);
+      const z=freeRoam?wrap(offset,2500)-1250:64+wrap(offset,1155);
       const x=creekCenter(column,distance+z)+(hash(seed+9)-.5)*19;
+      const depth=cameraDepth(x,z);
+      if(depth<63||depth>1240)continue;
       const p=project(x,z);
       if(p.x< -12||p.x>W+12)continue;
-      const fade=opacity*smooth((z-64)/64)*smooth((1220-z)/420);
+      const fade=opacity*smooth((depth-64)/64)*smooth((1220-depth)/420);
       ellipse(ctx,p.x,p.y,1+p.scale*5,.6+p.scale*1.7,rgba(peachPetals[3+i%3],fade*.82),hash(seed+4)-.5);
     }
   }
@@ -2128,17 +2242,18 @@ function drawPeachGrove(opacity,world){
     trees.push({seed,z,p});
   }
   const center=Math.round(lateral*.61/creekSpacing);
-  const firstRow=Math.floor((distance+63)/96), lastRow=Math.floor((distance+920)/96);
+  const firstRow=Math.floor((distance+(freeRoam?-1000:63))/96), lastRow=Math.floor((distance+1000)/96);
   for(let column=center-2;column<=center+2;column++){
     for(let row=firstRow;row<=lastRow;row++){
       for(const side of [-1,1]){
         const seed=column*12097+row*871+side*47;
         const worldZ=(row+hash(seed+39))*96, z=worldZ-distance;
-        if(z<63||z>920)continue;
         const x=creekCenter(column,worldZ)+side*(42+hash(seed+43)*43);
+        const depth=cameraDepth(x,z);
+        if(depth<63||depth>920)continue;
         const p=project(x,z);
         if(p.x< -115||p.x>W+115)continue;
-        trees.push({seed,z,p});
+        trees.push({seed,z:depth,p});
       }
     }
   }
@@ -2183,7 +2298,7 @@ function forestTree(size,seed,sway){
   }
 }
 function drawForest(opacity,world){
-  for(const {object:{kind,seed,x},depth:z,point:p} of world){
+  for(const {object:{kind,seed,x,z:worldZ},depth:z,point:p} of world){
     if(kind>3)continue;
     const size=(135+hash(seed+26)*205)*p.scale;
     if(p.x+size<0||p.x-size>W)continue;
@@ -2196,7 +2311,7 @@ function drawForest(opacity,world){
     ctx.globalAlpha=fade*.89;forestTree(size,seed,sway);
     ctx.restore();
     if(kind>1)continue;
-    const lamp=project(x+(hash(seed+14)-.5)*36,z), height=clamp((48+hash(seed+32)*25)*p.scale,2,85);
+    const lamp=project(x+(hash(seed+14)-.5)*36,worldZ-distance), height=clamp((48+hash(seed+32)*25)*p.scale,2,85);
     const y=lamp.y-height, r=Math.max(.7,height*.093);
     const flicker=fade*(reduced?.76:.76+.12*Math.sin(t*1.24+seed)+.08*Math.sin(t*2.5+seed));
     ctx.fillStyle=rgba([48,61,66],fade*.86);ctx.fillRect(lamp.x-r*.20,y,r*.4,height);
@@ -2367,7 +2482,7 @@ function drawIceRings(light){
     const {x,z,at}=iceRings[i], age=(t-at)/1.5;
     if(age>=1){iceRings.splice(i,1);continue;}
     const depth=z-distance;
-    if(depth<57)continue;
+    if(cameraDepth(x,depth)<57)continue;
     const p=project(x,depth), r=(4+age*94)*p.scale;
     const fade=(1-age)**2;
     if(!reduced){
@@ -2414,7 +2529,7 @@ function render(ms) {
   const dt=previousFrame?clamp((ms-previousFrame)/1000,0,.045):0;
   previousFrame=ms;t+=dt;timeInDream+=dt;
   const paused=viewingDialog();
-  if(!routeMode && !dreamTheme && timeInDream>53 && !paused){
+  if(!routeMode && !freeRoam && !dreamTheme && timeInDream>53 && !paused){
     const index=(current.index+1)%palettes.length;
     changeDream({...palettes[index],index,seed:Math.round(t*43)%4096,word:""});
   }
@@ -2450,17 +2565,28 @@ function render(ms) {
   if(!paused){
     const sideSpeed=(reduced?9:17)*Math.min(1,velocity/.86);
     const lateralStep=heading*dt*sideSpeed;
-    lateral+=lateralStep;
+    if(freeRoam){
+      facing=wrap(facing+heading*dt*(reduced?1.2:1.9),TAU);
+      viewSin=Math.sin(facing);viewCos=Math.cos(facing);
+      const pace=throttle<0?throttle*55:36+throttle*105+kick*59;
+      roamVelocity=lerp(roamVelocity,pace,1-Math.exp(-dt*(throttle<0?3.1:2)));
+      lateral+=viewSin*roamVelocity*dt/.61;
+      distance+=viewCos*roamVelocity*dt;
+      velocity=Math.abs(roamVelocity)/44;
+    }else{
+      lateral+=lateralStep;
+      distance+=dt*velocity*(start?32:7);
+    }
     position=lerp(position,lateral,1-Math.exp(-dt*1.5));
-    distance+=dt*velocity*(start?32:7);
     if(start&&routeMode) travelStory(dt,lateralStep);
   }
   const airborne=Boolean(flight);
-  if($("flightHint").hidden===airborne){
+  if($("flightHint").hidden===airborne||$("roamHint").hidden===freeRoam){
     $("flightHint").hidden=!airborne;
-    $("hint").hidden=airborne;
+    $("hint").hidden=airborne||freeRoam;
+    $("roamHint").hidden=!freeRoam;
     $("skateForward").textContent=airborne?"↑ 抬升":"↑ 加速";
-    $("skateBrake").textContent=airborne?"↓ 俯瞰":"↓ 刹停";
+    $("skateBrake").textContent=airborne?"↓ 俯瞰":freeRoam?"↓ 倒滑":"↓ 刹停";
     $("push").hidden=airborne;
     $("touch").setAttribute("aria-label",airborne?"乘风操作":"滑冰操作");
   }
@@ -2838,6 +2964,27 @@ function openDream(){
   $("dreamDialog").showModal();
   $("word").focus();
 }
+function leaveFreeRoam(){
+  if(!freeRoam)return;
+  freeRoam=false;facing=0;viewCos=1;viewSin=0;
+  suspendedFlight=null;
+}
+function toggleFreeRoam(){
+  $("dreamDialog").close();
+  play();
+  if(freeRoam){
+    const previousFlight=suspendedFlight;
+    routeMode=roamFromRoute;
+    leaveFreeRoam();
+    flight=previousFlight;
+    if(routeMode&&storyTime<storyUntil)$("story").classList.add("show");
+    return;
+  }
+  freeRoam=true;roamFromRoute=routeMode;routeMode=false;
+  suspendedFlight=flight;flight=null;
+  roamVelocity=velocity*32;
+  $("story").classList.remove("show");
+}
 $("start").onclick=play;
 $("quickJournal").onclick=showJournal;
 $("journal").onclick=()=>{ $("helpDialog").close();showJournal(); };
@@ -2851,6 +2998,7 @@ for(const id of ["dreamDialog","journalDialog","helpDialog"]){
 }
 $("restartRoute").onclick=()=>{
   $("journalDialog").close();play();
+  leaveFreeRoam();
   dreamTheme=null; // a fresh trip starts with no dream picked
   lateral=position=distance=0;
   seen.clear();iceRings.length=0;
@@ -2858,10 +3006,15 @@ $("restartRoute").onclick=()=>{
 };
 $("resumeRoute").onclick=()=>{
   $("dreamDialog").close();
+  if(freeRoam){
+    if(roamFromRoute){toggleFreeRoam();return;}
+    leaveFreeRoam();
+  }
   routeMode=true;storyUntil=storyTime;
   changeDream(sceneForChapter(chapters[chapterIndex]));
 };
 $("dream").onclick=openDream;
+$("freeRoam").onclick=toggleFreeRoam;
 $("help").onclick=()=>$("helpDialog").showModal();
 $("sound").onclick=toggleSound;
 $("iceSound").checked=settings.iceSound!==false;
@@ -2892,7 +3045,8 @@ window.addEventListener("keydown",event=>{
     event.preventDefault();if(!event.repeat)pushOff();
   } else if(!event.repeat&&event.code==="Enter"){
     event.preventDefault();openDream();
-  } else if(!event.repeat&&event.code==="KeyH")toggleView();
+  } else if(!event.repeat&&event.code==="KeyG")toggleFreeRoam();
+  else if(!event.repeat&&event.code==="KeyH")toggleView();
   else if(!event.repeat&&event.code==="KeyP")savePhoto();
 });
 window.addEventListener("keyup",event=>keys.delete(event.code));
