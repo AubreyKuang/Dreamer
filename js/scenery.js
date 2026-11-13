@@ -497,6 +497,29 @@ function drawJadeBanks(opacity,world){
       pigmentGlow(ctx,W*.79,y-9,W*.18,.15,-.15,jadeColors[3],opacity*.72);
     }
   }
+  if(waitingView&&jadeLight){
+    const depth=routeDistance-jadeLight.start;
+    if(depth<=JADE_SHOAL.end){
+      const z=100+(JADE_SHOAL.start+JADE_SHOAL.end)/2-depth;
+      const shore=project(jadeLight.x+JADE_SHOAL.side,z);
+      ellipse(ctx,shore.x,shore.y,W*.072,3+shore.scale*6,rgba(jadeColors[3],opacity*.72),-.05);
+    }
+    if(jadeShoalInView())drawJadeShoalReflection(opacity);
+  }
+}
+function drawJadeShoalReflection(opacity){
+  const y=horizon+(H-horizon)*.33;
+  ctx.save();
+  ctx.globalAlpha=opacity*.64;
+  ctx.fillStyle="#b3d5b6";
+  ctx.beginPath();
+  ctx.moveTo(W*.21,y);ctx.lineTo(W*.78,y);
+  ctx.lineTo(W*.66,y+(H-horizon)*.12);ctx.lineTo(W*.54,y+4);
+  ctx.lineTo(W*.37,y+(H-horizon)*.17);ctx.closePath();ctx.fill();
+  for(const [x,width,offset] of [[.25,.24,6],[.44,.29,15],[.31,.25,24]]){
+    ellipse(ctx,W*x+W*width/2,y+offset,W*width/2,1.1,"#e5e3bd");
+  }
+  ctx.restore();
 }
 const forestLeaves=[[49,97,91],[81,121,107],[70,100,119],[122,105,130],[168,131,104]];
 const lanternGlow=[255,177,93];

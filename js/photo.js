@@ -10,11 +10,13 @@ function photoComparison(shot){
   return shot.name===chapters[jadeChapter].name?jadeComparison(shot.jadePose):shot.comparison;
 }
 function jadePhotoPose(){
-  if(!routeMode||chapterIndex!==jadeChapter||!jadeLight||storyTime>=storyUntil)return null;
+  if(!routeMode||chapterIndex!==jadeChapter||!jadeLight)return null;
   const cue=chapters[jadeChapter].lines[nextLine-1]?.[3];
   if(cue!=="jadeLight"&&cue!=="jadeLightResult")return null;
+  const shoal=jadeShoalInView();
+  if(storyTime>=storyUntil&&!shoal)return null;
   return {side:lateral*.61-jadeLight.x,depth:routeDistance-jadeLight.start,cleared:followedJadeLight||waitedForJadeMist,
-    ...(waitedForJadeMist?{waited:true}:{})};
+    ...(waitedForJadeMist?{waited:true}:{}),...(shoal?{shoal:true}:{})};
 }
 function showPhotoReference(shot){
   hidePhotoReference();
@@ -34,7 +36,9 @@ function updatePhotoReference(pose){
   $("photoReference").hidden=!routeMode||chapterIndex!==jadeChapter;
   if($("photoReference").hidden)return;
   const target=photoReference.shot.jadePose;
-  const passed=(jadeLight&&routeDistance-jadeLight.start>target.depth+JADE_PHOTO_DEPTH_TOLERANCE)||
+  const lastDepth=target.shoal===true?Math.min(JADE_SHOAL.end,target.depth+JADE_PHOTO_DEPTH_TOLERANCE)
+    :target.depth+JADE_PHOTO_DEPTH_TOLERANCE;
+  const passed=(jadeLight&&routeDistance-jadeLight.start>lastDepth)||
     (!pose&&chapters[jadeChapter].lines[nextLine-1]?.[3]!=="jadeLight");
   $("retryPhotoReference").hidden=!passed&&!(pose?.cleared&&(!target.cleared||Boolean(pose.waited)!==Boolean(target.waited)));
   const text=passed?"已滑过旧取景，可以重试。":photoReferenceHint(pose,target);
@@ -50,7 +54,8 @@ function photoReferenceHint(pose,target){
   if(pose.cleared!==target.cleared)return target.cleared?"旧图的雾已散开，先向右循光。":"旧图仍有雾，这次已拨雾。";
   if(side>JADE_PHOTO_SIDE_TOLERANCE)return "旧取景在右侧。";
   if(side< -JADE_PHOTO_SIDE_TOLERANCE)return "旧取景在左侧。";
-  if(depth>JADE_PHOTO_DEPTH_TOLERANCE)return "横向已接近，再往前滑。";
+  if(depth>JADE_PHOTO_DEPTH_TOLERANCE||(target.shoal===true&&!pose.shoal&&pose.depth<JADE_SHOAL.start))return "横向已接近，再往前滑。";
+  if((target.shoal===true)!==Boolean(pose.shoal))return target.shoal===true?"旧图是在左侧浅滩拍的。":"旧图里没有浅滩的倒影。";
   return "已接近旧取景";
 }
 

@@ -23,7 +23,13 @@ const JADE_LIGHT_HOLD=1.8, JADE_LIGHT_WIDTH=12;
 const jadeLightVerse="你沿着冰上的日光滑了一段。\n雾从两边散开，山脚露出了玉色。";
 const jadeWaitVerse="你停在溪心等了一会儿。\n雾渐渐变薄，两道山脊在日光里露了出来。";
 const JADE_MIST_WAIT=4, JADE_MIST_CENTER=14;
+const JADE_SHOAL={side:-24,width:12,start:90,end:170};
 let jadeLight=null, followedJadeLight=false, waitedForJadeMist=false;
+function jadeShoalInView(){
+  if(!routeMode||chapterIndex!==jadeChapter||!waitedForJadeMist||!jadeLight)return false;
+  const depth=routeDistance-jadeLight.start, side=lateral*.61-jadeLight.x;
+  return depth>=JADE_SHOAL.start&&depth<=JADE_SHOAL.end&&Math.abs(side-JADE_SHOAL.side)<=JADE_SHOAL.width;
+}
 function jadeLightOffset(ahead=0){
   const progress=clamp((routeDistance-jadeLight.start+ahead)/182,0,1);
   return jadeLight.x+30+19*smooth(progress)-lateral*.61;
@@ -197,6 +203,10 @@ function travelStory(dt, sideStep=0, holdingBrake=false) {
   if(cue?.[3]==="harpDuet"&&harpBank&&!harpDuet)updateHarpListening(chapter,dt);
   if(cue?.[3]==="fireflyResult"&&!fireflyTrail)updateFirefly(chapter,dt,holdingBrake);
   if(cue?.[3]==="jadeLightResult"&&jadeLight&&!followedJadeLight&&!waitedForJadeMist)updateJadeLight(chapter,dt,holdingBrake);
+  if(jadeShoalInView()&&!jadeLight.shoalSeen){
+    jadeLight.shoalSeen=true;
+    announce("浅滩映出了两道山脊。可以留影。",4);
+  }
   if(!cue&&!next&&storyTime>=nextStoryAt){
     // Keep travelling after the last verse without replaying the story.
     roamDistance+=Math.hypot(step,sideStep);
@@ -226,7 +236,7 @@ function updateJadeLight(chapter,dt,holdingBrake){
   if(jadeLight.still>=JADE_MIST_WAIT){
     waitedForJadeMist=true;
     rememberJournalEntry(chapter.name+"-jade-wait",{name:chapter.name,text:jadeWaitVerse,source:""});
-    announce("雾散了。可留影，也可松开刹车继续。",4);
+    announce("雾散了。可以原地拍双峰，也可松开刹车，向左滑到浅滩拍山影。",6);
     saveVoyageCheckpoint({chapter:chapter.name,line:nextLine-1,waitedForJadeMist});
     return;
   }

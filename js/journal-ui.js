@@ -20,7 +20,7 @@ function journalPhoto(shot,label=shot.name){
   const img=document.createElement("img");
   img.src=shot.src;img.alt=label;
   const caption=document.createElement("figcaption");
-  caption.textContent=label+" · "+shot.when;
+  caption.textContent=label+(shot.jadePose?.shoal===true?" · 浅滩倒影":"")+" · "+shot.when;
   figure.append(img,caption);
   const pose=shot.jadePose;
   if(shot.name===chapters[jadeChapter].name&&Number.isFinite(pose?.side)&&Number.isFinite(pose.depth)&&typeof pose.cleared==="boolean"){
