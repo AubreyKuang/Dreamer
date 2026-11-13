@@ -77,6 +77,40 @@ dialog p{color:var(--muted);font-size:13px;margin:8px 0 17px}
 @media(max-width:680px){.top{top:max(16px,env(safe-area-inset-top))}.brand{letter-spacing:.19em}.tool{width:38px;height:38px}.tools{gap:6px}.intro{top:clamp(82px,18vh,180px)}.lead{font-size:12px;letter-spacing:.06em;margin-bottom:18px}.subtitle{margin-bottom:16px}.scene{bottom:max(20px,env(safe-area-inset-bottom))}.bottom{bottom:max(20px,env(safe-area-inset-bottom))}.hint{display:none}.scene-icon{width:32px;height:32px}.pill{padding:9px 11px}.bottom .pill svg{display:none}}
 @media(max-height:440px){.intro{top:70px}h1{font-size:48px;margin-top:6px}.subtitle{font-size:26px;margin-bottom:9px}.lead{margin-bottom:11px}}
 @media(prefers-reduced-motion:reduce){.intro,#whisper{transition:none}}
+/* The title belongs to the landscape. In play, only the journey and tools stay. */
+body:not(.playing) .shade{
+  background:linear-gradient(0deg,#17152ddd 0%,#21193373 36%,transparent 72%);
+}
+.intro{
+  top:auto;bottom:max(clamp(30px,9dvh,112px),env(safe-area-inset-bottom));
+  left:clamp(20px,6vw,100px);max-width:min(540px,calc(100vw - 40px));
+}
+.intro h1{font-size:clamp(49px,7.3vw,112px);margin:0 0 5px;line-height:1.08}
+.intro .subtitle{margin-bottom:14px}
+.intro .lead{max-width:30ch;margin-bottom:18px}
+.intro .start{min-height:44px;border-radius:6px}
+body:not(.playing) .hud :is(.scene,.hint,.bottom){visibility:hidden}
+body.clean:not(.playing) .hud .intro{visibility:visible}
+.scene{gap:10px;align-items:center}
+.scene-icon{border-radius:5px;background:#252138a6}
+.scene small{color:#fff0df}
+.bottom{gap:5px}
+.bottom .pill{min-height:44px;border-radius:5px;background:#242039b8}
+.bottom .pill:hover{background:#51435de8}
+.hint{bottom:calc(max(29px,env(safe-area-inset-bottom)) + 53px)}
+.story.show{background:linear-gradient(90deg,#221b356b,transparent);padding:10px 18px 12px 12px;border-left:1px solid #ffe2bc90}
+@media(max-width:680px){
+  .intro{bottom:max(37px,calc(env(safe-area-inset-bottom) + 18px))}
+  .scene{left:max(12px,env(safe-area-inset-left));top:calc(max(16px,env(safe-area-inset-top)) + 48px);bottom:auto;gap:6px}
+  .scene-icon{width:28px;height:28px;font-size:15px}
+  .scene strong{font-size:14px;letter-spacing:.04em}
+  .scene small{font-size:10px;letter-spacing:0}
+  .bottom{right:max(12px,env(safe-area-inset-right));bottom:max(15px,env(safe-area-inset-bottom))}
+  .bottom .pill{padding:7px 8px;font-size:12px;gap:4px}
+  .bottom .pill svg{width:14px;height:14px}
+  .story.show{padding:6px 10px}
+}
+@media(max-height:440px){.intro{bottom:20px}.intro h1{font-size:46px}.intro .subtitle{font-size:22px;margin-bottom:6px}}
 </style>
 </head>
 <body>
@@ -96,12 +130,10 @@ dialog p{color:var(--muted);font-size:13px;margin:8px 0 17px}
     </nav>
   </header>
   <section class="intro" aria-labelledby="title">
-    <div class="eyebrow">一场冰上漫游</div>
     <h1 id="title">浮梦之境</h1>
     <p class="subtitle" lang="en">Reverie</p>
     <p class="lead">一朵逆流的海棠，带你去找云的来处。</p>
     <button class="start" id="start" type="button">踏上冰面 <span aria-hidden="true">→</span></button>
-    <p class="sound-note">♪ 踏上冰面后，配乐会轻轻响起，右上角可随时开关</p>
   </section>
   <section class="story" id="story" role="status" aria-atomic="true"><strong id="storyTitle"></strong><p id="storyLine"></p></section>
   <div id="whisper" role="status"></div>
@@ -115,6 +147,7 @@ dialog p{color:var(--muted);font-size:13px;margin:8px 0 17px}
     <button class="pill" id="photo" type="button" title="留影 · P" aria-label="留影">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h4l2-3h4l2 3h4v12H4z"/><circle cx="12" cy="13" r="3"/></svg>留影
     </button>
+    <button class="pill" id="quickJournal" type="button">手记</button>
     <button class="pill" id="dream" type="button"><span aria-hidden="true">✦</span>换一个梦</button>
   </div>
   <div id="touch" role="group" aria-label="滑冰操作">
@@ -326,10 +359,82 @@ const riverChapter=chapters.findIndex(chapter=>chapter.river);
 const flightVerse=chapters[cloudChapter].lines.findIndex(line=>line[3]==="flight");
 const journal = new Map();
 const snapshots = [];
+const PHOTO_LIMIT = 12;
+const SETTINGS_KEY = "dreamer-settings-v1";
+function readSettings() {
+  try {
+    const value=JSON.parse(localStorage.getItem(SETTINGS_KEY));
+    return value && typeof value==="object" && !Array.isArray(value) ? value : {};
+  }
+  catch { return {}; }
+}
+const settings = readSettings();
+function saveSetting(key, value) {
+  settings[key] = value;
+  try { localStorage.setItem(SETTINGS_KEY, JSON.stringify({...readSettings(), [key]:value})); }
+  catch { /* Settings still apply for this visit. */ }
+}
+const journalDatabase = new Promise((resolve, reject) => {
+  const open = indexedDB.open("dreamer-journal", 1);
+  open.onupgradeneeded = () => {
+    open.result.createObjectStore("verses");
+    open.result.createObjectStore("photos", {autoIncrement:true});
+  };
+  open.onsuccess = () => {
+    open.result.onversionchange = () => open.result.close();
+    resolve(open.result);
+  };
+  open.onerror = () => reject(open.error);
+  open.onblocked = () => reject(new Error("Journal database is busy"));
+});
+async function journalTransaction(stores, mode, run) {
+  const db = await journalDatabase;
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(stores, mode);
+    const result = run(transaction);
+    transaction.oncomplete = () => resolve(result);
+    transaction.onabort = () => reject(transaction.error);
+  });
+}
+let journalWarning = false;
+function reportJournalFailure() {
+  if (journalWarning) return;
+  journalWarning = true;
+  announce("无法保存手记和留影，本次游玩中仍可查看。");
+}
+const savedJournal = journalTransaction(["verses", "photos"], "readonly", tx => ({
+  verses: tx.objectStore("verses").getAll(),
+  photos: tx.objectStore("photos").getAll(),
+})).then(({verses, photos}) => {
+  const current = [...journal];
+  journal.clear();
+  for (const {key, entry} of verses.result.sort((a,b)=>a.readAt-b.readAt)) journal.set(key, entry);
+  for (const [key, entry] of current) journal.set(key, entry);
+  const older = photos.result.slice(-PHOTO_LIMIT).reverse().map(shot => ({
+    ...shot, src: URL.createObjectURL(shot.blob),
+  }));
+  snapshots.push(...older);
+  trimJournalPhotos();
+  if ($("journalDialog").open) renderJournal();
+}).catch(reportJournalFailure);
+function trimJournalPhotos() {
+  for (const old of snapshots.splice(PHOTO_LIMIT)) URL.revokeObjectURL(old.src);
+}
 const viewingDialog = () => ["dreamDialog","helpDialog","journalDialog"].some(id=>$(id).open);
 function storyLine(chapter, lineIndex) {
   const [,text,source,gesture]=chapter.lines[lineIndex];
-  journal.set(chapter.name+"-"+lineIndex,{name:chapter.name,text,source});
+  const key = chapter.name+"-"+lineIndex;
+  if (!journal.has(key)) {
+    const entry = {name:chapter.name,text,source};
+    journal.set(key, entry);
+    journalTransaction("verses", "readwrite", tx => {
+      const verses=tx.objectStore("verses");
+      const existing=verses.getKey(key);
+      existing.onsuccess=()=>{
+        if(existing.result===undefined)verses.add({key, entry, readAt:Date.now()}, key);
+      };
+    }).catch(reportJournalFailure);
+  }
   $("storyTitle").textContent=chapter.name;
   $("storyLine").textContent=text;
   $("story").classList.add("show");
@@ -394,7 +499,7 @@ function enterChapter(index, jump=false) {
   routeMode=true;chapterIndex=index;nextLine=0;
   changeDream(sceneForChapter(chapter));
 }
-function showJournal() {
+function renderJournal() {
   const entries=$("journalEntries");
   entries.replaceChildren();
   if(snapshots.length){
@@ -422,6 +527,9 @@ function showJournal() {
     }
     entries.append(line);
   }
+}
+function showJournal() {
+  renderJournal();
   $("journalDialog").showModal();
 }
 let current=original, previous=original, cache=null, oldCache=null, transition=1;
@@ -2015,22 +2123,35 @@ function pushOff(){
   skateBurst("push");
 }
 function toggleView(){
-  clean=!clean;document.body.classList.toggle("clean",clean);
+  clean=!clean;
+  saveSetting("clean", clean);
+  syncView();
+}
+function syncView(){
+  document.body.classList.toggle("clean",clean);
   $("view").setAttribute("aria-pressed",String(clean));
   $("view").setAttribute("aria-label",clean?"退出观景模式":"开启观景模式");
 }
 function savePhoto(){
   if(!lastPose)return;
   const name=lastPose.name;
-  // Keep a thumbnail in the journal as well as downloading the PNG, so the
-  // snapshot survives even where the browser blocks the download.
-  try{
-    const thumb=document.createElement("canvas"), tw=320;
-    thumb.width=tw;thumb.height=Math.max(1,Math.round(tw*canvas.height/canvas.width));
-    thumb.getContext("2d").drawImage(canvas,0,0,tw,thumb.height);
-    snapshots.unshift({src:thumb.toDataURL("image/jpeg",.82),name,when:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})});
-    if(snapshots.length>12)snapshots.length=12;
-  }catch{/* the PNG download below still runs */}
+  const thumb=document.createElement("canvas"), tw=320;
+  thumb.width=tw;thumb.height=Math.max(1,Math.round(tw*canvas.height/canvas.width));
+  thumb.getContext("2d").drawImage(canvas,0,0,tw,thumb.height);
+  const when=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
+  thumb.toBlob(blob=>{
+    if(!blob){reportJournalFailure();return;}
+    const shot={blob,name,when};
+    snapshots.unshift({...shot,src:URL.createObjectURL(blob)});
+    trimJournalPhotos();
+    if ($("journalDialog").open) renderJournal();
+    savedJournal.then(() => journalTransaction("photos", "readwrite", tx => {
+      const photos=tx.objectStore("photos");
+      photos.add(shot);
+      const keys=photos.getAllKeys();
+      keys.onsuccess=()=>keys.result.slice(0,-PHOTO_LIMIT).forEach(key=>photos.delete(key));
+    })).then(()=>announce("留影已存入手记。"),reportJournalFailure);
+  },"image/jpeg",.82);
   canvas.toBlob(blob=>{
     if(!blob)return;
     const url=URL.createObjectURL(blob), link=document.createElement("a");
@@ -2038,7 +2159,6 @@ function savePhoto(){
     document.body.appendChild(link);link.click();link.remove();
     setTimeout(()=>URL.revokeObjectURL(url),3000);
   },"image/png");
-  announce("这一刻，留在了冰面上，也收进了手记。");
 }
 let audio=null, ambient=null, windFilter=null, creekGain=null, audioOn=false, audioRequest=0, scoreLayer=null;
 let skateAudio=null, skateCue="glide", nextSkateUpdate=0, nextSkateBurst=0;
@@ -2266,12 +2386,16 @@ async function startAudio(){
   syncSoundButton();
 }
 async function toggleSound(){
+  audioPrimed=true;
   if(audioOn){
+    ++audioRequest;
     audioOn=false;
+    saveSetting("sound", false);
     ambient.gain.setTargetAtTime(.0001,audio.currentTime,.18);
     syncSoundButton();
   }else{
     await startAudio();
+    if(audioOn)saveSetting("sound", true);
   }
 }
 // The first click or keypress starts the ambience (autoplay rules forbid
@@ -2279,7 +2403,7 @@ async function toggleSound(){
 // its own toggle is not undone.
 let audioPrimed=false;
 function primeAudio(event){
-  if(audioPrimed||audioOn)return;
+  if(audioPrimed||audioOn||settings.sound===false)return;
   if(event.target&&typeof event.target.closest==="function"&&event.target.closest("#sound"))return;
   audioPrimed=true;
   startAudio();
@@ -2293,6 +2417,7 @@ function openDream(){
   $("word").focus();
 }
 $("start").onclick=play;
+$("quickJournal").onclick=showJournal;
 $("journal").onclick=()=>{ $("helpDialog").close();showJournal(); };
 // Closing a dialog hands focus back to the button that opened it; blur it so
 // the next Space pushes off instead of re-opening the dialog.
@@ -2317,7 +2442,11 @@ $("resumeRoute").onclick=()=>{
 $("dream").onclick=openDream;
 $("help").onclick=()=>$("helpDialog").showModal();
 $("sound").onclick=toggleSound;
+$("iceSound").checked=settings.iceSound!==false;
+clean=settings.clean===true;
+syncView();
 $("iceSound").onchange=()=>{
+  saveSetting("iceSound", $("iceSound").checked);
   if(skateAudio) skateAudio.bus.gain.setTargetAtTime($("iceSound").checked?1:0,audio.currentTime,.06);
 };
 $("view").onclick=toggleView;
