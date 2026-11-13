@@ -176,6 +176,7 @@ body.clean:not(.playing) .hud .intro{visibility:visible}
       <button class="chip" type="button" data-word="春江花月夜">春江花月夜</button>
       <button class="chip" type="button" data-word="李凭箜篌引">李凭箜篌引</button>
       <button class="chip" type="button" data-word="镜湖飞渡">镜湖飞渡</button>
+      <button class="chip" type="button" data-word="寒江独钓">寒江独钓</button>
       <button class="chip" type="button" data-word="晚霞">晚霞</button>
       <button class="chip" type="button" data-word="极光">极光</button>
       <button class="chip" type="button" data-word="花海">花海</button>
@@ -382,7 +383,7 @@ const chapters = [
       [800,"是造物者之无尽藏也，\n而吾与子之所共适。",redCliffSource]
     ]},
   {at:10280,name:"春江花月夜",icon:"☾",weather:"春江 · 银花",index:3,seed:1913,painting:11,river:true,moonRiver:true,
-    sky:[24,42,82],mid:[79,116,153],line:[189,212,227],cloud:[205,223,237],shadow:[75,86,139],hills:[61,87,116],water:[33,67,107],light:[229,241,250],
+    sky:[24,43,89],mid:[74,119,154],line:[170,213,215],cloud:[209,229,234],shadow:[93,80,146],hills:[54,89,113],water:[27,62,103],light:[228,243,251],
     lines:[
       [25,"春江潮水连海平，\n海上明月共潮生。","张若虚《春江花月夜》"],
       [200,"江流宛转绕芳甸，\n月照花林皆似霰。","张若虚《春江花月夜》"],
@@ -391,7 +392,7 @@ const chapters = [
       [720,"不知乘月几人归，\n落月摇情满江树。","张若虚《春江花月夜》"]
     ]},
   {at:11180,name:"李凭箜篌引",icon:"♫",weather:"花洲 · 寻弦",index:1,seed:2053,painting:12,harp:true,
-    sky:[25,27,68],mid:[69,81,132],line:[171,133,170],cloud:[177,166,211],shadow:[62,64,120],hills:[64,82,113],water:[28,55,88],light:[235,210,183],
+    sky:[29,22,72],mid:[85,64,140],line:[178,121,163],cloud:[202,157,215],shadow:[53,59,125],hills:[64,66,113],water:[29,44,82],light:[248,216,178],
     lines:[
       [25,"花洲深处，\n有一根弦轻轻响了。"],
       [180,"吴丝蜀桐张高秋，\n空山凝云颓不流。","李贺《李凭箜篌引》"],
@@ -400,13 +401,20 @@ const chapters = [
       [680,"女娲炼石补天处，\n石破天惊逗秋雨。","李贺《李凭箜篌引》"]
     ]},
   {at:12080,name:"镜湖飞渡",icon:"✦",weather:"镜湖 · 月影",index:3,seed:2203,painting:13,mirrorLake:true,
-    sky:[30,41,89],mid:[87,99,159],line:[214,176,193],cloud:[209,189,224],shadow:[70,82,139],hills:[70,95,129],water:[42,58,103],light:[248,228,196],
+    sky:[24,36,85],mid:[80,97,164],line:[224,164,190],cloud:[207,187,228],shadow:[68,77,145],hills:[65,91,137],water:[37,58,111],light:[249,226,189],
     lines:[
       [25,"我欲因之梦吴越，\n一夜飞度镜湖月。","李白《梦游天姥吟留别》"],
       [185,"湖月照我影，\n送我至剡溪。","李白《梦游天姥吟留别》"],
       [345,"脚著谢公屐，\n身登青云梯。","李白《梦游天姥吟留别》"],
       [520,"霓为衣兮风为马，\n云之君兮纷纷而来下。","李白《梦游天姥吟留别》","flight"],
       [690,"湖面又近了。\n云散开，那轮月还在等你。"]
+    ]},
+  {at:12980,name:"寒江独钓",icon:"◒",weather:"水墨 · 江雪",index:3,seed:2377,painting:14,river:true,ink:true,
+    sky:[234,234,234],mid:[222,222,222],line:[242,242,242],cloud:[244,244,244],shadow:[106,106,106],hills:[125,125,125],water:[189,189,189],light:[248,248,248],
+    lines:[
+      [25,"千山鸟飞绝，\n万径人踪灭。","柳宗元《江雪》"],
+      [215,"孤舟蓑笠翁，\n独钓寒江雪。","柳宗元《江雪》"],
+      [480,"雪落得很轻。\n你听见船桨拨开水的声音。"]
     ]}
 ];
 const original = {...palettes[0],...chapters[0],word:"",whale:false};
@@ -423,6 +431,7 @@ const redCliffChapter=chapters.findIndex(chapter=>chapter.redCliff);
 const moonRiverChapter=chapters.findIndex(chapter=>chapter.moonRiver);
 const harpChapter=chapters.findIndex(chapter=>chapter.harp);
 const mirrorLakeChapter=chapters.findIndex(chapter=>chapter.mirrorLake);
+const inkChapter=chapters.findIndex(chapter=>chapter.ink);
 const flightVerse=chapters[cloudChapter].lines.findIndex(line=>line[3]==="flight");
 const journal = new Map();
 const snapshots = [];
@@ -555,7 +564,7 @@ function sceneForChapter(chapter) {
   if(chapter.grove&&chapterIndex===groveChapter&&chapter.lines.slice(0,nextLine).some(line=>line[3]==="peachNight")){
     Object.assign(scene,peachNight);
   }
-  if(!dreamTheme) return scene;
+  if(!dreamTheme||chapter.ink) return scene;
   for(const key of colorKeys) scene[key]=blend(scene[key],dreamTheme[key],.62);
   scene.name=dreamTheme.name;scene.icon=dreamTheme.icon;scene.weather=dreamTheme.weather;
   scene.index=dreamTheme.index;scene.seed=dreamTheme.seed;scene.whale=dreamTheme.whale;
@@ -653,7 +662,7 @@ function setWord(word){
   $("dreamDialog").close();
   play();
   const phrase=word.trim();
-  const newDream=/镜湖|天姥|剡溪/.test(phrase)?mirrorLakeChapter:
+  const newDream=/寒江|江雪|水墨|独钓/.test(phrase)?inkChapter:/镜湖|天姥|剡溪/.test(phrase)?mirrorLakeChapter:
     /箜篌|李凭/.test(phrase)?harpChapter:/春江花月夜/.test(phrase)?moonRiverChapter:-1;
   if(newDream>=0){
     dreamTheme=null;
@@ -815,6 +824,10 @@ function paintSky(p) {
   const g=c.createLinearGradient(0,0,0,h);
   g.addColorStop(0,rgba(p.sky,1));g.addColorStop(.6,rgba(p.mid,1));g.addColorStop(1,rgba(p.line,1));
   c.fillStyle=g;c.fillRect(0,0,w,h);
+  if(p.ink){
+    paintInkMountains(c,w,h,p.seed);
+    return b;
+  }
   const useArt=!p.painting&&p.index===0&&art.complete&&art.naturalWidth>0;
   if(useArt){
     const width=Math.min(art.naturalWidth,art.naturalHeight*w/h);
@@ -835,6 +848,7 @@ function paintSky(p) {
       }
     }
     if(p.painting) paintedClouds(c,w,h,p);
+    if(p.moonRiver||p.harp||p.mirrorLake)paintColorStrokes(c,w,h,p);
     skyDetail(c,w,h,p);
     const landscape=p.grove?{...p,line:[135,159,175],hills:[65,99,116]}:p;
     for(let i=0;i<3;i++) ridge(c,w,h,landscape,i);
@@ -851,6 +865,49 @@ function paintSky(p) {
   }
   paintAtmosphere(c,w,h,sceneAtmosphere(p));
   return b;
+}
+function paintColorStrokes(c,w,h,p){
+  const colors=pigments[p.painting], span=Math.min(w,h*1.7);
+  for(let i=0;i<215;i++){
+    const key=p.seed+i*49;
+    const u=hash(key+1), side=hash(key+5)-.5;
+    const x=u*w, y=h*(.43+Math.sin(u*6.2+p.seed)*.16+side*.45);
+    const radius=span*(.009+hash(key+7)**2*.13);
+    const angle=(p.mirrorLake?-.34:-.15)+hash(key+9)*.31;
+    pigmentGlow(c,x,y,radius,.22+hash(key+11)*.3,angle,colors[i%6],.10+hash(key+13)*.32);
+    if(i%5===0)ellipse(c,x,y,radius*.39,Math.max(.42,radius*.035),rgba(colors[(i+2)%6],.22),angle);
+  }
+}
+function paintInkMountains(c,w,h,seed){
+  for(let layer=0;layer<4;layer++){
+    const base=h*(.73+layer*.087), height=h*(.31+layer*.073);
+    const shore=c.createLinearGradient(0,base-height,0,base);
+    const ink=155-layer*33;
+    shore.addColorStop(0,rgba([ink,ink,ink],.91));
+    shore.addColorStop(1,rgba([174,174,174],.36));
+    c.beginPath();c.moveTo(0,base);
+    for(let i=0;i<=110;i++){
+      const u=i/110;
+      const open=Math.abs(u-.61);
+      const peak=(.38+.21*Math.sin(u*13+layer*1.9)+.12*Math.sin(u*29-layer)+.085*Math.sin(u*59))*(.23+open);
+      c.lineTo(w*u,base-height*peak*2.4);
+    }
+    c.lineTo(w,base);c.closePath();c.fillStyle=shore;c.fill();
+    c.save();c.clip();
+    for(let i=0;i<120;i++){
+      const k=seed+layer*391+i*27;
+      const x=hash(k+3)*w,y=base-hash(k+7)*height;
+      pigmentGlow(c,x,y,Math.min(w,h)*(.016+hash(k+13)*.067),.15,-.68,
+        [34,34,34],.05+hash(k+23)*.17);
+    }
+    c.restore();
+    pigmentGlow(c,w*.55,base,w*.65,.082,0,[248,248,248],.64);
+  }
+  for(let i=0;i<4000;i++){
+    const k=seed+i*17;
+    c.fillStyle=hash(k+1)>.5?"#1c1c1c0a":"#ffffff21";
+    c.fillRect(hash(k+3)*w,hash(k+7)*h,1+hash(k+9)*2,1);
+  }
 }
 function paintMirrorPass(c,w,h,p){
   for(const side of [-1,1]){
@@ -913,7 +970,8 @@ const pigments = [
   [[106,170,182],[175,211,201],[96,134,166],[168,139,164],[121,195,178],[235,224,178]],
   [[161,196,228],[229,237,245],[113,162,211],[173,171,220],[135,199,195],[244,228,209]],
   [[121,163,216],[230,160,204],[114,199,179],[166,137,215],[225,183,124],[244,224,182]],
-  [[158,190,234],[218,171,217],[132,152,226],[191,155,212],[150,219,212],[255,223,186]]
+  [[158,190,234],[218,171,217],[132,152,226],[191,155,212],[150,219,212],[255,223,186]],
+  [[181,181,181],[226,226,226],[143,143,143],[207,207,207],[166,166,166],[246,246,246]]
 ];
 const skyLighting = [
   null,
@@ -945,7 +1003,8 @@ const atmospheres = [
   {focus:[.76,.35], tones:[[221,235,208],[109,193,184],[156,176,211]], veil:.56, drift:"mist"},
   {focus:[.80,.28], tones:[[231,245,255],[159,207,231],[188,175,232]], veil:.49, drift:"petal"},
   {focus:[.53,.50], tones:[[244,213,168],[164,225,209],[212,158,231]], veil:.35, drift:"glint"},
-  {focus:[.70,.29], tones:[[250,231,203],[170,193,244],[215,165,227]], veil:.50, drift:"mist"}
+  {focus:[.70,.29], tones:[[250,231,203],[170,193,244],[215,165,227]], veil:.50, drift:"mist"},
+  {focus:[.69,.43], tones:[[249,249,249],[204,204,204],[232,232,232]], veil:.27, drift:"mist"}
 ];
 function sceneAtmosphere(scene){
   return atmospheres[scene.painting ?? [0,2,3,4][scene.index]];
@@ -1096,6 +1155,7 @@ function drawCached(b, alpha){
 }
 let auroraTextures;
 function nightElements(p,a){
+  if(p.ink)return;
   if(a<=0 || p.forest || (p.index!==1 && p.index!==3)) return;
   const w=sky.width,h=sky.height;
   for(let i=0;i<120;i++){
@@ -1227,7 +1287,8 @@ function drawWater(light,water,world) {
   reflectedPigments(world);
   const coolTint=[110,148,255], warmTint=[242,167,197];
   const pearl=blend(light,blend(
-    previous.index%2?coolTint:warmTint,current.index%2?coolTint:warmTint,smooth(transition)),.48);
+    previous.ink?[222,222,222]:previous.index%2?coolTint:warmTint,
+    current.ink?[222,222,222]:current.index%2?coolTint:warmTint,smooth(transition)),.48);
   for(let i=0;i<6;i++){
     const x=W*(.04+i*.186+.06*Math.sin(t*.13+i)), y=horizon+deep*(.22+hash(i+86)*.64);
     const r=W*(.16+hash(i+442)*.10);
@@ -1242,7 +1303,8 @@ function drawWater(light,water,world) {
 }
 const iceTints=[[135,188,211],[115,185,189],[178,194,243],[103,124,216],[100,157,147],[138,207,181]];
 function iceDetails(light,water,world){
-  const tint=blend(iceTints[previous.index],iceTints[current.index],smooth(transition));
+  const tint=blend(previous.ink?[198,198,198]:iceTints[previous.index],
+    current.ink?[198,198,198]:iceTints[current.index],smooth(transition));
   const lit=blend(tint,light,.45), shaded=blend(water,tint,.28);
   // Soft patches sit beneath the reflection and move with the ice.
   for(const {object:{kind:i,seed,x},depth:z,point:p} of world){
@@ -1577,6 +1639,7 @@ function drawRouteScenery(light,water,world){
   const grove=lerp(Number(Boolean(previous.grove)),Number(Boolean(current.grove)),mix);
   const farm=lerp(Number(Boolean(previous.farmland)),Number(Boolean(current.farmland)),mix);
   const river=lerp(Number(Boolean(previous.river)),Number(Boolean(current.river)),mix);
+  const ink=lerp(Number(Boolean(previous.ink)),Number(Boolean(current.ink)),mix);
   if(forest>0) drawForest(forest,world);
   if(jade>0) drawJadeBanks(jade,world);
   if(grove>0) drawPeachGrove(grove,world);
@@ -1585,12 +1648,14 @@ function drawRouteScenery(light,water,world){
   const moonRiver=lerp(Number(Boolean(previous.moonRiver)),Number(Boolean(current.moonRiver)),mix);
   const harp=lerp(Number(Boolean(previous.harp)),Number(Boolean(current.harp)),mix);
   const mirror=lerp(Number(Boolean(previous.mirrorLake)),Number(Boolean(current.mirrorLake)),mix);
-  const openRiver=river-cliff-moonRiver;
+  const openRiver=river-cliff-moonRiver-ink;
   if(openRiver>0) drawRiver(openRiver,world);
   if(cliff>0) drawRedCliff(cliff,world);
   if(moonRiver>0) drawMoonRiver(moonRiver,world);
+  if(ink>0)drawInkRiver(ink,world);
   if(harp>0) drawHarpBanks(harp,world);
   if(mirror>0) drawMirrorMoon(mirror*(1-(flight?.height??0)));
+  if(moonRiver+harp+mirror>0)drawColorReflections(moonRiver,harp,mirror);
   const base=Math.max(0,1-forest-jade-grove-farm-river-harp);
   if(base===0)return;
   ctx.save();ctx.globalAlpha=base;
@@ -1639,6 +1704,21 @@ function drawRouteScenery(light,water,world){
     }
   }
   ctx.restore();
+}
+function drawColorReflections(moonRiver,harp,mirror){
+  const opacity=moonRiver+harp+mirror;
+  const clock=reduced?0:t;
+  for(let i=0;i<38;i++){
+    const seed=i*61+7, depth=hash(seed+3);
+    const x=W*(hash(seed)+Math.sin(clock*.41+i)*.018);
+    const y=horizon+(H-horizon)*depth**1.55;
+    const color=blend(blend(pigments[11][i%6],pigments[12][i%6],harp/Math.max(.001,moonRiver+harp)),
+      pigments[13][i%6],mirror/opacity);
+    const gleam=opacity*(.18+hash(seed+21)*.24)*(.76+.24*Math.sin(clock*.9+i));
+    const width=W*(.007+depth*.077)*(.4+hash(seed+14)*.6);
+    pigmentGlow(ctx,x,y,width,.12,-.06,color,gleam);
+    if(i%4===0)ellipse(ctx,x,y,width*.22,Math.max(.5,depth*1.25),rgba(color,gleam*.67),-.07);
+  }
 }
 function drawRedCliff(opacity,world){
   const moonlight=[222,239,215];
@@ -1699,7 +1779,14 @@ function harpSide(step){return Math.floor(step/3)%2?-1:1;}
 function drawHarpBanks(opacity,world){
   const active=scoreLayer?.score===scores[harpChapter]&&audioOn?(scoreLayer.pluckSide??1):harpSide(Math.floor(timeInDream/2.28));
   const glowX=W*(.54+active*.26);
-  pigmentGlow(ctx,glowX,horizon+(H-horizon)*.20,W*.25,.28,0,[177,155,238],opacity*.32);
+  pigmentGlow(ctx,glowX,horizon+(H-horizon)*.20,W*.25,.28,0,[177,155,238],opacity*.42);
+  for(let i=0;i<12;i++){
+    const depth=(i+.5)/12, x=lerp(glowX,W*(.54+active*.43),depth);
+    const y=horizon+(H-horizon)*depth**1.4;
+    const shimmer=reduced?.8:.76+.24*Math.sin(t*.93-i*.81);
+    pigmentGlow(ctx,x,y,W*(.021+depth*.10),.095,-active*.10,
+      pigments[12][i%6],opacity*shimmer*(.12+depth*.18));
+  }
   for(const {object:{kind,seed},depth:z,point:p} of world){
     if(kind<2||kind>6)continue;
     const side=p.x<W*.54?-1:1;
@@ -1709,12 +1796,42 @@ function drawHarpBanks(opacity,world){
     const r=(20+hash(seed+29)*44)*p.scale;
     const color=kind%2?[244,151,197]:[151,219,193];
     pigmentGlow(ctx,p.x,p.y,r*2.8,.25,0,color,fade*power*.55);
+    if(kind%2){
+      ellipse(ctx,p.x-r*.57,p.y+r*.14,r*.93,r*.29,rgba([89,167,147],fade*.77),-.18);
+      ellipse(ctx,p.x+r*.54,p.y+r*.23,r*.73,r*.23,rgba([146,205,161],fade*.49),.16);
+    }
     for(let i=0;i<6;i++){
       const angle=i*TAU/6;
       ellipse(ctx,p.x+Math.cos(angle)*r*.33,p.y-r*.21+Math.sin(angle)*r*.19,
         r*.41,r*.18,rgba(color,fade*power*.87),angle);
     }
     ellipse(ctx,p.x,p.y-r*.21,r*.19,r*.12,rgba([255,228,156],fade*power));
+    ellipse(ctx,p.x+r*.14,p.y-r*.43,r*.13,r*.06,rgba([255,237,217],fade*power*.85),-.21);
+  }
+}
+function drawInkRiver(opacity,world){
+  for(const {object:{kind,seed},depth:z,point:p} of world){
+    if(kind!==1||Math.abs(p.x/W-.54)<.19)continue;
+    const fade=opacity*smooth((z-63)/96)*smooth((1240-z)/610);
+    const width=(30+hash(seed+5)*69)*p.scale;
+    pigmentGlow(ctx,p.x,p.y,width,.12,-.06,[54,54,54],fade*.46);
+    const height=(25+hash(seed+9)*52)*p.scale;
+    ctx.strokeStyle=rgba([40,40,40],fade*.74);
+    ctx.lineWidth=Math.max(.55,p.scale*2.5);
+    for(let i=0;i<6;i++){
+      const base=p.x+(i-2.5)*width*.19;
+      const lean=(hash(seed+i*17)-.25)*height*.41;
+      ctx.beginPath();ctx.moveTo(base,p.y);ctx.quadraticCurveTo(base,p.y-height*.63,base+lean,p.y-height*(.61+i*.062));ctx.stroke();
+    }
+  }
+  const clock=reduced?0:t;
+  for(let i=0;i<(reduced?22:81);i++){
+    const depth=hash(i*21+9);
+    const x=wrap(hash(i*7+1)*W+clock*(3+depth*9),W);
+    const y=wrap(hash(i*13+5)*H+clock*(7+depth*21),H);
+    const radius=.46+depth*1.6;
+    ellipse(ctx,x,y,radius,radius,rgba([252,252,252],opacity*(.35+depth*.55)));
+    if(depth>.77)ellipse(ctx,x+.6,y+.8,radius*.63,radius*.61,rgba([115,115,115],opacity*.15));
   }
 }
 function drawMirrorMoon(opacity){
@@ -1732,11 +1849,24 @@ function drawMirrorMoon(opacity){
   ellipse(ctx,x,y,radius,radius*.64,rgba(color,opacity*.72));
 }
 const riverLamp=[255,188,114];
-function riverBoat(x,y,size,opacity,lantern,reflection=false,bearing=0){
+function riverBoat(x,y,size,opacity,lantern,reflection=false,bearing=0,ink=false){
   ctx.save();ctx.translate(x,y);
   ctx.rotate(reflection?-bearing:bearing);
   ctx.scale(size,reflection?-size*.52:size);
   ctx.globalAlpha=opacity;
+  if(ink){
+    ctx.beginPath();ctx.moveTo(-53,-9);ctx.quadraticCurveTo(-2,0,53,-14);
+    ctx.quadraticCurveTo(43,4,19,8);ctx.quadraticCurveTo(-25,10,-53,-9);
+    ctx.fillStyle="#303030";ctx.fill();
+    ctx.beginPath();ctx.moveTo(-43,-5);ctx.quadraticCurveTo(4,4,44,-9);
+    ctx.strokeStyle="#b8b8b8";ctx.lineWidth=1.2;ctx.stroke();
+    ctx.beginPath();ctx.moveTo(-19,-9);ctx.quadraticCurveTo(-18,-23,-10,-26);
+    ctx.quadraticCurveTo(-5,-23,0,-9);ctx.fillStyle="#414141";ctx.fill();
+    ctx.beginPath();ctx.moveTo(-23,-24);ctx.lineTo(-12,-34);ctx.lineTo(-1,-25);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(-3,-17);ctx.quadraticCurveTo(18,-29,52,-31);
+    ctx.quadraticCurveTo(57,-25,59,-7);ctx.strokeStyle="#4e4e4e";ctx.lineWidth=.9;ctx.stroke();
+    ctx.restore();return;
+  }
   const hull=ctx.createLinearGradient(0,-10,0,12);
   hull.addColorStop(0,"#a07868");hull.addColorStop(.45,"#59414a");hull.addColorStop(1,"#283047");
   ctx.beginPath();ctx.moveTo(-52,-9);ctx.quadraticCurveTo(-17,-15,22,-13);
@@ -2082,7 +2212,7 @@ function particles(p,light){
   const before=sceneAtmosphere(previous), after=sceneAtmosphere(p);
   drawDriftingDetails(before,before===after?1:1-mix);
   if(before!==after)drawDriftingDetails(after,mix);
-  if(p.index===3&&!reduced){
+  if(p.index===3&&!p.ink&&!reduced){
     const phase=fract(t*.19);
     if(phase<.27){
       const x=W*(.38+.5*hash(Math.floor(t*.19))) - phase*W*.43,y=H*.12+phase*H*.59;
@@ -2347,16 +2477,23 @@ function render(ms) {
   if(!paused)showIceWhisper();
   const scale=clamp(Math.min(W/1020,H/680),.64,1.32);
   const river=lerp(Number(Boolean(previous.river)),Number(Boolean(current.river)),a);
+  const ink=lerp(Number(Boolean(previous.ink)),Number(Boolean(current.ink)),a);
   if(air<.08){
     ctx.save();ctx.globalAlpha=1-river*.58;
     trail(px,py,scale,light);ctx.restore();
   }
-  ctx.save();ctx.globalAlpha=.20*(1-air)**2*(1-river*.85);
+  ctx.save();ctx.globalAlpha=.20*(1-air)**2*(1-river*.85-ink*.15);
   traveler(ctx,px,groundY+4,scale,true);ctx.restore();
   if(river>0){
     const bearing=-heading*.12;
-    riverBoat(px,groundY+5*scale,scale*.91,river*.29,true,true,bearing);
-    riverBoat(px,groundY,scale*.91,river,true,false,bearing);
+    if(river>ink){
+      riverBoat(px,groundY+5*scale,scale*.91,(river-ink)*.29,true,true,bearing);
+      riverBoat(px,groundY,scale*.91,river-ink,true,false,bearing);
+    }
+    if(ink>0){
+      riverBoat(px,groundY+5*scale,scale*.91,ink*.25,false,true,bearing,true);
+      riverBoat(px,groundY,scale*.91,ink,false,false,bearing,true);
+    }
   }
   drawFlight(px,py,scale);
   bloom(ctx,px,py+2,28*scale,light,.25*(1-air));
@@ -2556,7 +2693,8 @@ const scores = [
   {chord:[45,52,57,64], melody:[69,null,76,null,74,72,null,67,null,69], beat:2.07, wind:400, voice:"sine"},
   {chord:[48,55,62,69], melody:[72,null,79,81,null,76,null,74], beat:2.18, wind:360, voice:"sine"},
   {chord:[50,57,65,69], melody:[null,74,null,77,null,81,null,69], beat:2.28, wind:310, voice:"sine"},
-  {chord:[48,55,60,67], melody:[67,null,74,79,null,84,79,null], beat:1.81, wind:470, voice:"sine"}
+  {chord:[48,55,60,67], melody:[67,null,74,79,null,84,79,null], beat:1.81, wind:470, voice:"sine"},
+  {chord:[45,52,57,64], melody:[null,64,null,null,69,null,67,null], beat:2.95, wind:275, voice:"sine"}
 ];
 const frequencyFor = midi => 440*Math.pow(2,(midi-69)/12);
 function scoreFor(scene){
