@@ -8,6 +8,7 @@ const JADE_REPLAY_PLANS={
   light:{label:"循光拨雾后再拍",met:pose=>pose.cleared&&!pose.waited},
   wait:{label:"在溪心等雾散后再拍",met:pose=>pose.waited===true},
   shoal:{label:"滑进浅滩倒影再拍",met:pose=>pose.shoal===true},
+  still:{label:"等浅滩水纹散开再拍",met:pose=>pose.shoalCalm===true},
 };
 function startJadePractice(shot,area){
   const series=shot.replay.practiceArea===area&&shot.replay.practiceSeries;
@@ -29,7 +30,7 @@ function jadePhotoPose(){
   const shoal=jadeShoalInView();
   if(storyTime>=storyUntil&&!shoal)return null;
   return {side:lateral*.61-jadeLight.x,depth:routeDistance-jadeLight.start,cleared:followedJadeLight||waitedForJadeMist,
-    ...(waitedForJadeMist?{waited:true}:{}),...(shoal?{shoal:true}:{})};
+    ...(waitedForJadeMist?{waited:true}:{}),...(shoal?{shoal:true,shoalCalm:jadeShoalCalm()===1}:{})};
 }
 function showPhotoReference(shot,guided=true,focus=null,focusGuided=false,plan=""){
   hidePhotoReference();
@@ -83,20 +84,23 @@ function updateJadePairRun(pose){
     const text=complete?`${target}已替换，可在手记查看双景。`
       :pending?`正在保存${target}。`
       :error?`未能替换${target}，手记仍保留原照片。`
-      :(shoal?pose?.shoal:jadeCenterInView(pose))?`${target}已入画，按快门替换这张照片。`
+      :(shoal?pose?.shoal:jadeCenterInView(pose))?`${target}已入画，按快门替换这张照片。${shoal?" "+jadeShoalPhotoHint(pose):""}`
       :(shoal?depth>JADE_SHOAL.end:depth>=JADE_SHOAL.start)?`已滑过${target}，手记仍保留原照片。`
       :shoal?"先等溪心散雾，再向左滑去浅滩补拍倒影。":"留在溪心等雾散，补拍双峰。";
     if(status.textContent!==text)status.textContent=text;
     return;
   }
   const text=jadePairRun.complete?"双峰和浅滩倒影已并排存入手记。"
-    :jadePairRun.first?(pose?.shoal?"浅滩倒影已入画，可以拍第二张。"
+    :jadePairRun.first?(pose?.shoal?"浅滩倒影已入画，可以拍第二张。 "+jadeShoalPhotoHint(pose)
       :depth>JADE_SHOAL.end?"已滑过浅滩，双峰仍保留在手记里。"
       :canRetake?"双峰已留影。可重拍一次，或向左滑去浅滩。":"双峰已留影。向左滑去浅滩拍倒影。")
     :depth>=JADE_SHOAL.start?"已滑过溪心，本趟可继续单独留影。"
     :jadeCenterInView(pose)?"双峰已入画，可以拍第一张。"
     :"先在溪心等雾散，拍下双峰，再去浅滩。";
   if(status.textContent!==text)status.textContent=text;
+}
+function jadeShoalPhotoHint(pose){
+  return pose.shoalCalm?"水纹已散。":"也可刹停等水纹散开。";
 }
 function updatePhotoReference(pose){
   updateJadePairRun(pose);

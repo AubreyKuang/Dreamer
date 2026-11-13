@@ -24,11 +24,15 @@ const jadeLightVerse="你沿着冰上的日光滑了一段。\n雾从两边散�
 const jadeWaitVerse="你停在溪心等了一会儿。\n雾渐渐变薄，两道山脊在日光里露了出来。";
 const JADE_MIST_WAIT=4, JADE_MIST_CENTER=14;
 const JADE_SHOAL={side:-24,width:12,start:90,end:170};
+const JADE_SHOAL_STILL=1.2, JADE_SHOAL_SHUTTER_GRACE=.65;
 let jadeLight=null, followedJadeLight=false, waitedForJadeMist=false;
 function jadeShoalInView(){
   if(!routeMode||chapterIndex!==jadeChapter||!waitedForJadeMist||!jadeLight)return false;
   const depth=routeDistance-jadeLight.start, side=lateral*.61-jadeLight.x;
   return depth>=JADE_SHOAL.start&&depth<=JADE_SHOAL.end&&Math.abs(side-JADE_SHOAL.side)<=JADE_SHOAL.width;
+}
+function jadeShoalCalm(){
+  return jadeShoalInView()?clamp((jadeLight.shoalStill||0)/JADE_SHOAL_STILL,0,1):0;
 }
 function jadeLightOffset(ahead=0){
   const progress=clamp((routeDistance-jadeLight.start+ahead)/182,0,1);
@@ -203,9 +207,23 @@ function travelStory(dt, sideStep=0, holdingBrake=false) {
   if(cue?.[3]==="harpDuet"&&harpBank&&!harpDuet)updateHarpListening(chapter,dt);
   if(cue?.[3]==="fireflyResult"&&!fireflyTrail)updateFirefly(chapter,dt,holdingBrake);
   if(cue?.[3]==="jadeLightResult"&&jadeLight&&!followedJadeLight&&!waitedForJadeMist)updateJadeLight(chapter,dt,holdingBrake);
-  if(jadeShoalInView()&&!jadeLight.shoalSeen){
-    jadeLight.shoalSeen=true;
-    announce("浅滩映出了两道山脊。可以留影。",4);
+  if(jadeShoalInView()){
+    if(!jadeLight.shoalSeen){
+      jadeLight.shoalSeen=true;
+      announce("可以拍水纹，也可以刹停等水面平静。",4);
+    }
+    const still=jadeLight.shoalStill||0;
+    if(holdingBrake&&velocity===0){
+      jadeLight.shoalStill=Math.min(JADE_SHOAL_STILL,still+dt);
+      if(jadeLight.shoalStill===JADE_SHOAL_STILL)jadeLight.shoalGrace=JADE_SHOAL_SHUTTER_GRACE;
+    }else if(jadeLight.shoalGrace>dt){
+      jadeLight.shoalGrace-=dt;
+    }else{
+      jadeLight.shoalStill=jadeLight.shoalGrace=0;
+    }
+    if(still<JADE_SHOAL_STILL&&jadeLight.shoalStill===JADE_SHOAL_STILL)announce("水纹已散，可以拍下静影。",4);
+  }else if(jadeLight?.shoalStill){
+    jadeLight.shoalStill=jadeLight.shoalGrace=0;
   }
   if(!cue&&!next&&storyTime>=nextStoryAt){
     // Keep travelling after the last verse without replaying the story.

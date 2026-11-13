@@ -504,18 +504,19 @@ function drawJadeBanks(opacity,world){
       const shore=project(jadeLight.x+JADE_SHOAL.side,z);
       ellipse(ctx,shore.x,shore.y,W*.072,3+shore.scale*6,rgba(jadeColors[3],opacity*.72),-.05);
     }
-    if(jadeShoalInView())drawJadeShoalReflection(opacity);
+    if(jadeShoalInView())drawJadeShoalReflection(opacity,jadeShoalCalm());
   }
 }
-function drawJadeShoalReflection(opacity){
+function drawJadeShoalReflection(opacity,calm){
   const y=horizon+(H-horizon)*.33;
   ctx.save();
-  ctx.globalAlpha=opacity*.64;
+  ctx.globalAlpha=opacity*lerp(.64,.84,calm);
   ctx.fillStyle="#b3d5b6";
   ctx.beginPath();
   ctx.moveTo(W*.21,y);ctx.lineTo(W*.78,y);
   ctx.lineTo(W*.66,y+(H-horizon)*.12);ctx.lineTo(W*.54,y+4);
   ctx.lineTo(W*.37,y+(H-horizon)*.17);ctx.closePath();ctx.fill();
+  ctx.globalAlpha=opacity*.64*(1-calm);
   for(const [x,width,offset] of [[.25,.24,6],[.44,.29,15],[.31,.25,24]]){
     ellipse(ctx,W*x+W*width/2,y+offset,W*width/2,1.1,"#e5e3bd");
   }

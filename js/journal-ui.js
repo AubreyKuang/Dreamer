@@ -23,7 +23,9 @@ function journalPhoto(shot,label=shot.name){
   const img=document.createElement("img");
   img.src=shot.src;img.alt=label;
   const caption=document.createElement("figcaption");
-  caption.textContent=label+(shot.jadePose?.shoal===true?" · 浅滩倒影":"")+" · "+shot.when;
+  const shoal=shot.jadePose?.shoal===true;
+  caption.textContent=label+(shoal&&label!=="浅滩倒影"?" · 浅滩倒影":"")+
+    (shoal&&typeof shot.jadePose.shoalCalm==="boolean"?(shot.jadePose.shoalCalm?" · 静影":" · 水纹"):"")+" · "+shot.when;
   figure.append(img,caption);
   const pose=shot.jadePose;
   if(shot.name===chapters[jadeChapter].name&&Number.isFinite(pose?.side)&&Number.isFinite(pose.depth)&&typeof pose.cleared==="boolean"){
