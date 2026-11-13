@@ -9,6 +9,7 @@ const replayScenes=[
   {chapter:riverChapter,line:chapters[riverChapter].lines.findIndex(line=>line[3]==="passingBoat")-1,label:"不系之舟 · 江心船灯"},
   {chapter:harpChapter,line:chapters[harpChapter].lines.findIndex(line=>line[3]==="harpListen"),label:"李凭箜篌引 · 两岸弦声"},
   {chapter:fireflyChapter,line:chapters[fireflyChapter].lines.findIndex(line=>line[3]==="fireflyPause"),label:"天河星原 · 袖口萤火"},
+  {chapter:jadeChapter,line:chapters[jadeChapter].lines.findIndex(line=>line[3]==="jadeLight"),label:"蓝田日暖 · 循光看山"},
   ...photoComparisons.map(({chapter,cue,label})=>({
     chapter,line:chapters[chapter].lines.findIndex(line=>line[3]===cue),
     label:chapters[chapter].name+" · "+label,

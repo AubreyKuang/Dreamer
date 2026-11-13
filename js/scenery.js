@@ -469,10 +469,27 @@ function drawJadeBanks(opacity,world){
     ellipse(ctx,p.x-width*.18,p.y-height*.38,width*.54,height*.24,rgba(jadeColors[2],fade*.64),side*.17);
     pigmentGlow(ctx,p.x-width*.22,p.y-height*.47,width*.60,.23,side*.15,jadeColors[3],fade*.59);
   }
+  const cue=chapters[chapterIndex].lines[nextLine-1]?.[3];
+  const onJadePath=routeMode&&chapterIndex===jadeChapter&&(cue==="jadeLight"||cue==="jadeLightResult");
+  const revealed=onJadePath&&followedJadeLight;
   const mistTime=reduced?0:t;
   for(let i=0;i<9;i++){
     const x=W*(.09+i*.103+.036*Math.sin(mistTime*.23+i)), y=horizon+(H-horizon)*(.04+hash(i+31)*.39);
-    pigmentGlow(ctx,x,y,W*(.13+hash(i+54)*.12),.075,-.042,jadeColors[3],opacity*(.14+hash(i+78)*.12));
+    pigmentGlow(ctx,x,y,W*(.13+hash(i+54)*.12),.075,-.042,jadeColors[3],opacity*(.14+hash(i+78)*.12)*(revealed?.18:1));
+  }
+  if(onJadePath&&jadeLight&&!revealed&&cue==="jadeLight"){
+    for(let i=8;i>=0;i--){
+      const ahead=i*18;
+      const point=project(lateral*.61+jadeLightOffset(ahead),100+ahead);
+      const glow=opacity*(1-i*.065);
+      pigmentGlow(ctx,point.x,point.y,W*.064,.19,-.2,jadeColors[3],glow*.82);
+      ellipse(ctx,point.x,point.y,4+point.scale*12,1+point.scale*3,rgba([255,239,183],glow*.9),-.16);
+    }
+  }
+  if(revealed){
+    const y=horizon+(H-horizon)*.17;
+    pigmentGlow(ctx,W*.72,y,W*.26,.22,-.15,jadeColors[2],opacity*.8);
+    pigmentGlow(ctx,W*.79,y-9,W*.18,.15,-.15,jadeColors[3],opacity*.72);
   }
 }
 const forestLeaves=[[49,97,91],[81,121,107],[70,100,119],[122,105,130],[168,131,104]];
