@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#212345">
-<meta name="description" content="浮梦之境。循着一尾巨鲲，驶过海棠、北冥与云海。">
+<meta name="description" content="浮梦之境。循着一尾巨鲲，滑过海棠、北冥与云海。">
 <title>浮梦之境 · Reverie</title>
 <style>
 :root{color-scheme:dark;--ink:#fff5e9;--muted:#fff3e0b0;--line:#fff2df40;--glass:#211d3782;--serif:"Songti SC","Noto Serif CJK SC","SimSun",serif}
@@ -25,7 +25,7 @@ button:focus-visible,input:focus-visible{outline:2px solid #ffe4a9;outline-offse
 .mark{display:grid;place-items:center;width:35px;height:35px;border:1px solid var(--line);border-radius:50%;font:20px Georgia,serif}
 .tools,.row{display:flex;align-items:center;gap:8px}
 .tool{width:43px;height:43px;display:grid;place-items:center;border:1px solid var(--line);border-radius:50%;background:#26223a60;backdrop-filter:blur(12px);font:17px Georgia,serif}
-.tool:hover,.pill:hover,.chip:hover,.jump:hover{background:#69556e9c;border-color:#fff2df86}
+.tool:hover,.pill:hover,.chip:hover,.skate-action:hover{background:#69556e9c;border-color:#fff2df86}
 .tool svg,.pill svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.45;stroke-linecap:round;stroke-linejoin:round}
 .intro{position:absolute;left:clamp(24px,8vw,135px);top:clamp(100px,23vh,280px);max-width:calc(100vw - 48px);transition:opacity .8s,transform .8s;text-shadow:0 2px 30px #25192c90}
 .playing .intro{opacity:0;transform:translateY(-12px);visibility:hidden;transition:opacity .75s,transform .75s,visibility 0s .75s}
@@ -43,7 +43,7 @@ h1{font:400 clamp(57px,7.6vw,119px)/1.1 var(--serif);letter-spacing:.055em;margi
 .scene strong{display:block;font:600 15px var(--serif);letter-spacing:.12em}
 .scene small{display:block;color:var(--muted);font:10px/1.3 system-ui;letter-spacing:.12em;margin-top:4px}
 .bottom{position:absolute;bottom:max(29px,env(safe-area-inset-bottom));right:clamp(20px,4.4vw,72px);display:flex;gap:8px;align-items:center}
-.pill,.chip,.jump{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line);border-radius:100px;background:var(--glass);backdrop-filter:blur(12px);padding:10px 14px;font-size:12px;white-space:nowrap}
+.pill,.chip,.skate-action{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line);border-radius:100px;background:var(--glass);backdrop-filter:blur(12px);padding:10px 14px;font-size:12px;white-space:nowrap}
 .hint{position:absolute;bottom:max(36px,env(safe-area-inset-bottom));left:50%;translate:-50%;color:#fff4e0cf;font-size:11px;white-space:nowrap;letter-spacing:.09em;text-shadow:0 1px 8px #16162e}
 kbd{font:inherit;border:1px solid #fff0d34f;border-radius:4px;padding:2px 5px;margin:0 2px}
 #whisper{position:absolute;left:50%;bottom:19%;translate:-50%;width:max-content;max-width:85%;text-align:center;opacity:0;transition:opacity .65s;font:17px var(--serif);letter-spacing:.12em;text-shadow:0 2px 10px #140d30}
@@ -72,14 +72,14 @@ dialog p{color:var(--muted);font-size:13px;margin:8px 0 17px}
 #touch{display:none}
 .clean .hud>:not(.top){visibility:hidden}
 .clean .brand,.clean .tools>:not(#view){visibility:hidden}
-@media(pointer:coarse){.hint{display:none}.playing:not(.clean) #touch{display:flex;position:absolute;right:20px;bottom:82px;gap:6px}.jump{min-height:44px;touch-action:none}.jump.active{background:#69556edd;border-color:#fff2dfaa}}
+@media(pointer:coarse){.hint{display:none}.playing:not(.clean) #touch{display:flex;position:absolute;right:20px;bottom:82px;gap:6px}.skate-action{min-height:44px;touch-action:none}.skate-action.active{background:#69556edd;border-color:#fff2dfaa}}
 @media(max-width:680px){.top{top:max(16px,env(safe-area-inset-top))}.brand{letter-spacing:.19em}.tool{width:38px;height:38px}.tools{gap:6px}.intro{top:clamp(82px,18vh,180px)}.lead{font-size:12px;letter-spacing:.06em;margin-bottom:18px}.subtitle{margin-bottom:16px}.scene{bottom:max(20px,env(safe-area-inset-bottom))}.bottom{bottom:max(20px,env(safe-area-inset-bottom))}.hint{display:none}.scene-icon{width:32px;height:32px}.pill{padding:9px 11px}.bottom .pill svg{display:none}}
 @media(max-height:440px){.intro{top:70px}h1{font-size:48px;margin-top:6px}.subtitle{font-size:26px;margin-bottom:9px}.lead{margin-bottom:11px}}
 @media(prefers-reduced-motion:reduce){.intro,#whisper{transition:none}}
 </style>
 </head>
 <body>
-<canvas id="world" aria-label="梦境航路，左右拖动转向，上下拖动前划或倒划"></canvas>
+<canvas id="world" aria-label="梦境航路，左右拖动转向，上下拖动加速或减速"></canvas>
 <div class="shade"></div>
 <main class="hud">
   <header class="top">
@@ -91,35 +91,35 @@ dialog p{color:var(--muted);font-size:13px;margin:8px 0 17px}
       <button class="tool" id="view" type="button" aria-label="开启观景模式" aria-pressed="false" title="观景模式 · H">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v5m11-5h5v5M4 15v5h5m11-5v5h-5"/></svg>
       </button>
-      <button class="tool" id="journal" type="button" aria-label="打开航海手记" title="航海手记">卷</button>
+      <button class="tool" id="journal" type="button" aria-label="打开滑行手记" title="滑行手记">卷</button>
       <button class="tool" id="help" type="button" aria-label="操作说明" title="操作说明">?</button>
     </nav>
   </header>
   <section class="intro" aria-labelledby="title">
-    <div class="eyebrow">一场自由漂流</div>
+    <div class="eyebrow">一场冰上漫游</div>
     <h1 id="title">浮梦之境</h1>
     <p class="subtitle" lang="en">Reverie</p>
     <p class="lead">一朵逆流的海棠，带你去找云的来处。</p>
-    <button class="start" id="start" type="button">开始漂流 <span aria-hidden="true">→</span></button>
-    <p class="sound-note">♪ 开始漂流后，环境音会轻轻响起，右上角可随时开关</p>
+    <button class="start" id="start" type="button">踏上冰面 <span aria-hidden="true">→</span></button>
+    <p class="sound-note">♪ 踏上冰面后，配乐会轻轻响起，右上角可随时开关</p>
   </section>
   <section class="story" id="story" role="status" aria-atomic="true"><strong id="storyTitle"></strong><p id="storyLine"></p></section>
   <div id="whisper" role="status"></div>
   <div class="scene">
     <span class="scene-icon" id="sceneIcon" aria-hidden="true">☼</span>
-    <div><strong id="sceneName">桃色天光</strong><small id="weather">晨光 · 微风</small></div>
+    <div><strong id="sceneName">海棠渡</strong><small id="weather">晨光 · 花瓣</small></div>
   </div>
-  <div class="hint" id="hint"><kbd>←</kbd><kbd>→</kbd> 转向　<kbd>↑</kbd><kbd>↓</kbd> 前划 / 倒划　<kbd>空格</kbd> 轻跃</div>
+  <div class="hint" id="hint"><kbd>←</kbd><kbd>→</kbd> 转向　<kbd>↑</kbd><kbd>↓</kbd> 加速 / 刹停　<kbd>空格</kbd> 蹬冰</div>
   <div class="bottom">
     <button class="pill" id="photo" type="button" title="留影 · P" aria-label="留影">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h4l2-3h4l2 3h4v12H4z"/><circle cx="12" cy="13" r="3"/></svg>留影
     </button>
     <button class="pill" id="dream" type="button"><span aria-hidden="true">✦</span>换一个梦</button>
   </div>
-  <div id="touch" role="group" aria-label="划船操作">
-    <button class="jump" type="button" id="rowBack">↓ 倒划</button>
-    <button class="jump" type="button" id="rowForward">↑ 前划</button>
-    <button class="jump" type="button" id="jump">轻跃</button>
+  <div id="touch" role="group" aria-label="滑冰操作">
+    <button class="skate-action" type="button" id="skateBrake">↓ 刹停</button>
+    <button class="skate-action" type="button" id="skateForward">↑ 加速</button>
+    <button class="skate-action" type="button" id="push">蹬冰</button>
   </div>
   <dialog id="dreamDialog" aria-labelledby="dreamTitle">
     <button class="tool close" type="button" aria-label="关闭">×</button>
@@ -141,16 +141,16 @@ dialog p{color:var(--muted);font-size:13px;margin:8px 0 17px}
   </dialog>
   <dialog id="journalDialog" aria-labelledby="journalTitle">
     <button class="tool close" type="button" aria-label="关闭">×</button>
-    <h2 id="journalTitle">航海手记</h2>
+    <h2 id="journalTitle">滑行手记</h2>
     <div id="journalEntries"></div>
     <button class="chip" id="restartRoute" type="button">从海棠渡重新出发</button>
   </dialog>
   <dialog id="helpDialog" aria-labelledby="helpTitle">
     <button class="tool close" type="button" aria-label="关闭">×</button>
-    <h2 id="helpTitle">随风漂流</h2>
-    <p><kbd>←</kbd> <kbd>→</kbd> 或左右拖动转向。<kbd>空格</kbd> 轻跃，<kbd>↑</kbd> / <kbd>↓</kbd> 前划或倒划。触屏可上下拖动或按住「前划」「倒划」。</p>
-    <p><kbd>Enter</kbd> 换梦，<kbd>H</kbd> 观景，<kbd>P</kbd> 留影。靠近水面上的光点，会遇见几句旅途中的话。</p>
-    <p>松开按键，小船会沿航路往前漂。海棠、海雾、鲲与云海会依次出现，读过的话会留在「卷」里。开始漂流后，环境音会自动响起，点右上角的扬声器可随时开关；配乐会随场景变化。</p>
+    <h2 id="helpTitle">自在滑行</h2>
+    <p><kbd>←</kbd> <kbd>→</kbd> 或左右拖动转向。<kbd>空格</kbd> 蹬冰，<kbd>↑</kbd> / <kbd>↓</kbd> 加速或刹停。触屏可上下拖动，或按住「加速」「刹停」。</p>
+    <p><kbd>Enter</kbd> 换梦，<kbd>H</kbd> 观景，<kbd>P</kbd> 留影。靠近冰面上的光点，会遇见几句旅途中的话。</p>
+    <p>松开按键后，你会凭惯性继续滑。按住刹停可以留在原地看风景。海棠、海雾、鲲与云海会依次出现，读过的话会留在「卷」里。配乐会随场景变化，点右上角扬声器可以开关。</p>
   </dialog>
 </main>
 <script>
@@ -174,7 +174,7 @@ const palettes = [
   {name:"花吹雪", icon:"✿", sky:[82,88,144], mid:[168,135,177], line:[254,191,201], cloud:[253,168,194], shadow:[124,86,151], hills:[122,83,136], water:[67,44,92], light:[255,211,226], weather:"春暮 · 落花"},
   {name:"群星落海", icon:"✦", sky:[18,25,56], mid:[64,62,124], line:[158,146,207], cloud:[158,146,215], shadow:[54,51,106], hills:[74,68,132], water:[25,35,81], light:[211,207,255], weather:"深夜 · 星雨"}
 ];
-const poems = ["今天可以走得慢一点。","水面收着一小片天空。","你可以在这里多停一会儿。","风经过的时候，什么也没带走。","有些星光，只有静下来才看得见。"];
+const poems = ["今天可以走得慢一点。","冰面收着一小片天空。","你可以在这里多停一会儿。","风经过的时候，什么也没带走。","有些星光，只有静下来才看得见。"];
 function dreamFor(word) {
   const n = textHash(word.toLowerCase());
   const i = /极光|aurora|北极/i.test(word) ? 1 : /花|春|樱|petal|flower|sakura/i.test(word) ? 2 :
@@ -184,7 +184,7 @@ function dreamFor(word) {
 }
 const chapters = [
   {at:0, name:"海棠渡", icon:"✿", weather:"晨光 · 花瓣", index:0, seed:45,
-    lines:[[0,"一朵海棠逆着水流，轻轻碰了碰船头。"],[205,"它往水天交界处去了。你松开缆绳，任船跟上。"]]},
+    lines:[[0,"一朵海棠逆着风，在你的冰刀前打了个旋。"],[205,"花瓣贴着冰面滑向水天交界处。你侧过身，顺着它划出的弧线追过去。"]]},
   {at:450, name:"海雾深处", icon:"≋", weather:"潮声 · 雾起", index:2, seed:109,
     sky:[53,59,93], mid:[137,128,159], line:[235,178,166], cloud:[224,177,179], hills:[112,94,137], water:[43,42,73], light:[255,205,178],
     lines:[[0,"花瓣一片片沉入雾里。雾的另一侧，有什么缓缓吐出一口气。"],[230,"那一口气吹开了海面。你看见水下有一条比岛还长的影子。"]]},
@@ -193,8 +193,8 @@ const chapters = [
   {at:1700, name:"天接云涛", icon:"☁", weather:"云浪 · 天河", index:2, seed:313,
     sky:[61,66,113], mid:[145,133,170], line:[255,204,179], cloud:[247,195,196], hills:[133,109,159], water:[67,61,107], light:[255,228,195],
     lines:[[45,"天接云涛连海雾。"],[325,"鲲在云浪间翻身，惊起几只白色的飞鱼。它们衔着海棠，把天边染得微红。"]]},
-  {at:2440, name:"天河停舟", icon:"✦", weather:"星雨 · 长夜", index:3, seed:411,
-    lines:[[55,"鲲往更深的夜里去了。一片花瓣落回船舷，和出发时一样轻。"],[340,"远处还有星光。你可以跟着它继续漂，也可以在这里多待一会儿。"]]}
+  {at:2440, name:"天河星原", icon:"✦", weather:"星雨 · 长夜", index:3, seed:411,
+    lines:[[55,"鲲往更深的夜里去了。一片花瓣落在你的围巾上，和出发时一样轻。"],[340,"远处还有星光。你可以跟着它继续滑，也可以在这里多待一会儿。"]]}
 ];
 const original = {...palettes[0],...chapters[0],word:"",whale:false};
 let chapterIndex=0, routeDistance=0, routePosition=0, routeMode=true, nextLine=0, storyUntil=0;
@@ -271,9 +271,10 @@ function showJournal() {
 }
 let current=original, previous=original, cache=null, oldCache=null, transition=1;
 let W=1,H=1,dpr=1,horizon=1, start=false, t=0, timeInDream=0, previousFrame=0, whisperTimer;
-let position=0, heading=0, velocity=0, lift=0, jumpSpeed=0, steer=0, distance=0, ripple=1, found=0;
-let drag=null, clean=false, lastPose=null, lateral=0, paddle=0;
-const touchPaddles=new Map();
+let position=0, heading=0, velocity=0, steer=0, distance=0, found=0;
+let drag=null, clean=false, lastPose=null, lateral=0;
+let stridePhase=0, edgeLean=0, kick=0, brake=0;
+const touchControls=new Map();
 const keys = new Set();
 const sky = document.createElement("canvas"), sk = sky.getContext("2d",{alpha:false});
 const art = new Image();
@@ -382,6 +383,7 @@ function paintSky(p) {
         bloom(c,0,0,rx,blend(p.shadow,p.cloud,.24+v*.72),.12+size*.4);c.restore();
       }
     }
+    skyDetail(c,w,h,p);
     for(let i=0;i<3;i++) ridge(c,w,h,p,i);
   }
   return b;
@@ -462,17 +464,13 @@ function drawWater(light,water) {
   const deep=H-horizon;
   ctx.fillStyle=rgba(water,1);ctx.fillRect(0,horizon,W,deep);
   ctx.save();ctx.beginPath();ctx.rect(0,horizon,W,deep);ctx.clip();
-  const strips=Math.min(135,Math.ceil(deep/4)), step=deep/strips, factor=horizon/deep*.95;
-  ctx.globalAlpha=.86;
-  for(let i=0;i<strips;i++){
-    const y=i*step, n=y/deep, src=clamp((horizon-y*factor)/horizon*sky.height-step*factor*sky.height/horizon,0,sky.height-1);
-    const crop=Math.min(sky.height-src,(step+.85)*factor*sky.height/horizon);
-    const wave=(Math.sin(y*.053-t*1.4+position*.003)+Math.sin(y*.021+t*.7))*n*(reduced?1:5);
-    ctx.drawImage(sky,0,src,sky.width,crop,wave-9,horizon+y,W+18,step+.9);
-  }
+  ctx.globalAlpha=.77;
+  ctx.save();ctx.translate(0,horizon);ctx.scale(1,-1);
+  ctx.drawImage(sky,0,-deep,W,deep);
+  ctx.restore();
   ctx.globalAlpha=1;
   const veil=ctx.createLinearGradient(0,horizon,0,H);
-  veil.addColorStop(0,rgba(light,.18));veil.addColorStop(.35,rgba(water,.22));veil.addColorStop(1,rgba(water,.61));
+  veil.addColorStop(0,rgba(light,.09));veil.addColorStop(.43,rgba(water,.19));veil.addColorStop(1,rgba(water,.46));
   ctx.fillStyle=veil;ctx.fillRect(0,horizon,W,deep);
   for(let i=0;i<100;i++){
     const z=65+wrap(hash(i*9)*1400-distance,1400), depth=68/z;
@@ -482,6 +480,7 @@ function drawWater(light,water) {
     ctx.fillStyle=rgba(light,(.09+hash(i*9+4)*.24)*smooth((1450-z)/410));
     ctx.fillRect(x,y,width,.25+depth*1.55);
   }
+  iceDetails(light,water);
   drawWaterMarkers(light);
   ctx.restore();
 }
@@ -489,14 +488,14 @@ function drawWaterMarkers(light){
   for(let i=0;i<56;i++){
     const offset=i*23-distance, z=63+wrap(offset,1288);
     const key=i+Math.floor(offset/1288)*56;
-    const spread=Math.sin(key*.078)*19+(hash(key+1012)-.5)*53;
+    const spread=Math.sin(key*.078)*25+(hash(key+1012)-.5)*53;
     const point=project(spread,z), s=point.scale;
     const fade=smooth((z-63)/26)*smooth((1288-z)/370);
     const alpha=fade*(.14+hash(key+306)*.42);
     if(i%6===0) bloom(ctx,point.x,point.y,4+s*15,light,alpha*.55);
     ellipse(ctx,point.x,point.y,.6+s*4,.4+s*1.9,rgba(light,alpha),-.24);
   }
-  // Wider surface crests make forward and reverse motion readable near the boat.
+  // Frost streaks widen as they approach the skater.
   for(let i=0;i<18;i++){
     const offset=i*69-distance, z=62+wrap(offset,1242);
     const key=i+Math.floor(offset/1242)*18;
@@ -510,6 +509,118 @@ function drawWaterMarkers(light){
     ctx.lineWidth=.45+s*1.55;ctx.strokeStyle=glint;ctx.stroke();
   }
 }
+const iceTints=[[135,188,211],[115,185,189],[178,194,243],[103,124,216]];
+function iceDetails(light,water){
+  const tint=blend(iceTints[previous.index],iceTints[current.index],smooth(transition));
+  const lit=blend(tint,light,.45), shaded=blend(water,tint,.28);
+  // Each polygon is anchored in world space, so all its edges approach together.
+  for(let i=0;i<44;i++){
+    const period=840, offset=hash(i+271)*period-distance;
+    const z=76+wrap(offset,period);
+    const seed=i+Math.floor(offset/period)*37;
+    const x=(hash(seed+391)-.5)*740, size=19+hash(seed+514)*50;
+    const points=[[-1,17],[-.54,-7],[.24,-19],[.91,-3],[.81,18],[-.27,25]].map(([dx,dz])=>project(x+dx*size,z+dz*.55));
+    const [a,b,c,d,e,f]=points;
+    if(Math.max(a.x,b.x,c.x,d.x,e.x,f.x)<0||Math.min(a.x,b.x,c.x,d.x,e.x,f.x)>W)continue;
+    const opacity=smooth((z-76)/45)*smooth((1600-z)/890);
+    ctx.beginPath();ctx.moveTo(a.x,a.y);
+    for(const p of points.slice(1))ctx.lineTo(p.x,p.y);
+    ctx.closePath();
+    ctx.fillStyle=rgba(i%3?shaded:tint,opacity*(i%3?.31:.27));ctx.fill();
+    ctx.beginPath();ctx.moveTo(b.x,b.y);ctx.lineTo(c.x,c.y);ctx.lineTo(d.x,d.y);
+    ctx.strokeStyle=rgba(lit,opacity*.68);ctx.lineWidth=.38+c.scale*.65;ctx.stroke();
+    if(i%2===0){
+      const tip=project(x+size*1.12,z-13), branch=project(x+size*.81,z-25);
+      ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(f.x,f.y);ctx.lineTo(d.x,d.y);ctx.lineTo(tip.x,tip.y);ctx.lineTo(branch.x,branch.y);
+      ctx.strokeStyle=rgba(light,opacity*.44);ctx.stroke();
+    }
+  }
+  for(let i=0;i<60;i++){
+    const period=1320, offset=hash(i+742)*period-distance;
+    const z=66+wrap(offset,period), seed=i+Math.floor(offset/period)*61;
+    const p=project((hash(seed+399)-.5)*660,z), s=p.scale;
+    if(p.x<0||p.x>W)continue;
+    const fade=smooth((z-66)/33)*smooth((1220-z)/510);
+    const a=fade*(.14+hash(seed+581)*.29);
+    const width=(1.6+hash(seed+318)*11)*s;
+    ellipse(ctx,p.x,p.y,width,.7+s*1.3,rgba(i%4?lit:light,a),-.25+hash(seed)*.45);
+    if(i%8===0){
+      ctx.beginPath();ctx.moveTo(p.x-2.3*width,p.y);ctx.lineTo(p.x+2.3*width,p.y);
+      ctx.moveTo(p.x,p.y-width*.6);ctx.lineTo(p.x,p.y+width*.6);
+      ctx.strokeStyle=rgba(light,a*.8);ctx.lineWidth=.65;ctx.stroke();
+    }
+  }
+}
+function shoreDetail(width,tall,seed,light,water,petals,cloudSea){
+  const rose=blend(light,[241,145,172],.67);
+  const frost=blend(light,[153,221,237],.57);
+  const shade=blend(water,[17,27,56],.32);
+  for(let i=0;i<5;i++){
+    const x=width*(-.7+i*.32), y=-tall*(.16+.40*Math.sin(i*Math.PI/5));
+    ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+width*.28,y+tall*.19);
+    ctx.lineTo(x+width*.41,y+tall*.19);ctx.lineTo(x+width*.23,y+tall*.31);
+    ctx.strokeStyle=rgba(i%2?frost:shade,.58);ctx.lineWidth=.8;ctx.stroke();
+  }
+  if(petals>.06){
+    const trunk=width*.14, top=-tall*1.66;
+    ctx.strokeStyle=rgba(shade,.86);ctx.lineWidth=Math.max(.7,tall*.04);ctx.beginPath();
+    ctx.moveTo(trunk,-tall*.65);ctx.bezierCurveTo(trunk-width*.17,-tall*.99,trunk+width*.15,-tall*1.15,trunk+width*.03,top);
+    for(const side of [-1,1]){
+      ctx.moveTo(trunk,-tall*1.06);ctx.quadraticCurveTo(trunk+side*width*.29,-tall*1.24,trunk+side*width*.49,-tall*1.46);
+    }
+    ctx.stroke();
+    for(let i=0;i<24;i++){
+      const x=trunk+(hash(seed+i*7)-.5)*width*1.23;
+      const y=top+(hash(seed+i*7+1)-.42)*tall*.52;
+      const radius=(.035+hash(seed+i*7+2)*.065)*width;
+      ellipse(ctx,x,y,radius,radius*.72,rgba(i%4?rose:light,petals*(.42+hash(seed+i+51)*.46)),i*.8);
+      if(i%4===0)ellipse(ctx,x,y,radius*.26,radius*.19,rgba(light,petals*.88));
+    }
+  }
+  const crystal=(1-petals*.7)*(1-cloudSea*.5);
+  for(let i=0;i<5;i++){
+    const x=width*(-.64+hash(seed+i+362)*1.35);
+    const y=-tall*(.13+hash(seed+i+863)*.24);
+    const height=tall*(.16+hash(seed+i+651)*.46), w=width*(.04+hash(seed+i+612)*.09);
+    ctx.beginPath();ctx.moveTo(x-w,y);ctx.lineTo(x-w*.55,y-height*.61);ctx.lineTo(x+w*.2,y-height);
+    ctx.lineTo(x+w,y-height*.57);ctx.lineTo(x+w*.8,y);ctx.closePath();
+    ctx.fillStyle=rgba(i%2?frost:blend(light,frost,.28),crystal*.55);ctx.fill();
+    ctx.beginPath();ctx.moveTo(x+w*.2,y-height);ctx.lineTo(x+w*.33,y-height*.36);ctx.lineTo(x-w*.12,y);
+    ctx.strokeStyle=rgba(light,crystal*.71);ctx.lineWidth=.6;ctx.stroke();
+  }
+}
+function skyDetail(c,w,h,p){
+  if(p.index===0)return;
+  const cold=p.index!==2;
+  for(let bank=0;bank<8;bank++){
+    const seed=p.seed+bank*113, x=w*(.08+hash(seed)*.85), y=h*(.40+hash(seed+1)*.51);
+    const span=w*(.16+hash(seed+2)*.32), height=h*(.046+hash(seed+3)*.13);
+    for(let i=0;i<18;i++){
+      const u=(i+hash(seed+i+19)*.65)/18, f=Math.sin(u*Math.PI);
+      const r=span*(.07+hash(seed+i+33)*.10);
+      const xx=x+(u-.5)*span, yy=y+Math.sin(u*8+bank)*height*.28;
+      c.save();c.translate(xx,yy);c.scale(1,Math.max(.07,height/r*(.21+f*.59)));
+      bloom(c,0,0,r,blend(p.shadow,p.cloud,.35+f*.38),(.13+f*.12)*(cold?.8:1));
+      c.restore();
+    }
+    const edge=c.createLinearGradient(x-span*.5,0,x+span*.5,0);
+    edge.addColorStop(0,rgba(p.light,0));edge.addColorStop(.48,rgba(p.light,cold?.12:.27));edge.addColorStop(1,rgba(p.light,0));
+    c.strokeStyle=edge;c.lineWidth=.9;
+    c.beginPath();c.moveTo(x-span*.5,y);c.bezierCurveTo(x-span*.25,y-height*.47,x+span*.19,y+height*.14,x+span*.5,y-height*.16);c.stroke();
+  }
+  if(cold){
+    const mx=w*.81,my=h*.24,r=h*.077;
+    bloom(c,mx,my,r*2.9,p.light,.27);
+    const moon=c.createLinearGradient(mx-r,my-r,mx+r,my+r);
+    moon.addColorStop(0,rgba(p.light,.85));moon.addColorStop(1,rgba(p.mid,.44));
+    ellipse(c,mx,my,r,r,moon);
+    for(let i=0;i<10;i++){
+      const xx=(hash(i+371)-.5)*r*1.18,yy=(hash(i+432)-.5)*r*1.18;
+      ellipse(c,mx+xx,my+yy,r*(.06+hash(i+139)*.13),r*.073,rgba(p.mid,.20));
+    }
+  }
+}
+
 function cloudBanks(c,w,h,light,mist) {
   const cloudSea=routeMode?smooth((routeDistance-1450)/530)*(1-smooth((routeDistance-2300)/570)):0;
   for(let i=0;i<13;i++){
@@ -603,12 +714,12 @@ function drawRouteScenery(light,water){
   const petals=routeMode?1-smooth((travel-280)/530):.42;
   const scenery=[];
   for(let i=0;i<54;i++){
-    const period=i<16?1850:1060;
-    const phase=hash(i*13)*period-distance+111;
+    const period=i<16?1150:1060;
+    const phase=(i<16?i*period/16:hash(i*13)*period)-distance+111;
     const z=60+wrap(phase,period);
     const key=i+Math.floor(phase/period)*54;
     const side=i%2?1:-1;
-    const x=side*(i<16?115+hash(key+3)*310:9+hash(key+3)*420);
+    const x=side*(i<16?57+hash(key+3)*118:9+hash(key+3)*420);
     scenery.push({i,x,z,key});
   }
   scenery.sort((a,b)=>b.z-a.z);
@@ -617,7 +728,7 @@ function drawRouteScenery(light,water){
     if(p.x<-175||p.x>W+175)continue;
     const alpha=smooth((z-60)/27)*smooth((1500-z)/580);
     if(i<16){
-      const width=(42+hash(key+7)*105)*s, tall=(21+hash(key+9)*76)*s;
+      const width=(49+hash(key+7)*133)*s, tall=(29+hash(key+9)*97)*s;
       ctx.save();ctx.translate(p.x,p.y);ctx.globalAlpha=alpha*(1-cloudSea*.88);
       ellipse(ctx,0,tall*.09,width*1.27,tall*.21,rgba(light,.22));
       const g=ctx.createLinearGradient(0,-tall,0,0);
@@ -627,14 +738,7 @@ function drawRouteScenery(light,water){
       ctx.bezierCurveTo(-width*.03,-tall*.64,width*.05,-tall*1.21,width*.21,-tall*.92);
       ctx.bezierCurveTo(width*.42,-tall*.86,width*.45,-tall*.37,width,0);
       ctx.quadraticCurveTo(0,tall*.21,-width,0);ctx.fill();
-      if(i%3===0){
-        ctx.strokeStyle=rgba(blend(water,light,.18),.9);ctx.lineWidth=Math.max(.65,s*3);
-        ctx.beginPath();ctx.moveTo(width*.16,-tall*.69);ctx.quadraticCurveTo(width*.04,-tall*1.2,width*.37,-tall*1.54);ctx.stroke();
-        for(let k=0;k<8;k++){
-          ellipse(ctx,width*(.18+hash(key+k)*.42),-tall*(1.24+hash(key+k+11)*.37),
-            s*(8+hash(key+k+3)*11),s*(5+hash(key+k+4)*9),rgba(blend(light,[231,136,164],.55),(.41+petals*.41)));
-        }
-      }
+      shoreDetail(width,tall,key,light,water,petals,cloudSea);
       ctx.restore();
       if(cloudSea>.01){
         ctx.save();ctx.translate(p.x,p.y-tall*.7);ctx.scale(1,.26);
@@ -672,88 +776,91 @@ function particles(p,light){
     }
   }
 }
-function trail(x,y,light){
-  ctx.save();
-  const length=Math.min(225,H*.33)*Math.min(1.45,.62+Math.abs(velocity)*.47);
-  const flow=velocity<-.04?-1:1;
-  ctx.globalAlpha=.28+Math.min(1,Math.abs(velocity))*.72;
-  for(let i=0;i<3;i++){
-    const startX=x+(i-1)*12,endX=x+(i-1)*74-heading*length*.54;
-    const g=ctx.createLinearGradient(0,y,0,y+length*flow);
-    g.addColorStop(0,rgba(light,.56-i*.10));g.addColorStop(1,rgba(light,0));
-    ctx.strokeStyle=g;ctx.lineWidth=1.45-i*.18;
-    ctx.beginPath();ctx.moveTo(startX,y);ctx.bezierCurveTo(startX-heading*23,y+length*flow*.38,endX,y+length*flow*.66,endX,y+length*flow);ctx.stroke();
+function trail(x,y,scale,light){
+  const speed=Math.max(0,velocity);
+  if(speed<.035)return;
+  const length=Math.min(H*.27,28+speed*69);
+  const bend=(heading*.45+edgeLean*.48)*length;
+  const g=ctx.createLinearGradient(0,y,0,y+length);
+  g.addColorStop(0,rgba(light,.75));g.addColorStop(.28,rgba(light,.4));g.addColorStop(1,rgba(light,0));
+  ctx.save();ctx.globalAlpha=clamp(speed*.72,0,1);ctx.strokeStyle=g;
+  for(const side of [-1,1]){
+    const start=x+side*7*scale, end=start-bend+side*12;
+    ctx.lineWidth=side===1?1.45:.85;
+    ctx.beginPath();ctx.moveTo(start,y);ctx.bezierCurveTo(start,y+length*.26,end,y+length*.69,end,y+length);ctx.stroke();
   }
-  if(ripple<1){
-    // Two widening rings plus a burst of droplets, so a hop reads at a glance.
-    for(let ring=0;ring<2;ring++){
-      const r=clamp(ripple-ring*.38,0,1);
-      if(r<=0)continue;
-      ctx.strokeStyle=rgba(light,(1-r)*.7);ctx.lineWidth=1.6;
-      ctx.beginPath();ctx.ellipse(x,y,16+r*130,5+r*34,0,0,TAU);ctx.stroke();
-    }
-    for(let d=0;d<8;d++){
-      const a=d/8*TAU, spread=ripple*84;
-      ellipse(ctx,x+Math.cos(a)*spread,y-ripple*30+Math.sin(a)*spread*.22,1.7,1.7,rgba(light,(1-ripple)*.8));
-    }
+  const spray=clamp(Math.abs(edgeLean)*.6+kick*.72+brake*.68,0,1);
+  for(let i=0;i<(reduced?9:30);i++){
+    const life=wrap(hash(i+971)+t*(.75+hash(i+12)*.9),1);
+    const side=i%2?1:-1, width=(8+hash(i+134)*42)*(1+spray);
+    const sx=x+side*(5+life*width)*scale-life*bend*.45;
+    const sy=y+life*(9+speed*18+hash(i+411)*17)*scale;
+    const size=.4+hash(i+173)*1.5;
+    ellipse(ctx,sx,sy,size,.6*size,rgba(light,(1-life)*(.12+spray*.76)),side*.6);
   }
   ctx.restore();
 }
-function traveler(c,x,y,scale,lean,reflection){
-  c.save();c.translate(x,y);c.scale(scale,reflection?-scale*.55:scale);c.rotate(lean*.34);
+function traveler(c,x,y,scale,reflection){
+  c.save();c.translate(x,y);c.scale(scale,reflection?-scale*.51:scale);
   c.lineJoin="round";c.lineCap="round";
-  const shape=(fill,outline,width,draw)=>{
-    c.beginPath();draw();c.closePath();c.fillStyle=fill;c.fill();
-    if(outline){c.lineWidth=width;c.strokeStyle=outline;c.stroke();}
+  const stride=(reduced?0:Math.sin(stridePhase))*Math.min(1,velocity*1.8)*(.4+Math.min(velocity,2)*.29);
+  const crouch=brake*10+kick*12+Math.min(velocity,2)*2;
+  const lean=edgeLean*21;
+  const hipX=lean*.39,hipY=-39+crouch*.44;
+  const shoulderX=lean,shoulderY=-70+crouch;
+  const line=(color,width,ax,ay,bx,by,cx,cy)=>{
+    c.strokeStyle=color;c.lineWidth=width;c.beginPath();c.moveTo(ax,ay);
+    c.quadraticCurveTo(bx,by,cx,cy);c.stroke();
   };
-  const hull=c.createLinearGradient(-27,0,27,0);
-  hull.addColorStop(0,"#512d41");hull.addColorStop(.49,"#ac6558");hull.addColorStop(1,"#573247");
-  shape(hull,"#ffc998",1.5,()=>{
-    c.moveTo(0,-81);c.bezierCurveTo(20,-63,28,-33,26,-3);
-    c.bezierCurveTo(24,24,14,36,0,45);c.bezierCurveTo(-14,36,-24,24,-26,-3);
-    c.bezierCurveTo(-28,-33,-20,-63,0,-81);
-  });
-  shape("#5f414c","#d59178",.9,()=>{
-    c.moveTo(0,-68);c.bezierCurveTo(16,-51,21,-29,20,-4);
-    c.quadraticCurveTo(19,23,0,35);c.quadraticCurveTo(-19,23,-20,-4);
-    c.bezierCurveTo(-21,-29,-16,-51,0,-68);
-  });
-  for(let i=0;i<6;i++){
-    const offset=i*4-10;
-    c.beginPath();c.moveTo(offset*.45,-54);c.quadraticCurveTo(offset*1.4,-7,offset*.61,28);
-    c.strokeStyle=i%2?"#cd8c7160":"#3e2d426f";c.lineWidth=.85;c.stroke();
+  const shape=(fill,draw)=>{
+    c.beginPath();draw();c.closePath();c.fillStyle=fill;c.fill();
+  };
+  const foot=(side)=>{
+    const extension=Math.max(0,side*stride);
+    const fx=side*(9+extension*16)-edgeLean*4;
+    const fy=side*stride*5+extension*9;
+    line(side===1?"#31445e":"#25304a",9,hipX+side*6,hipY,fx+lean*.28,-20+crouch*.21,fx,fy-7);
+    line("#6d7b92",2.1,hipX+side*7,hipY,fx+lean*.24,-20+crouch*.21,fx,fy-7);
+    c.save();c.translate(fx,fy);c.rotate(edgeLean*.38+side*extension*.46);
+    shape(side===1?"#e6d2c2":"#b9b5c8",()=>{
+      c.moveTo(-4,-12);c.quadraticCurveTo(3,-16,4,-8);
+      c.lineTo(5,2);c.quadraticCurveTo(0,6,-5,2);c.lineTo(-5,-6);
+    });
+    line("#423852",2,-4,2,-2,5,4,3);
+    line("#dbf7ff",1.15,-1,-2,-2,5,0,8);
+    c.restore();
+  };
+  foot(stride>0?-1:1);foot(stride>0?1:-1);
+  for(const side of [-1,1]){
+    const spread=24+Math.abs(edgeLean)*8+brake*6;
+    const handX=shoulderX+side*spread;
+    const handY=shoulderY+17+side*edgeLean*13-side*stride*5;
+    line(side===-1?"#a34e65":"#db7f88",8,shoulderX+side*9,shoulderY+3,handX-side*8,handY+1,handX,handY);
+    ellipse(c,handX,handY,3.7,3.3,"#ede1d5",side*.28);
   }
-  c.fillStyle="#dc9d7b";c.fillRect(-19,6,38,5);
-  c.beginPath();c.moveTo(0,-79);c.quadraticCurveTo(12,-67,17,-55);
-  c.lineWidth=1.7;c.strokeStyle="#ffecd1";c.stroke();
-  if(!reflection){
-    for(const side of [-1,1]){
-      const stroke=Math.sin(paddle+side*.29), reach=28+Math.abs(velocity)*5;
-      const ox=side*(33+reach*.35), oy=11+stroke*23;
-      c.beginPath();c.moveTo(side*7,-4);c.lineTo(ox,oy);
-      c.lineWidth=2.1;c.strokeStyle="#dbad8a";c.stroke();
-      ellipse(c,ox+side*4,oy+3,8.7,3.4,"#e6ab86",side*.49);
-      if(stroke>.28 && Math.abs(velocity)>.45){
-        c.beginPath();c.ellipse(ox+side*5,oy+4,12+stroke*15,3+stroke*3,0,0,TAU);
-        c.strokeStyle=rgba([255,224,193],stroke*.47);c.lineWidth=1;c.stroke();
-      }
-    }
-  }
-  const cloak=c.createLinearGradient(-16,-21,16,11);
-  cloak.addColorStop(0,"#f5ab9d");cloak.addColorStop(.68,"#bf677e");cloak.addColorStop(1,"#8f4d70");
-  shape(cloak,"#f2b1a0",.7,()=>{
-    c.moveTo(-9,-26);c.quadraticCurveTo(0,-33,10,-26);
-    c.quadraticCurveTo(19,-16,17,8);c.quadraticCurveTo(0,18,-17,8);
-    c.quadraticCurveTo(-19,-16,-9,-26);
+  const coat=c.createLinearGradient(hipX-15,0,shoulderX+14,0);
+  coat.addColorStop(0,"#843e62");coat.addColorStop(.56,"#cc667c");coat.addColorStop(1,"#ffc2ac");
+  shape(coat,()=>{
+    c.moveTo(shoulderX-12,shoulderY-1);c.quadraticCurveTo(shoulderX,shoulderY-9,shoulderX+13,shoulderY);
+    c.quadraticCurveTo(shoulderX+17,shoulderY+10,hipX+11,hipY-9);
+    c.lineTo(hipX+16,hipY+4);c.quadraticCurveTo(hipX,hipY+10,hipX-16,hipY+4);
+    c.lineTo(hipX-12,hipY-9);c.quadraticCurveTo(shoulderX-17,shoulderY+8,shoulderX-12,shoulderY-1);
   });
-  ellipse(c,0,-31,10.4,11,"#3e3048",-.15);
-  ellipse(c,1,-26,5.4,6.6,"#513a50",.18);
-  c.beginPath();c.moveTo(-10,-24);c.quadraticCurveTo(0,-20,10,-25);c.lineWidth=2.7;c.strokeStyle="#ffe2a5";c.stroke();
-  const flutter=Math.sin(t*3)*4;
-  shape("#ffd7a0",null,0,()=>{
-    c.moveTo(-7,-24);c.bezierCurveTo(-15,-22,-14,-11,-24+flutter,-1);
-    c.bezierCurveTo(-14+flutter,-4,-9,-12,-5,-22);
+  line("#ffe0b6",1.15,shoulderX+2,shoulderY,shoulderX+3,hipY-9,hipX+1,hipY+5);
+  line("#f4a69b",1.4,hipX-13,hipY+3,hipX,hipY+8,hipX+13,hipY+3);
+  const wind=(reduced?0:Math.sin(t*5))*4-edgeLean*19;
+  const scarf=c.createLinearGradient(0,shoulderY,0,shoulderY+49);
+  scarf.addColorStop(0,"#fff2c5");scarf.addColorStop(.62,"#f9b96f");scarf.addColorStop(1,"#e98e89");
+  shape(scarf,()=>{
+    c.moveTo(shoulderX-5,shoulderY-3);
+    c.bezierCurveTo(shoulderX-13,shoulderY+13,hipX+wind-11,hipY-3,hipX+wind-14,hipY+15+velocity*4);
+    c.lineTo(hipX+wind-7,hipY+12+velocity*4);
+    c.bezierCurveTo(hipX+wind-1,hipY-4,shoulderX-5,shoulderY+10,shoulderX+2,shoulderY-3);
   });
+  ellipse(c,shoulderX,shoulderY-10,9,10,"#352b49",-.18);
+  ellipse(c,shoulderX-1,shoulderY-8,6.5,8,"#52324f",-.28);
+  ellipse(c,shoulderX-1,shoulderY-16,4.9,4.3,"#49304a");
+  line("#ffdeb1",3,shoulderX-7,shoulderY-3,shoulderX,shoulderY+1,shoulderX+7,shoulderY-4);
   c.restore();
 }
 function lights(light,px,py){
@@ -768,9 +875,9 @@ function lights(light,px,py){
     bloom(ctx,x,y,size*6,light,b*.68);
     ellipse(ctx,x,y,size,size*.72,rgba(light,b));
     ellipse(ctx,x,y+size*3,size*.62,size*.27,rgba(light,b*.35));
-    if(start&&!viewingDialog()&&lift<28&&Math.abs(x-px)<Math.max(32,W*.037)&&Math.abs(y-py)<20){
+    if(start&&!viewingDialog()&&Math.abs(x-px)<Math.max(32,W*.037)&&Math.abs(y-py)<20){
       seen.add(key);if(seen.size>60) seen.delete(seen.values().next().value);
-      announce(poems[found++%poems.length]);note(found%5);ripple=0;
+      announce(poems[found++%poems.length]);note(found%5);
     }
   }
 }
@@ -790,21 +897,25 @@ function render(ms) {
   const target=start?clamp(turn+steer,-1,1):.08;
   heading=lerp(heading,target,1-Math.exp(-dt*3));
   steer*=Math.exp(-dt*.85);
-  const forward=keys.has("ArrowUp")||keys.has("KeyW")||[...touchPaddles.values()].includes(1);
-  const reverse=keys.has("ArrowDown")||keys.has("KeyS")||[...touchPaddles.values()].includes(-1);
-  const throttle=clamp(Number(forward)-Number(reverse)+(drag?.throttle??0),-1,1);
-  const pace=start?.84+throttle*(throttle<0?1.87:1.65):.3;
-  velocity=lerp(velocity,pace,1-Math.exp(-dt*(throttle<0?7:4.5)));
-  if(!paused) paddle+=dt*(1.4+Math.abs(velocity)*2.6)*(velocity<0?-1:1);
+  const forward=keys.has("ArrowUp")||keys.has("KeyW")||[...touchControls.values()].includes(1);
+  const slow=keys.has("ArrowDown")||keys.has("KeyS")||[...touchControls.values()].includes(-1);
+  const throttle=clamp(Number(forward)-Number(slow)+(drag?.throttle??0),-1,1);
+  const pace=start?Math.max(0,.86+throttle*(throttle<0?.86:1.52)+kick*.9*(1-Math.max(0,-throttle))):.28;
+  if(!paused){
+    brake=lerp(brake,Math.max(0,-throttle),1-Math.exp(-dt*8));
+    edgeLean=lerp(edgeLean,heading,1-Math.exp(-dt*6));
+    velocity=lerp(velocity,pace*(1-brake*.27),1-Math.exp(-dt*(throttle<0?7:2.7)));
+    if(velocity<.025&&brake>.9)velocity=0;
+    stridePhase+=dt*velocity*3.8;
+    kick=Math.max(0,kick-dt*1.1);
+  }
   if(!paused){
     position+=heading*dt*149;
-    lateral=clamp(lateral+heading*dt*(30+Math.abs(velocity)*28),-142,142);
+    lateral=clamp(lateral+heading*dt*velocity*57,-142,142);
     distance+=dt*velocity*(start?32:7);
     if(start&&routeMode) travelStory(dt);
   }
   if(t>=storyUntil) $("story").classList.remove("show");
-  if(jumpSpeed||lift){jumpSpeed-=dt*490;lift+=jumpSpeed*dt;if(lift<=0){lift=0;jumpSpeed=0;ripple=0;}}
-  ripple=Math.min(1,ripple+dt*.76);
   drawSky(light);drawWater(light,water);
   drawRouteScenery(light,water);
   particles(current,light);
@@ -812,12 +923,11 @@ function render(ms) {
   const py=horizon+(H-horizon)*(.61-clamp((velocity-.84)*.047,-.09,.08));
   lights(light,px,py);
   const scale=clamp(Math.min(W/1020,H/680),.64,1.32);
-  const bob=reduced?0:Math.sin(t*2.4)*2.6;
-  trail(px,py+3,light);
-  ctx.save();ctx.globalAlpha=.23*(1-lift/130);
-  traveler(ctx,px,py+7+lift*.48,scale,heading,true);ctx.restore();
-  bloom(ctx,px,py,36,light,.30);
-  traveler(ctx,px,py-lift+bob,scale,heading,false);
+  trail(px,py,scale,light);
+  ctx.save();ctx.globalAlpha=.20;
+  traveler(ctx,px,py+4,scale,true);ctx.restore();
+  bloom(ctx,px,py+2,28*scale,light,.25);
+  traveler(ctx,px,py,scale,false);
   if(t>0){
     const weather = !routeMode && !dreamTheme && current.index===0 && timeInDream>25 ? "薄暮 · 湖雾" : current.weather;
     if($("weather").textContent!==weather) $("weather").textContent=weather;
@@ -826,10 +936,12 @@ function render(ms) {
   lastPose={name:current.name};
   requestAnimationFrame(render);
 }
-function leap(){
+function pushOff(){
   play();
-  if(lift>0||jumpSpeed>0)return;
-  jumpSpeed=330;note(2);
+  if(kick>.22)return;
+  kick=1;
+  velocity=Math.min(3.15,Math.max(.85,velocity)+.8);
+  note(2);
 }
 function toggleView(){
   clean=!clean;document.body.classList.toggle("clean",clean);
@@ -855,7 +967,7 @@ function savePhoto(){
     document.body.appendChild(link);link.click();link.remove();
     setTimeout(()=>URL.revokeObjectURL(url),3000);
   },"image/png");
-  announce("这一刻，留在了湖面上，也收进了手记。");
+  announce("这一刻，留在了冰面上，也收进了手记。");
 }
 let audio=null, ambient=null, windFilter=null, audioOn=false, audioRequest=0, scoreLayer=null;
 const scores = [
@@ -978,7 +1090,7 @@ function openDream(){
 $("start").onclick=play;
 $("journal").onclick=showJournal;
 // Closing a dialog hands focus back to the button that opened it; blur it so
-// the next Space hops the boat instead of re-opening the dialog.
+// the next Space pushes off instead of re-opening the dialog.
 for(const id of ["dreamDialog","journalDialog","helpDialog"]){
   $(id).addEventListener("close",()=>{
     const el=document.activeElement;
@@ -1000,24 +1112,23 @@ $("help").onclick=()=>$("helpDialog").showModal();
 $("sound").onclick=toggleSound;
 $("view").onclick=toggleView;
 $("photo").onclick=savePhoto;
-$("jump").onclick=leap;
+$("push").onclick=pushOff;
 document.querySelectorAll(".close").forEach(button=>button.onclick=()=>button.closest("dialog").close());
 document.querySelectorAll("[data-word]").forEach(button=>button.onclick=()=>setWord(button.dataset.word));
 $("dreamForm").onsubmit=event=>{event.preventDefault();setWord($("word").value);};
 window.addEventListener("keydown",event=>{
   if(event.isComposing||event.altKey||event.ctrlKey||event.metaKey||viewingDialog())return;
   if(event.target instanceof HTMLButtonElement&&event.code==="Space"){
-    // Space is the hop, not a button press: a button left focused after a
-    // dialog closes must not swallow it and re-trigger itself.
+    // Space also pushes off when a button retains focus.
     event.preventDefault();event.target.blur();
-    if(!event.repeat)leap();
+    if(!event.repeat)pushOff();
     return;
   }
   if(event.target instanceof HTMLButtonElement&&event.code==="Enter")return;
   if(["ArrowLeft","ArrowRight","ArrowUp","ArrowDown","KeyA","KeyD","KeyW","KeyS"].includes(event.code)){
     event.preventDefault();keys.add(event.code);play();
   } else if(event.code==="Space"){
-    event.preventDefault();if(!event.repeat)leap();
+    event.preventDefault();if(!event.repeat)pushOff();
   } else if(!event.repeat&&event.code==="Enter"){
     event.preventDefault();openDream();
   } else if(!event.repeat&&event.code==="KeyH")toggleView();
@@ -1025,20 +1136,20 @@ window.addEventListener("keydown",event=>{
 });
 window.addEventListener("keyup",event=>keys.delete(event.code));
 window.addEventListener("blur",()=>{
-  keys.clear();steer=0;drag=null;previousFrame=0;touchPaddles.clear();
-  $("rowBack").classList.remove("active");$("rowForward").classList.remove("active");
+  keys.clear();steer=0;drag=null;previousFrame=0;touchControls.clear();
+  $("skateBrake").classList.remove("active");$("skateForward").classList.remove("active");
 });
-for(const [id,direction] of [["rowBack",-1],["rowForward",1]]){
+for(const [id,direction] of [["skateBrake",-1],["skateForward",1]]){
   const button=$(id);
   button.addEventListener("pointerdown",event=>{
     if(event.button!==0)return;
     event.preventDefault();play();button.setPointerCapture(event.pointerId);
-    touchPaddles.set(event.pointerId,direction);button.classList.add("active");
+    touchControls.set(event.pointerId,direction);button.classList.add("active");
   });
   for(const type of ["pointerup","pointercancel","lostpointercapture"]){
     button.addEventListener(type,event=>{
-      touchPaddles.delete(event.pointerId);
-      if(![...touchPaddles.values()].includes(direction)) button.classList.remove("active");
+      touchControls.delete(event.pointerId);
+      if(![...touchControls.values()].includes(direction)) button.classList.remove("active");
     });
   }
 }
