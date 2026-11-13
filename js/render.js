@@ -193,7 +193,11 @@ function render(ms) {
   heading=lerp(heading,target,1-Math.exp(-dt*(target?2.25:5.5)));
   const forward=keys.has("ArrowUp")||keys.has("KeyW")||[...touchControls.values()].includes(1);
   const slow=keys.has("ArrowDown")||keys.has("KeyS")||[...touchControls.values()].includes(-1);
-  const throttle=clamp(Number(forward)-Number(slow)+(drag?.throttle??0),-1,1);
+  let throttle=clamp(Number(forward)-Number(slow)+(drag?.throttle??0),-1,1);
+  if(!paused&&routeMode&&chapterIndex===jadeChapter&&jadePairRun?.brakeGrace){
+    jadePairRun.brakeGrace=forward?0:Math.max(0,jadePairRun.brakeGrace-dt);
+    if(jadePairRun.brakeGrace)throttle=-1;
+  }
   if(flight&&!paused){
     flight.elapsed+=dt;
     const rise=smooth(flight.elapsed/4.1), fall=smooth((flight.duration-flight.elapsed)/5.4);

@@ -3,6 +3,7 @@
 let photoReference=null;
 let jadePairRun=null;
 const JADE_PHOTO_SIDE_TOLERANCE=12, JADE_PHOTO_DEPTH_TOLERANCE=35;
+const JADE_FIXED_SIDE=2, JADE_FIXED_DEPTH=3;
 const JADE_REPLAY_FOCUS={mist:"雾况或散雾方式",shoal:"浅滩倒影",side:"左右位置",depth:"快门早晚"};
 const JADE_REPLAY_PLANS={
   light:{label:"循光拨雾后再拍",met:pose=>pose.cleared&&!pose.waited},
@@ -30,7 +31,7 @@ function jadePhotoPose(){
   const shoal=jadeShoalInView();
   if(storyTime>=storyUntil&&!shoal)return null;
   return {side:lateral*.61-jadeLight.x,depth:routeDistance-jadeLight.start,cleared:followedJadeLight||waitedForJadeMist,
-    ...(waitedForJadeMist?{waited:true}:{}),...(shoal?{shoal:true,shoalCalm:jadeShoalCalm()===1}:{})};
+    ...(waitedForJadeMist?{waited:true}:{}),...(shoal?{shoal:true,shoalCalm:jadeShoalCalm()===1,shoalStopped:velocity===0}:{})};
 }
 function showPhotoReference(shot,guided=true,focus=null,focusGuided=false,plan=""){
   hidePhotoReference();
@@ -67,6 +68,14 @@ function hidePhotoReference(){
 function jadeCenterInView(pose){
   return pose?.waited&&pose.depth<JADE_SHOAL.start&&Math.abs(pose.side)<=JADE_MIST_CENTER;
 }
+function fixedReflectionHint(run,pose){
+  if(!run.fixed||!pose?.shoal)return "";
+  const first=run.first?.jadePose;
+  if(first&&(Math.abs(pose.side-first.side)>JADE_FIXED_SIDE||Math.abs(pose.depth-first.depth)>JADE_FIXED_DEPTH)){
+    return "已偏离第一张的取景点。水纹仍在手记，可重访再试。";
+  }
+  return !first&&!pose.shoalStopped?"先刹停，趁水纹还在时按快门。":"";
+}
 function updateJadePairRun(pose){
   const panel=$("jadePairPanel");
   panel.hidden=!jadePairRun||!routeMode||chapterIndex!==jadeChapter;
@@ -80,12 +89,15 @@ function updateJadePairRun(pose){
   const depth=jadeLight?routeDistance-jadeLight.start:0;
   if(jadePairRun.reflections){
     const {first,complete,pending}=jadePairRun;
-    const text=complete?"水纹和静影已并排存入手记。"
+    const fixedHint=fixedReflectionHint(jadePairRun,pose);
+    const text=complete?(jadePairRun.fixed?"定点对照已存入手记。":"水纹和静影已并排存入手记。")
       :pending?"正在保存留影。"
       :depth>JADE_SHOAL.end?(first?"已滑过浅滩，水纹仍保留在手记里。":"已滑过浅滩，可回手记重试。")
       :!pose?.shoal?(first?"回到浅滩，等水纹散开再拍。":"等溪心散雾，再向左滑入浅滩，先拍水纹。")
-      :first?(pose.shoalCalm?"水面已静，按快门拍下第二张。":"停稳并持续刹停，等水纹散开再拍。")
-      :pose.shoalCalm?"松开刹车等水纹回来，再拍第一张。":"按快门拍下水纹，再停稳等静影。";
+      :fixedHint||(first?(pose.shoalCalm?"水面已静，按快门拍下第二张。":"停稳并持续刹停，等水纹散开再拍。")
+      :pose.shoalCalm?"松开刹车等水纹回来，再拍第一张。"
+      :jadePairRun.fixed?(touchSkating.matches?"刚停稳，松开「刹停」拍水纹，再按住等静影。":"刚停稳，按快门拍水纹，然后继续刹停。")
+      :"按快门拍下水纹，再停稳等静影。");
     if(status.textContent!==text)status.textContent=text;
     return;
   }
@@ -230,6 +242,8 @@ function savePhoto(retake=false){
       announce(run.first?"请在浅滩等水面平静后再拍。":"请先在浅滩拍下带水纹的倒影。");
       return;
     }
+    const fixedHint=fixedReflectionHint(run,jadePose);
+    if(fixedHint){announce(fixedHint);return;}
   }
   if(run?.replacement){
     if(retake||run.pending||run.complete)return;
@@ -291,7 +305,10 @@ function savePhoto(retake=false){
     }
     const shot={blob,name,when,...(comparison?{comparison}:{}),...(jadePose?{jadePose}:{})};
     if(pairStep==="second"){
-      if(run.reflections)shot.jadeWaterPair=first;
+      if(run.reflections){
+        shot.jadeWaterPair=first;
+        if(run.fixed)shot.jadeWaterFixed=true;
+      }
       else shot.jadePair=first;
     }
     if(compare){
@@ -318,7 +335,7 @@ function savePhoto(retake=false){
         run.pending=false;
         if(pairStep==="second")run.complete=true;
         else{
-          run.first={blob,when};
+          run.first={blob,when,...(run.fixed?{jadePose}:{})};
           run.retaken=pairStep==="retake";
           if(jadePairRun===run){
             if(run.preview)URL.revokeObjectURL(run.preview);
