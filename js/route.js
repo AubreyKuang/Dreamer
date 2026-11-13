@@ -1,13 +1,21 @@
 "use strict";
 
 const viewingDialog = () => ["dreamDialog","helpDialog","journalDialog"].some(id=>$(id).open);
-function storyLine(chapter, lineIndex) {
+const MOON_REFLECTION_STOP=2, MOON_REFLECTION_HOLD=3.5, MOON_REFLECTION_FADE=1.8;
+let moonStillTime=0, moonReflection=null, moonResultAt=null;
+
+function rememberVerse(chapter,lineIndex,near){
   const [,originalText,source,gesture,id]=chapter.lines[lineIndex];
-  const near=gesture==="passingBoat"&&metTraveller;
-  const text=near?"你向那盏船灯靠了过去。\n对面举灯晃了晃。\n我自飘零，亦是行人。":originalText;
+  const moonResult=gesture==="moonReflectionResult";
+  let text=originalText;
+  if(near)text="你向那盏船灯靠了过去。\n对面举灯晃了晃。\n我自飘零，亦是行人。";
+  if(moonResult&&moonReflection==="flower")text="桨停了，水里的碎光合成一朵花。\n岸上的细枝还在摇。";
   // New cues use explicit IDs so older entries retain their stored keys.
   const originalIndex=chapter.lines.slice(0,lineIndex).filter(line=>!line[4]).length;
-  const key=chapter.name+"-"+(near?"passing-boat-near":id??originalIndex);
+  let entryId=id??originalIndex;
+  if(near)entryId="passing-boat-near";
+  if(moonResult)entryId="reflection-"+(moonReflection??"ribbon");
+  const key=chapter.name+"-"+entryId;
   if (!journal.has(key)) {
     const entry = {name:chapter.name,text,source};
     journal.set(key, entry);
@@ -19,6 +27,17 @@ function storyLine(chapter, lineIndex) {
       };
     }).catch(reportJournalFailure);
   }
+  return text;
+}
+function storyLine(chapter, lineIndex) {
+  const gesture=chapter.lines[lineIndex][3];
+  if(gesture==="moonReflectionResult"){
+    moonReflection ??= "ribbon";
+    moonResultAt=storyTime;
+  }
+  const text=rememberVerse(chapter,lineIndex,gesture==="passingBoat"&&metTraveller);
+  saveSetting("voyageCheckpoint",{chapter:chapter.name,line:lineIndex,metTraveller,
+    ...(chapter.moonRiver&&moonReflection?{moonReflection}:{})});
   $("storyTitle").textContent=chapter.name;
   $("storyLine").textContent=text;
   $("story").classList.add("show");
@@ -47,9 +66,26 @@ function travelStory(dt, sideStep=0, holdingBrake=false) {
   const step=dt*velocity*32;
   routePosition=storyTime<nextStoryAt?Math.min(marker,routePosition+step):routePosition+step;
   routeDistance=Math.max(routeDistance,routePosition);
+  const moonResultNext=cue?.[3]==="moonReflectionResult";
+  if(chapter.moonRiver&&!moonReflection&&(chapter.lines[nextLine-1]?.[3]==="moonReflection"||moonResultNext)){
+    moonStillTime=holdingBrake&&velocity===0?moonStillTime+dt:0;
+    if(moonStillTime>=MOON_REFLECTION_STOP){
+      moonReflection="flower";
+      saveSetting("voyageCheckpoint",{chapter:chapter.name,line:nextLine-1,moonReflection});
+    }
+  }
   if(chapterIndex===riverChapter&&!metTraveller){
     const boat=passingBoat();
-    if(boat&&Math.abs(boat.x-lateral*.61)<18)metTraveller=true;
+    if(boat&&Math.abs(boat.x-lateral*.61)<18){
+      metTraveller=true;
+      travellerReplyUntil=t+2;
+      announce("对面举灯晃了晃。",2);
+      const verse=chapter.lines.findIndex(line=>line[3]==="passingBoat");
+      if(nextLine>verse){
+        rememberVerse(chapter,verse,true);
+        saveSetting("voyageCheckpoint",{chapter:chapter.name,line:nextLine-1,metTraveller});
+      }
+    }
   }
   if(!cue&&!next&&storyTime>=nextStoryAt){
     // Keep travelling after the last verse without replaying the story.
@@ -63,35 +99,31 @@ function travelStory(dt, sideStep=0, holdingBrake=false) {
     return;
   }
   if(routePosition<marker||storyTime<nextStoryAt)return;
+  // Give a brake already in progress time to reach a complete stop at the cue.
+  if(moonResultNext&&holdingBrake&&!moonReflection)return;
   if(cue) storyLine(chapter,nextLine++);
   else if(next) enterChapter(chapterIndex+1);
 }
 let travellerBank=null;
 let metTraveller=false;
+let travellerReplyUntil=0;
 function passingBoat(){
   const pass=clamp((routeDistance-chapters[riverChapter].at-220)/380,0,1);
   if(!routeMode||chapterIndex!==riverChapter||pass<=0||pass>=1)return null;
   travellerBank ??= lateral*.61;
   return {pass,x:travellerBank+lerp(-76,-38,pass),z:134+138*pass};
 }
-let dreamTheme=null; // the dream the player picked; null while the story sets the sky
-// A picked dream keeps tinting the sky when the story moves on: the chapter
-// sets the scene, the dream is blended over it instead of being wiped.
-const colorKeys=["sky","mid","line","cloud","shadow","hills","water","light"];
 function sceneForChapter(chapter) {
   const scene={...palettes[chapter.index],...chapter,word:"",whale:false};
   if(chapter.grove&&chapterIndex===groveChapter&&chapter.lines.slice(0,nextLine).some(line=>line[3]==="peachNight")){
     Object.assign(scene,peachNight);
   }
-  if(!dreamTheme||chapter.ink) return scene;
-  for(const key of colorKeys) scene[key]=blend(scene[key],dreamTheme[key],.62);
-  scene.name=dreamTheme.name;scene.icon=dreamTheme.icon;scene.weather=dreamTheme.weather;
-  scene.index=dreamTheme.index;scene.seed=dreamTheme.seed;scene.whale=dreamTheme.whale;
   return scene;
 }
 function enterChapter(index, jump=false) {
   const chapter=chapters[index];
-  if(index===riverChapter){travellerBank=null;metTraveller=false;}
+  travellerBank=null;metTraveller=false;travellerReplyUntil=0;
+  if(chapter.moonRiver){moonStillTime=0;moonReflection=null;moonResultAt=null;}
   if(jump) {
     routePosition=routeDistance=chapter.at;
     roamDistance=roamChapter=0;
@@ -100,4 +132,20 @@ function enterChapter(index, jump=false) {
   }
   routeMode=true;chapterIndex=index;nextLine=0;
   changeDream(sceneForChapter(chapter));
+}
+
+function seekVoyage(index,line=0,met=false,reflection=null){
+  leaveFreeRoam();
+  enterChapter(index,true);
+  const chapter=chapters[index];
+  nextLine=line+1;
+  distance=routePosition=routeDistance=chapter.at+chapter.lines[line][0];
+  lateral=position=0;
+  metTraveller=met;
+  if(chapter.moonRiver){
+    const resultLine=chapter.lines.findIndex(cue=>cue[3]==="moonReflectionResult");
+    if(line<=resultLine&&(reflection==="flower"||reflection==="ribbon"))moonReflection=reflection;
+  }
+  if(chapter.grove)changeDream(sceneForChapter(chapter));
+  storyLine(chapter,line);
 }

@@ -6,7 +6,7 @@ let position=0, heading=0, velocity=0, distance=0, found=0, roamDistance=0, roam
 let whisperIndex=0, pendingWhisper=false, nextWhisperAt=0, announcementUntil=0;
 let drag=null, clean=false, lastPose=null, lateral=0;
 let stridePhase=0, edgeLean=0, kick=0, brake=0;
-let freeRoam=false, facing=0, roamVelocity=0, viewCos=1, viewSin=0, suspendedFlight=null, roamFromRoute=false;
+let freeRoam=false, facing=0, roamVelocity=0, viewCos=1, viewSin=0, suspendedVoyage=null;
 const touchControls=new Map();
 const keys = new Set();
 const sky = document.createElement("canvas"), sk = sky.getContext("2d",{alpha:false});

@@ -146,6 +146,7 @@ function updateSkateTip(paused,target,throttle){
   if(visible&&practicedTurn&&throttle<0&&velocity===0){
     saveSetting("skateTipDone",true);
     if(tip.contains(document.activeElement)) canvas.focus({preventScroll:true});
+    announce(storyTime<storyUntil?"诗句已留住 · 松开继续":"已停稳 · 松开继续",2.5);
   }
   if(visible&&Math.abs(target)>=.2&&Math.abs(heading)>=.1) practicedTurn=true;
   tip.hidden=!visible||settings.skateTipDone===true;
@@ -164,10 +165,6 @@ function render(ms) {
   const dt=previousFrame?clamp((ms-previousFrame)/1000,0,.045):0;
   previousFrame=ms;t+=dt;timeInDream+=dt;
   const paused=viewingDialog();
-  if(!routeMode && !freeRoam && !dreamTheme && timeInDream>53 && !paused){
-    const index=(current.index+1)%palettes.length;
-    changeDream({...palettes[index],index,seed:Math.round(t*43)%4096,word:""});
-  }
   transition=Math.min(1,transition+dt/(reduced?1.2:5.8));
   const a=smooth(transition);
   const light=blend(previous.light,current.light,a), water=blend(previous.water,current.water,a);
@@ -264,7 +261,7 @@ function render(ms) {
   if(!flight)drawCompanions(px,py,scale,light);
   drawPetalShower();
   if(t>0){
-    const weather = flight?(flight.mirrorLake?"青云 · 飞渡":"乘风 · 鹤引"):!routeMode && !dreamTheme && current.index===0 && timeInDream>25 ? "薄暮 · 湖雾" : current.weather;
+    const weather = flight?(flight.mirrorLake?"青云 · 飞渡":"乘风 · 鹤引"):current.weather;
     if($("weather").textContent!==weather) $("weather").textContent=weather;
   }
   updateSkateSound(paused,throttle);

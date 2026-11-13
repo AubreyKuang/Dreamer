@@ -171,6 +171,28 @@ function drawMoonRiver(opacity,world){
     pigmentGlow(ctx,x,horizon+(H-horizon)*depth,W*(.018+depth*.067),.11,0,
       [216,238,255],opacity*(.32-depth*.11));
   }
+  if(routeMode&&chapterIndex===moonRiverChapter&&moonReflection){
+    const age=moonResultAt===null?0:storyTime-moonResultAt;
+    const fade=opacity*(1-smooth((age-MOON_REFLECTION_HOLD)/MOON_REFLECTION_FADE));
+    const deep=H-horizon;
+    if(fade>0&&moonReflection==="flower"){
+      const x=W*.71, y=horizon+deep*.63, size=Math.min(W,deep)*.16;
+      pigmentGlow(ctx,x,y,size*1.35,.33,0,[181,207,247],fade*.43);
+      for(let i=0;i<5;i++){
+        const angle=i*TAU/5;
+        ellipse(ctx,x+Math.cos(angle)*size*.43,y+Math.sin(angle)*size*.23,
+          size*.38,size*.15,rgba([228,239,255],fade*.61),Math.sin(angle)*.42);
+      }
+      ellipse(ctx,x,y,size*.15,size*.07,rgba([255,240,219],fade*.80));
+    }
+    if(fade>0&&moonReflection==="ribbon"){
+      for(let i=0;i<12;i++){
+        const depth=i/11;
+        const x=W*lerp(.65,.86,depth), y=horizon+deep*lerp(.28,.90,depth);
+        pigmentGlow(ctx,x,y,W*lerp(.014,.105,depth),.17,0,[210,233,255],fade*.54);
+      }
+    }
+  }
   for(const {object:{kind,seed},depth:z,point:p} of world){
     if(kind>4)continue;
     const bank=smooth((Math.abs(p.x/W-.54)-.10)/.085);
@@ -374,6 +396,11 @@ function drawRiver(opacity,world){
   if(traveller){
     const {pass,x,z}=traveller, fade=opacity*smooth(pass*6)*smooth((1-pass)*5);
     const p=project(x,z);
+    const reply=t<travellerReplyUntil;
+    if(!metTraveller||reply){
+      const sway=reply&&!reduced?Math.sin(t*12)*3:0;
+      bloom(ctx,p.x+12*p.scale+sway,p.y-27*p.scale,(reply?34:18)*p.scale,riverLamp,fade*(reply?1:.64));
+    }
     riverBoat(p.x,p.y+3*p.scale,p.scale*1.06,fade*.29,true,true);
     riverBoat(p.x,p.y,p.scale*1.06,fade,true);
   }

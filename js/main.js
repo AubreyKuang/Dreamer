@@ -5,7 +5,7 @@ const savedJournal = loadJournal();
 window.addEventListener("pointerdown",primeAudio);
 window.addEventListener("keydown",primeAudio);
 function openDream(){
-  $("resumeRoute").hidden=routeMode;
+  if(clean)toggleView();
   $("word").value="";
   $("dreamDialog").showModal();
   $("word").focus();
@@ -13,24 +13,43 @@ function openDream(){
 function leaveFreeRoam(){
   if(!freeRoam)return;
   freeRoam=false;facing=0;viewCos=1;viewSin=0;
-  suspendedFlight=null;
+  suspendedVoyage=null;
+  $("resumeRoute").hidden=true;
+  $("dream").hidden=false;
 }
 function toggleFreeRoam(){
   $("dreamDialog").close();
   play();
   if(freeRoam){
-    const previousFlight=suspendedFlight;
-    routeMode=roamFromRoute;
+    const previous=suspendedVoyage;
+    routeMode=true;
     leaveFreeRoam();
-    flight=previousFlight;
+    ({flight,distance,lateral,position}=previous);
+    changeDream(previous.scene);
+    canvas.focus({preventScroll:true});
     if(routeMode&&storyTime<storyUntil)$("story").classList.add("show");
     return;
   }
-  freeRoam=true;roamFromRoute=routeMode;routeMode=false;
-  suspendedFlight=flight;flight=null;
+  freeRoam=true;routeMode=false;
+  $("resumeRoute").hidden=false;
+  $("dream").hidden=true;
+  suspendedVoyage={flight,distance,lateral,position,scene:current};flight=null;
   roamVelocity=velocity*32;
   $("story").classList.remove("show");
 }
+const checkpoint=settings.voyageCheckpoint;
+const checkpointChapter=chapters.findIndex(chapter=>chapter.name===checkpoint?.chapter);
+const canContinue=checkpointChapter>=0 && Number.isInteger(checkpoint.line)
+  && checkpoint.line>=0 && checkpoint.line<chapters[checkpointChapter].lines.length;
+if(canContinue){
+  $("continueVoyage").hidden=false;
+  $("continueVoyage").textContent="继续上次航程 · "+checkpoint.chapter;
+}
+$("continueVoyage").onclick=()=>{
+  if(!canContinue)return;
+  play();
+  seekVoyage(checkpointChapter,checkpoint.line,checkpoint.metTraveller===true,checkpoint.moonReflection);
+};
 $("start").onclick=play;
 $("quickJournal").onclick=showJournal;
 $("journal").onclick=()=>{ $("helpDialog").close();showJournal(); };
@@ -43,20 +62,12 @@ for(const id of ["dreamDialog","journalDialog","helpDialog"]){
 $("restartRoute").onclick=()=>{
   $("journalDialog").close();play();
   leaveFreeRoam();
-  dreamTheme=null; // a fresh trip starts with no dream picked
   lateral=position=distance=0;
   seen.clear();iceRings.length=0;
   enterChapter(0,true);
+  saveSetting("voyageCheckpoint",null);
 };
-$("resumeRoute").onclick=()=>{
-  $("dreamDialog").close();
-  if(freeRoam){
-    if(roamFromRoute){toggleFreeRoam();return;}
-    leaveFreeRoam();
-  }
-  routeMode=true;storyUntil=storyTime;
-  changeDream(sceneForChapter(chapters[chapterIndex]));
-};
+$("resumeRoute").onclick=toggleFreeRoam;
 $("dream").onclick=openDream;
 $("freeRoam").onclick=toggleFreeRoam;
 $("help").onclick=()=>$("helpDialog").showModal();

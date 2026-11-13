@@ -80,6 +80,10 @@ body:not(.playing) .shade{
 .intro .subtitle{margin-bottom:14px}
 .intro .lead{max-width:30ch;margin-bottom:18px}
 .intro .start{min-height:44px;border-radius:6px}
+#continueVoyage{margin:6px 0 0}
+#journalDialog details{margin-bottom:12px}
+#journalDialog summary{cursor:pointer;pointer-events:auto;min-height:36px;align-content:center}
+#chapterChoices .chip{min-height:36px}
 body:not(.playing) .hud :is(.scene,.hint,.bottom){visibility:hidden}
 body.clean:not(.playing) .hud .intro{visibility:visible}
 .scene{gap:10px;align-items:center}

@@ -30,6 +30,21 @@ function renderJournal() {
   }
 }
 function showJournal() {
+  const choices=$("chapterChoices");
+  if(!choices.childElementCount){
+    const add=(label,index,line=0)=>{
+      const button=document.createElement("button");
+      button.type="button";button.className="chip";button.textContent=label;
+      button.onclick=()=>{
+        $("journalDialog").close();play();seekVoyage(index,line);
+      };
+      choices.append(button);
+    };
+    chapters.forEach((chapter,index)=>{
+      add(chapter.name,index);
+      if(index===cloudChapter)add("扶摇",index,flightVerse);
+    });
+  }
   renderJournal();
   $("journalDialog").showModal();
 }
