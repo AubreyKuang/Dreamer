@@ -29,10 +29,12 @@ function showPhotoReference(shot,guided=true,focus=null,focusGuided=false){
   hidePhotoReference();
   photoReference={shot,guided,focus,focusGuided,src:URL.createObjectURL(shot.blob)};
   $("photoReferenceFocus").hidden=!focus;
-  $("photoReferenceFocus").textContent=focus?`本趟专练：${JADE_REPLAY_FOCUS[focus.area]}`:"";
+  $("photoReferenceFocus").textContent=focus
+    ?`${focus.checkAgainst?"盲拍验证":"本趟专练"}：${JADE_REPLAY_FOCUS[focus.area]}`:"";
   $("photoReferenceFeedback").open=false;
   $("photoReferenceImage").src=photoReference.src;
-  $("photoFocusGuidance").hidden=!focus;
+  $("photoReferenceGuidance").hidden=Boolean(focus?.checkAgainst);
+  $("photoFocusGuidance").hidden=!focus||Boolean(focus.checkAgainst);
   syncPhotoGuidance();
   updatePhotoReference(null);
 }
@@ -104,8 +106,17 @@ function photoFocusHint(pose,target,area){
   }
 }
 function photoFocusResult(pose,target,focus){
-  const {area,previous}=focus;
+  const {area,previous,checkAgainst}=focus;
   const label=JADE_REPLAY_FOCUS[area];
+  if(checkAgainst){
+    if(!pose)return `盲拍验证${label}：快门落在取景时段之外，可重试。`;
+    const distance=photoFocusDistance(pose,target,area);
+    const assisted=photoFocusDistance(checkAgainst,target,area);
+    const change=distance<assisted?"比有提示时更接近旧取景"
+      :distance>assisted?"比有提示时离旧取景更远"
+      :distance===0?"关掉提示后仍接近旧取景":"与有提示时偏差相同";
+    return `盲拍验证${label}：${change}。`;
+  }
   if(!pose)return `专练${label}：快门落在取景时段之外，本次无法比较。`;
   const distance=photoFocusDistance(pose,target,area);
   if(distance===0)return `专练${label}：已接近旧取景。`;

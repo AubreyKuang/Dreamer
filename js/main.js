@@ -92,14 +92,14 @@ $("retryPhotoReference").onclick=()=>{
   if(photoReference)startPhotoReplay(photoReference.shot,photoReference.guided,photoReference.focus,photoReference.focusGuided);
 };
 $("photoReferenceGuidance").onclick=()=>{
-  if(!photoReference)return;
+  if(!photoReference||photoReference.focus?.checkAgainst)return;
   photoReference.guided=!photoReference.guided;
   photoReference.focusGuided=false;
   syncPhotoGuidance();
   updatePhotoReference(jadePhotoPose());
 };
 $("photoFocusGuidance").onclick=()=>{
-  if(!photoReference?.focus)return;
+  if(!photoReference?.focus||photoReference.focus.checkAgainst)return;
   photoReference.focusGuided=!photoReference.focusGuided;
   photoReference.guided=false;
   syncPhotoGuidance();

@@ -121,6 +121,16 @@ function journalReplayComparison(shot){
   focusPicker.append(area);
   retry.addEventListener("click",()=>startPhotoReplay(reference,false,area.value?startJadePractice(shot,area.value):null));
   details.append(summary,pair,picker,feedback,focusPicker,retry);
+  const {practiceArea,practiceGuided}=shot.replay;
+  if(practiceGuided&&shot.jadePose&&Object.hasOwn(JADE_REPLAY_FOCUS,practiceArea)){
+    const verify=document.createElement("button");
+    verify.type="button";verify.className="chip";
+    verify.textContent=`盲拍验证 · ${JADE_REPLAY_FOCUS[practiceArea]}`;
+    verify.onclick=()=>startPhotoReplay(reference,false,{
+      ...startJadePractice(shot,practiceArea),checkAgainst:shot.jadePose,
+    });
+    details.append(verify);
+  }
   return details;
 }
 function renderPhotoComparisons(entries){
