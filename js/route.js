@@ -2,10 +2,12 @@
 
 const viewingDialog = () => ["dreamDialog","helpDialog","journalDialog"].some(id=>$(id).open);
 function storyLine(chapter, lineIndex) {
-  const [,text,source,gesture,id]=chapter.lines[lineIndex];
+  const [,originalText,source,gesture,id]=chapter.lines[lineIndex];
+  const near=gesture==="passingBoat"&&metTraveller;
+  const text=near?"你向那盏船灯靠了过去。\n对面举灯晃了晃。\n我自飘零，亦是行人。":originalText;
   // New cues use explicit IDs so older entries retain their stored keys.
   const originalIndex=chapter.lines.slice(0,lineIndex).filter(line=>!line[4]).length;
-  const key=chapter.name+"-"+(id??originalIndex);
+  const key=chapter.name+"-"+(near?"passing-boat-near":id??originalIndex);
   if (!journal.has(key)) {
     const entry = {name:chapter.name,text,source};
     journal.set(key, entry);
@@ -45,6 +47,10 @@ function travelStory(dt, sideStep=0, holdingBrake=false) {
   const step=dt*velocity*32;
   routePosition=storyTime<nextStoryAt?Math.min(marker,routePosition+step):routePosition+step;
   routeDistance=Math.max(routeDistance,routePosition);
+  if(chapterIndex===riverChapter&&!metTraveller){
+    const boat=passingBoat();
+    if(boat&&Math.abs(boat.x-lateral*.61)<18)metTraveller=true;
+  }
   if(!cue&&!next&&storyTime>=nextStoryAt){
     // Keep travelling after the last verse without replaying the story.
     roamDistance+=Math.hypot(step,sideStep);
@@ -61,6 +67,13 @@ function travelStory(dt, sideStep=0, holdingBrake=false) {
   else if(next) enterChapter(chapterIndex+1);
 }
 let travellerBank=null;
+let metTraveller=false;
+function passingBoat(){
+  const pass=clamp((routeDistance-chapters[riverChapter].at-220)/380,0,1);
+  if(!routeMode||chapterIndex!==riverChapter||pass<=0||pass>=1)return null;
+  travellerBank ??= lateral*.61;
+  return {pass,x:travellerBank+lerp(-76,-38,pass),z:134+138*pass};
+}
 let dreamTheme=null; // the dream the player picked; null while the story sets the sky
 // A picked dream keeps tinting the sky when the story moves on: the chapter
 // sets the scene, the dream is blended over it instead of being wiped.
@@ -78,7 +91,7 @@ function sceneForChapter(chapter) {
 }
 function enterChapter(index, jump=false) {
   const chapter=chapters[index];
-  if(index===riverChapter)travellerBank=null;
+  if(index===riverChapter){travellerBank=null;metTraveller=false;}
   if(jump) {
     routePosition=routeDistance=chapter.at;
     roamDistance=roamChapter=0;

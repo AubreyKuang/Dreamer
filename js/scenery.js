@@ -370,11 +370,10 @@ function drawRiver(opacity,world){
     riverBoat(boat.x,boat.y,size,fade,true);
   }
   // Let another traveller pass close enough to see their light, then drift away.
-  const pass=clamp((stage-220)/380,0,1);
-  const fade=routeMode&&chapterIndex===riverChapter?opacity*smooth(pass*6)*smooth((1-pass)*5):0;
-  if(fade>0){
-    travellerBank ??= lateral*.61;
-    const p=project(travellerBank+lerp(-125,160,pass),134+138*pass);
+  const traveller=passingBoat();
+  if(traveller){
+    const {pass,x,z}=traveller, fade=opacity*smooth(pass*6)*smooth((1-pass)*5);
+    const p=project(x,z);
     riverBoat(p.x,p.y+3*p.scale,p.scale*1.06,fade*.29,true,true);
     riverBoat(p.x,p.y,p.scale*1.06,fade,true);
   }
