@@ -51,13 +51,14 @@ kbd{font:inherit;border:1px solid #fff0d34f;border-radius:4px;padding:2px 5px;ma
 .story{position:absolute;left:clamp(24px,7vw,106px);top:clamp(90px,24vh,250px);width:min(34ch,calc(100vw - 48px));opacity:0;transform:translateY(8px);transition:opacity 1s,transform 1s;text-shadow:0 2px 6px #16142b,0 3px 24px #17152c;background:radial-gradient(ellipse at left,#14152b50,transparent 74%)}
 .story.show{opacity:1;transform:none}
 .story strong{color:#ffe3c5;letter-spacing:.24em;font:600 12px var(--serif)}
-.story p{margin:9px 0 0;font:clamp(17px,2.1vw,27px)/1.65 var(--serif);letter-spacing:.055em;text-wrap:pretty}
+.story p{margin:9px 0 0;font:clamp(17px,2.1vw,27px)/1.65 var(--serif);letter-spacing:.055em;text-wrap:pretty;white-space:pre-line}
 #journalEntries{max-height:min(55vh,440px);overflow:auto}
 #journalEntries h3{font:600 16px var(--serif);color:#ffe3c5;margin-bottom:0}
 #journalEntries figure{margin:0 0 14px}
 #journalEntries img{width:100%;border-radius:10px;display:block}
 #journalEntries figcaption{color:var(--muted);font-size:11px;letter-spacing:.08em;margin-top:5px}
-#journalEntries p{margin:7px 0 16px;line-height:1.7}
+#journalEntries p{margin:7px 0 16px;line-height:1.7;white-space:pre-line}
+#journalEntries cite{display:block;margin-top:3px;color:var(--muted);font:12px var(--serif)}
 @media(max-width:680px){.story{top:19vh;width:min(29ch,calc(100vw - 48px))}.story p{font-size:17px}}
 @media(prefers-reduced-motion:reduce){.story{transition:none}}
 dialog{width:min(430px,calc(100% - 32px));padding:25px;color:var(--ink);border:1px solid var(--line);border-radius:22px;background:#28243ce8;backdrop-filter:blur(25px);box-shadow:0 22px 90px #100b325c}
@@ -184,46 +185,78 @@ function dreamFor(word) {
 }
 const chapters = [
   {at:0, name:"海棠渡", icon:"✿", weather:"晨光 · 花瓣", index:0, seed:45,
-    lines:[[0,"一朵海棠逆着风，在你的冰刀前打了个旋。"],[205,"花瓣贴着冰面滑向水天交界处。你侧过身，顺着它划出的弧线追过去。"]]},
+    lines:[
+      [0,"一瓣海棠，落在冰上。"],
+      [115,"迟日江山丽，\n春风花草香。","杜甫《绝句二首·其一》"],
+      [255,"你俯身去拾。风先一步，把它轻轻推远了。"]
+    ]},
   {at:450, name:"海雾深处", icon:"≋", weather:"潮声 · 雾起", index:2, seed:109, painting:1,
     sky:[48,57,99], mid:[155,117,158], line:[237,178,158], cloud:[229,159,187], shadow:[94,84,143], hills:[97,114,151], water:[41,47,81], light:[255,217,180],
-    lines:[[0,"雾从冰缝里慢慢涨起来，把远山染成淡紫色。"],[155,"一只白鸟贴着雾飞。它每拍一下翅膀，冰里就亮一小片。"],[310,"白鸟转向了海的另一边。你听见雾深处，有什么长长地呼出一口气。"],[465,"薄冰之下，一条比岛还长的影子，正朝着天光游去。"]]},
+    lines:[
+      [0,"起雾了。"],
+      [105,"白鸟贴着雾飞。翅尖一低，冰里便亮了一小片。"],
+      [255,"气蒸云梦泽，\n波撼岳阳城。","孟浩然《望洞庭湖赠张丞相》"],
+      [410,"鸟向远处飞去。雾的另一边，有什么缓缓吐出一口气。"],
+      [540,"冰下，有影。"]
+    ]},
   {at:1080, name:"北冥有鱼", icon:"◒", weather:"深海 · 鲲游", index:1, seed:193, painting:2,
     sky:[21,34,77], mid:[56,119,139], line:[139,205,194], cloud:[135,180,223], shadow:[77,62,133], hills:[56,91,125], water:[16,44,75], light:[196,255,223],
-    lines:[[35,"北冥有鱼，其名为鲲。"],[190,"它抬起背脊，冰下的青光沿着鳞纹，一寸一寸亮起来。"],[340,"从它身上落下来的水珠没有落地。一颗停在眉前，一颗成了远处的星。"],[510,"你抬头时，它已游过月亮。冰面还替你留着它的影子。"]]},
+    lines:[
+      [35,"北冥有鱼，其名为鲲。","《庄子·逍遥游》"],
+      [150,"青光亮了。"],
+      [280,"它抬起背脊。几颗水珠停在你眼前，映着同一轮月亮。"],
+      [430,"海上生明月，\n天涯共此时。","张九龄《望月怀远》"],
+      [555,"鲲游过月亮。你低下头，它却还在冰里。"]
+    ]},
   {at:1740, name:"天接云涛", icon:"☁", weather:"云浪 · 天河", index:2, seed:313, painting:3,
     sky:[60,69,135], mid:[162,125,168], line:[255,205,165], cloud:[250,165,174], shadow:[112,107,180], hills:[125,110,164], water:[69,61,115], light:[255,231,186],
-    lines:[[40,"天接云涛连海雾。"],[195,"鲲在云浪间翻身，惊起几只白色的飞鱼。它们衔着海棠，把天边染得微红。"],[350,"两只蝶在你肩旁停了一会儿。它们的翅膀，一面是暮色，一面是金光。"],[520,"云从你脚下过去，留下一道桃色的倒影。再回头，蝴蝶已经飞进云里。"]]},
+    lines:[
+      [40,"天接云涛连海雾，\n星河欲转千帆舞。","李清照《渔家傲》"],
+      [180,"鲲在云里一翻身，几尾飞鱼衔着海棠，从云浪里跃了出来。"],
+      [310,"蝶停在肩。"],
+      [430,"留连戏蝶时时舞，\n自在娇莺恰恰啼。","杜甫《江畔独步寻花》"],
+      [575,"你把肩放低。蝴蝶借了一点风，飞进桃色的云里。"]
+    ]},
   {at:2470, name:"天河星原", icon:"✦", weather:"星雨 · 长夜", index:3, seed:411, painting:4,
     sky:[18,25,68], mid:[77,67,141], line:[159,145,202], cloud:[164,150,230], shadow:[66,62,136], hills:[83,90,155], water:[25,37,84], light:[218,222,255],
-    lines:[[45,"鲲往更深的夜里去了。一片海棠落在你的围巾上，和出发时一样轻。"],[220,"几只萤火虫跟在冰刀后面，像怕踩疼星光，一闪一闪地绕过你的脚边。"],[430,"萤火虫在远处各自散开。最后一点光停了一瞬，也飞走了。"],[590,"我挥一挥衣袖，不带走一片云彩。"],[775,"冰上还留着两道浅浅的弧线。过一会儿，天光就会把它们填满。"]]}
+    lines:[
+      [45,"鲲往更深的夜里去了。围巾上，多了一瓣海棠。"],
+      [185,"银烛秋光冷画屏，\n轻罗小扇扑流萤。","杜牧《秋夕》"],
+      [320,"有一只萤火虫落在袖口。你放慢了，它也放慢了。"],
+      [455,"灯，一盏盏远了。"],
+      [590,"我挥一挥衣袖，\n不带走一片云彩。","徐志摩《再别康桥》","wave"],
+      [775,"冰上只剩两道浅浅的弧线。天快亮了。"]
+    ]}
 ];
 const original = {...palettes[0],...chapters[0],word:"",whale:false};
-let chapterIndex=0, routeDistance=0, routePosition=0, routeMode=true, nextLine=0, storyUntil=0, waveUntil=0;
-const journal = new Map(), pendingLines = [];
+let chapterIndex=0, routeDistance=0, routePosition=0, routeMode=true, nextLine=0, storyTime=0, storyUntil=0, nextStoryAt=0, waveUntil=0;
+const journal = new Map();
 const snapshots = [];
 const viewingDialog = () => ["dreamDialog","helpDialog","journalDialog"].some(id=>$(id).open);
 function storyLine(chapter, lineIndex) {
-  const text=chapter.lines[lineIndex][1];
-  journal.set(chapter.name+"-"+lineIndex,{name:chapter.name,text});
+  const [,text,source,gesture]=chapter.lines[lineIndex];
+  journal.set(chapter.name+"-"+lineIndex,{name:chapter.name,text,source});
   $("storyTitle").textContent=chapter.name;
   $("storyLine").textContent=text;
   $("story").classList.add("show");
-  if(chapter===chapters[4]&&lineIndex===3) waveUntil=t+2.8;
-  storyUntil=t+Math.max(6.6,Math.min(9.2,3.8+Array.from(text).length*.102));
+  if(gesture==="wave") waveUntil=t+2.8;
+  const characters=Array.from(text.replace(/\s/g,"")).length;
+  storyUntil=storyTime+clamp(7+characters*.18,8,15);
+  nextStoryAt=storyUntil+2.8;
 }
 function travelStory(dt) {
-  routePosition=Math.max(0,routePosition+dt*velocity*32);
-  routeDistance=Math.max(routeDistance,routePosition);
-  const chapter=chapters[chapterIndex];
-  while(chapter.lines[nextLine] && routeDistance>=chapter.at+chapter.lines[nextLine][0]){
-    pendingLines.push([chapter,nextLine++]);
-  }
+  storyTime+=dt;
+  if(storyTime>=storyUntil) $("story").classList.remove("show");
+  const chapter=chapters[chapterIndex], cue=chapter.lines[nextLine];
   const next=chapters[chapterIndex+1];
-  if(next && routeDistance>=next.at) enterChapter(chapterIndex+1);
-  if(pendingLines.length && t>=storyUntil-(velocity>1.45?3.7:1.7)){
-    storyLine(...pendingLines.shift());
-  }
+  const marker=cue?chapter.at+cue[0]:next?.at??Infinity;
+  // Ease the chapter clock near a cue so faster skating cannot crowd out a verse.
+  const step=dt*velocity*32;
+  routePosition=storyTime<nextStoryAt?Math.min(marker,routePosition+step):routePosition+step;
+  routeDistance=Math.max(routeDistance,routePosition);
+  if(routePosition<marker||storyTime<nextStoryAt)return;
+  if(cue) storyLine(chapter,nextLine++);
+  else if(next) enterChapter(chapterIndex+1);
 }
 let dreamTheme=null; // the dream the player picked; null while the story sets the sky
 // A picked dream keeps tinting the sky when the story moves on: the chapter
@@ -241,7 +274,7 @@ function enterChapter(index, jump=false) {
   const chapter=chapters[index];
   if(jump) {
     routePosition=routeDistance=chapter.at;
-    pendingLines.length=0;storyUntil=waveUntil=0;
+    storyUntil=nextStoryAt=storyTime;waveUntil=0;
     $("story").classList.remove("show");
   }
   routeMode=true;chapterIndex=index;nextLine=0;
@@ -262,13 +295,18 @@ function showJournal() {
   }
   if(!journal.size && !snapshots.length) entries.textContent="启航后，旅途中读过的话会留在这里。";
   let lastChapter="";
-  for(const {name,text} of journal.values()){
+  for(const {name,text,source} of journal.values()){
     if(name!==lastChapter){
       const title=document.createElement("h3");
       title.textContent=name;entries.append(title);lastChapter=name;
     }
     const line=document.createElement("p");
-    line.textContent=text;entries.append(line);
+    line.textContent=text;
+    if(source){
+      const attribution=document.createElement("cite");
+      attribution.textContent=source;line.append(attribution);
+    }
+    entries.append(line);
   }
   $("journalDialog").showModal();
 }
@@ -459,7 +497,7 @@ const encounters = [
   {kind:"bird",at:560,end:762,count:3},
   {kind:"bird",at:1380,end:1675,count:2},
   {kind:"butterfly",at:2025,end:2245,count:4},
-  {kind:"firefly",at:2535,end:2925,count:9}
+  {kind:"firefly",at:2540,end:2855,count:9}
 ];
 function drawCompanions(px,py,scale,light){
   if(!routeMode)return;
@@ -1031,7 +1069,6 @@ function render(ms) {
     distance+=dt*velocity*(start?32:7);
     if(start&&routeMode) travelStory(dt);
   }
-  if(t>=storyUntil) $("story").classList.remove("show");
   drawSky(light);drawWater(light,water);
   drawRouteScenery(light,water);
   particles(current,light);
@@ -1221,7 +1258,7 @@ $("restartRoute").onclick=()=>{
 };
 $("resumeRoute").onclick=()=>{
   $("dreamDialog").close();
-  routeMode=true;storyUntil=0;
+  routeMode=true;storyUntil=storyTime;
   changeDream(sceneForChapter(chapters[chapterIndex]));
 };
 $("dream").onclick=openDream;
