@@ -141,7 +141,7 @@ document.querySelectorAll("[data-word]").forEach(button=>button.onclick=()=>setW
 $("dreamForm").onsubmit=event=>{event.preventDefault();setWord($("word").value);};
 window.addEventListener("keydown",event=>{
   if(event.isComposing||event.altKey||event.ctrlKey||event.metaKey||viewingDialog())return;
-  if(event.target instanceof HTMLButtonElement&&["Enter","Space"].includes(event.code))return;
+  if(event.target instanceof Element&&event.target.closest("button, summary")&&["Enter","Space"].includes(event.code))return;
   if(["ArrowLeft","ArrowRight","ArrowUp","ArrowDown","KeyA","KeyD","KeyW","KeyS"].includes(event.code)){
     event.preventDefault();keys.add(event.code);play();
   } else if(event.code==="Space"){

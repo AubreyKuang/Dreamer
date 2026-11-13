@@ -51,9 +51,14 @@ function journalReplayComparison(shot){
   const reuse=next.querySelector("button");
   if(reuse)reuse.textContent="用新角度重访";
   pair.append(old,next);
+  const feedback=document.createElement("details");
+  feedback.className="replay-feedback";
+  const reveal=document.createElement("summary");
+  reveal.textContent="查看取景反馈";
   const result=document.createElement("p");
   result.textContent=shot.replay.result;
-  details.append(summary,pair,result);
+  feedback.append(reveal,result);
+  details.append(summary,pair,feedback);
   return details;
 }
 function renderPhotoComparisons(entries){

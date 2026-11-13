@@ -21,6 +21,7 @@ function jadePhotoPose(){
 function showPhotoReference(shot,guided=true){
   hidePhotoReference();
   photoReference={shot,guided,src:URL.createObjectURL(shot.blob)};
+  $("photoReferenceFeedback").open=false;
   $("photoReferenceImage").src=photoReference.src;
   $("photoReferenceGuidance").setAttribute("aria-pressed",String(guided));
   updatePhotoReference(null);
@@ -36,12 +37,16 @@ function updatePhotoReference(pose){
   if(!photoReference)return;
   $("photoReference").hidden=!routeMode||chapterIndex!==jadeChapter;
   if($("photoReference").hidden)return;
-  const {shot,guided}=photoReference;
+  const {shot,guided,result}=photoReference;
   const target=shot.jadePose;
   const passed=photoReferencePassed(pose,target);
   $("retryPhotoReference").hidden=guided&&!passed&&!(pose?.cleared&&(!target.cleared||Boolean(pose.waited)!==Boolean(target.waited)));
   const text=guided?(passed?"已滑过旧取景，可以重试。":photoReferenceHint(pose,target))
-    :(photoReference.result||"对照旧图取景，拍下后查看结果。");
+    :(result?"复拍已保存，可在手记对照两张图。":"对照旧图取景，拍下后可查看反馈。");
+  const feedback=$("photoReferenceFeedback");
+  feedback.hidden=guided||!result;
+  const resultLine=$("photoReferenceResult");
+  if(resultLine.textContent!==(result||""))resultLine.textContent=result||"";
   const status=$("photoReferenceStatus");
   if(status.textContent!==text)status.textContent=text;
 }
@@ -91,6 +96,11 @@ function savePhoto(){
   const compare=reference&&!reference.guided&&routeMode&&chapterIndex===jadeChapter&&name===chapters[jadeChapter].name;
   const result=compare&&photoReplayResult(jadePose,reference.shot.jadePose);
   const attempt=compare&&(reference.attempt=(reference.attempt||0)+1);
+  if(compare){
+    reference.result=null;
+    $("photoReferenceFeedback").open=false;
+    updatePhotoReference(jadePose);
+  }
   const thumb=document.createElement("canvas"), tw=320;
   thumb.width=tw;thumb.height=Math.max(1,Math.round(tw*canvas.height/canvas.width));
   thumb.getContext("2d").drawImage(canvas,0,0,tw,thumb.height);
