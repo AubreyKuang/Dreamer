@@ -61,18 +61,25 @@ function photoReferenceMatches(pose,target){
     Boolean(pose.shoal)===(target.shoal===true)&&Math.abs(pose.side-target.side)<=JADE_PHOTO_SIDE_TOLERANCE&&
     Math.abs(pose.depth-target.depth)<=JADE_PHOTO_DEPTH_TOLERANCE;
 }
+function photoReplayDifference(pose,target){
+  if(photoReferenceMatches(pose,target))return "match";
+  if(!pose)return "window";
+  if(pose.cleared!==target.cleared||Boolean(pose.waited)!==(target.waited===true))return "mist";
+  if(Boolean(pose.shoal)!==(target.shoal===true))return "shoal";
+  if(Math.abs(pose.side-target.side)>JADE_PHOTO_SIDE_TOLERANCE)return "side";
+  return "depth";
+}
 function photoReplayResult(pose,target){
-  if(photoReferenceMatches(pose,target))return "复拍已保存。你找回了旧取景。";
   let clue;
-  if(!pose)clue="快门落在取景时段之外。";
-  else if(pose.cleared!==target.cleared||Boolean(pose.waited)!==(target.waited===true)){
-    clue=target.waited===true?"旧图是在溪心等雾散后拍的。"
-      :target.cleared?"旧图是在循光拨雾后拍的。":"旧图拍下时，雾还没散。";
-  }else if(Boolean(pose.shoal)!==(target.shoal===true)){
-    clue=target.shoal===true?"旧图里有浅滩倒影。":"这次拍进了浅滩倒影，旧图里没有。";
-  }else if(Math.abs(pose.side-target.side)>JADE_PHOTO_SIDE_TOLERANCE){
-    clue=pose.side<target.side?"这次的位置比旧图偏左。":"这次的位置比旧图偏右。";
-  }else clue=pose.depth<target.depth?"这次比旧图更早按下快门。":"这次比旧图更晚按下快门。";
+  switch(photoReplayDifference(pose,target)){
+    case "match": clue="你找回了旧取景。";break;
+    case "window": clue="快门落在取景时段之外。";break;
+    case "mist": clue=target.waited===true?"旧图是在溪心等雾散后拍的。"
+      :target.cleared?"旧图是在循光拨雾后拍的。":"旧图拍下时，雾还没散。";break;
+    case "shoal": clue=target.shoal===true?"旧图里有浅滩倒影。":"这次拍进了浅滩倒影，旧图里没有。";break;
+    case "side": clue=pose.side<target.side?"这次的位置比旧图偏左。":"这次的位置比旧图偏右。";break;
+    case "depth": clue=pose.depth<target.depth?"这次比旧图更早按下快门。":"这次比旧图更晚按下快门。";break;
+  }
   return "复拍已保存。"+clue;
 }
 function photoReferenceHint(pose,target){

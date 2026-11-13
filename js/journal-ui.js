@@ -16,6 +16,10 @@ const replayScenes=[
   })),
 ];
 let replayPreviewUrls=[];
+const replayGuesses=new WeakMap();
+const replayDifferenceLabels={
+  match:"接近旧取景",window:"错过取景时段",mist:"雾况或散雾方式",shoal:"浅滩倒影",side:"左右位置",depth:"快门早晚",
+};
 function journalPhoto(shot,label=shot.name){
   const figure=document.createElement("figure");
   const img=document.createElement("img");
@@ -57,8 +61,39 @@ function journalReplayComparison(shot){
   reveal.textContent="查看取景反馈";
   const result=document.createElement("p");
   result.textContent=shot.replay.result;
-  feedback.append(reveal,result);
-  details.append(summary,pair,feedback);
+  const check=document.createElement("p");
+  check.hidden=true;
+  feedback.append(reveal,check,result);
+  const picker=document.createElement("label");
+  picker.className="replay-guess";
+  picker.textContent="你觉得主要差在哪？（可跳过）";
+  const choice=document.createElement("select");
+  choice.append(new Option("先看一看",""));
+  for(const [key,label] of Object.entries(replayDifferenceLabels))choice.append(new Option(label,key));
+  picker.append(choice);
+  const guess=replayGuesses.get(shot)||{choice:"",revealed:false};
+  choice.value=guess.choice;
+  choice.disabled=guess.revealed;
+  const showCheck=()=>{
+    if(!guess.choice)return;
+    const actual=photoReplayDifference(shot.jadePose,reference.jadePose);
+    check.hidden=false;
+    check.textContent=guess.choice===actual?`你的判断一致：${replayDifferenceLabels[actual]}。`
+      :`你选了「${replayDifferenceLabels[guess.choice]}」。手记优先提示「${replayDifferenceLabels[actual]}」。`;
+  };
+  choice.addEventListener("change",()=>{
+    guess.choice=choice.value;
+    replayGuesses.set(shot,guess);
+  });
+  if(guess.revealed)showCheck();
+  feedback.addEventListener("toggle",()=>{
+    if(!feedback.open||guess.revealed)return;
+    guess.revealed=true;
+    choice.disabled=true;
+    replayGuesses.set(shot,guess);
+    showCheck();
+  });
+  details.append(summary,pair,picker,feedback);
   return details;
 }
 function renderPhotoComparisons(entries){
