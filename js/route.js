@@ -2,8 +2,10 @@
 
 const viewingDialog = () => ["dreamDialog","helpDialog","journalDialog"].some(id=>$(id).open);
 function storyLine(chapter, lineIndex) {
-  const [,text,source,gesture]=chapter.lines[lineIndex];
-  const key = chapter.name+"-"+lineIndex;
+  const [,text,source,gesture,id]=chapter.lines[lineIndex];
+  // New cues use explicit IDs so older entries retain their stored keys.
+  const originalIndex=chapter.lines.slice(0,lineIndex).filter(line=>!line[4]).length;
+  const key=chapter.name+"-"+(id??originalIndex);
   if (!journal.has(key)) {
     const entry = {name:chapter.name,text,source};
     journal.set(key, entry);
@@ -20,11 +22,12 @@ function storyLine(chapter, lineIndex) {
   $("story").classList.add("show");
   if(gesture==="wave") waveUntil=t+2.8;
   if(gesture==="petalShower") petalShowerAt=storyTime;
+  if(gesture==="peachNight")changeDream({...current,...peachNight});
   if(gesture==="flight"){
     clearTimeout(whisperTimer);
     $("whisper").classList.remove("show");
     announcementUntil=t;
-    flight={elapsed:0,duration:22,height:0,glide:0};
+    flight={elapsed:0,duration:22,height:0,glide:0,mirrorLake:chapter.mirrorLake===true};
     note(4);
   }
   const characters=Array.from(text.replace(/\s/g,"")).length;
@@ -62,7 +65,10 @@ let dreamTheme=null; // the dream the player picked; null while the story sets t
 const colorKeys=["sky","mid","line","cloud","shadow","hills","water","light"];
 function sceneForChapter(chapter) {
   const scene={...palettes[chapter.index],...chapter,word:"",whale:false};
-  if(!dreamTheme) return scene;
+  if(chapter.grove&&chapterIndex===groveChapter&&chapter.lines.slice(0,nextLine).some(line=>line[3]==="peachNight")){
+    Object.assign(scene,peachNight);
+  }
+  if(!dreamTheme||chapter.ink) return scene;
   for(const key of colorKeys) scene[key]=blend(scene[key],dreamTheme[key],.62);
   scene.name=dreamTheme.name;scene.icon=dreamTheme.icon;scene.weather=dreamTheme.weather;
   scene.index=dreamTheme.index;scene.seed=dreamTheme.seed;scene.whale=dreamTheme.whale;

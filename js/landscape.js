@@ -106,6 +106,10 @@ function paintSky(p) {
   const g=c.createLinearGradient(0,0,0,h);
   g.addColorStop(0,rgba(p.sky,1));g.addColorStop(.6,rgba(p.mid,1));g.addColorStop(1,rgba(p.line,1));
   c.fillStyle=g;c.fillRect(0,0,w,h);
+  if(p.ink){
+    paintInkMountains(c,w,h,p.seed);
+    return b;
+  }
   const useArt=!p.painting&&p.index===0&&art.complete&&art.naturalWidth>0;
   if(useArt){
     const width=Math.min(art.naturalWidth,art.naturalHeight*w/h);
@@ -126,12 +130,15 @@ function paintSky(p) {
       }
     }
     if(p.painting) paintedClouds(c,w,h,p);
+    if(p.moonRiver||p.harp||p.mirrorLake)paintColorStrokes(c,w,h,p);
     skyDetail(c,w,h,p);
     const landscape=p.grove?{...p,line:[135,159,175],hills:[65,99,116]}:p;
     for(let i=0;i<3;i++) ridge(c,w,h,landscape,i);
     if(p.forest) paintForestHorizon(c,w,h,p);
     if(p.jade) paintJadeValley(c,w,h,p);
     if(p.farmland) paintFarmHorizon(c,w,h,p);
+    if(p.redCliff) paintRedCliffBank(c,w,h,p);
+    if(p.mirrorLake) paintMirrorPass(c,w,h,p);
     for(let i=0;i<10;i++){
       const x=w*hash(i+320+p.seed), y=h*(.81+hash(i+621)*.20), r=w*(.12+hash(i+312)*.21);
       c.save();c.translate(x,y);c.scale(1,.10+hash(i+901)*.14);
@@ -140,6 +147,96 @@ function paintSky(p) {
   }
   paintAtmosphere(c,w,h,sceneAtmosphere(p));
   return b;
+}
+function paintColorStrokes(c,w,h,p){
+  const colors=pigments[p.painting], span=Math.min(w,h*1.7);
+  for(let i=0;i<215;i++){
+    const key=p.seed+i*49;
+    const u=hash(key+1), side=hash(key+5)-.5;
+    const x=u*w, y=h*(.43+Math.sin(u*6.2+p.seed)*.16+side*.45);
+    const radius=span*(.009+hash(key+7)**2*.13);
+    const angle=(p.mirrorLake?-.34:-.15)+hash(key+9)*.31;
+    pigmentGlow(c,x,y,radius,.22+hash(key+11)*.3,angle,colors[i%6],.10+hash(key+13)*.32);
+    if(i%5===0)ellipse(c,x,y,radius*.39,Math.max(.42,radius*.035),rgba(colors[(i+2)%6],.22),angle);
+  }
+}
+function paintInkMountains(c,w,h,seed){
+  for(let layer=0;layer<4;layer++){
+    const base=h*(.73+layer*.087), height=h*(.31+layer*.073);
+    const shore=c.createLinearGradient(0,base-height,0,base);
+    const ink=155-layer*33;
+    shore.addColorStop(0,rgba([ink,ink,ink],.91));
+    shore.addColorStop(1,rgba([174,174,174],.36));
+    c.beginPath();c.moveTo(0,base);
+    for(let i=0;i<=110;i++){
+      const u=i/110;
+      const open=Math.abs(u-.61);
+      const peak=(.38+.21*Math.sin(u*13+layer*1.9)+.12*Math.sin(u*29-layer)+.085*Math.sin(u*59))*(.23+open);
+      c.lineTo(w*u,base-height*peak*2.4);
+    }
+    c.lineTo(w,base);c.closePath();c.fillStyle=shore;c.fill();
+    c.save();c.clip();
+    for(let i=0;i<120;i++){
+      const k=seed+layer*391+i*27;
+      const x=hash(k+3)*w,y=base-hash(k+7)*height;
+      pigmentGlow(c,x,y,Math.min(w,h)*(.016+hash(k+13)*.067),.15,-.68,
+        [34,34,34],.05+hash(k+23)*.17);
+    }
+    c.restore();
+    pigmentGlow(c,w*.55,base,w*.65,.082,0,[248,248,248],.64);
+  }
+  for(let i=0;i<4000;i++){
+    const k=seed+i*17;
+    c.fillStyle=hash(k+1)>.5?"#1c1c1c0a":"#ffffff21";
+    c.fillRect(hash(k+3)*w,hash(k+7)*h,1+hash(k+9)*2,1);
+  }
+}
+function paintMirrorPass(c,w,h,p){
+  for(const side of [-1,1]){
+    const edge=side===-1?0:w, inner=w*(.53+side*.11);
+    c.beginPath();c.moveTo(edge,h);
+    for(let i=0;i<=32;i++){
+      const u=i/32;
+      const peak=(1-u)**.74*(.69+.17*Math.sin(u*9+side)+.065*Math.sin(u*37));
+      c.lineTo(lerp(edge,inner,u),h*(.98-peak*.64));
+    }
+    c.lineTo(inner,h);c.closePath();
+    const stone=c.createLinearGradient(0,h*.38,0,h);
+    stone.addColorStop(0,rgba(p.shadow,.94));stone.addColorStop(1,rgba(p.hills,.57));
+    c.fillStyle=stone;c.fill();c.save();c.clip();
+    for(let i=0;i<44;i++){
+      const k=p.seed+side*77+i*17;
+      pigmentGlow(c,lerp(edge,inner,hash(k)),h*(.40+hash(k+5)*.6),Math.min(w,h)*.11,
+        .16,side*.61,p.light,.15+hash(k+8)*.19);
+    }
+    c.restore();
+  }
+  pigmentGlow(c,w*.53,h*.94,w*.39,.15,0,p.cloud,.44);
+}
+function paintRedCliffBank(c,w,h,p){
+  const span=w*.59;
+  for(let layer=0;layer<2;layer++){
+    const base=h*(.94+layer*.055), height=h*(.44-layer*.06);
+    c.beginPath();c.moveTo(0,h);c.lineTo(0,base-height*.79);
+    for(let i=0;i<=44;i++){
+      const u=i/44;
+      const relief=(1-u)**.79*(.77+.095*Math.sin(u*24+layer)+.048*Math.sin(u*71));
+      c.lineTo(span*u*(1-layer*.18),base-height*relief);
+    }
+    c.lineTo(span,h);c.closePath();
+    const rock=c.createLinearGradient(0,base-height,0,base);
+    rock.addColorStop(0,"#65516b");rock.addColorStop(.46,"#826573");
+    rock.addColorStop(1,rgba(p.hills,.84));
+    c.fillStyle=rock;c.fill();c.save();c.clip();
+    for(let i=0;i<75;i++){
+      const key=p.seed+i*59+layer*97;
+      const x=hash(key)*span, y=base-hash(key+7)*height;
+      const color=i%3===0?[187,135,124]:[53,62,86];
+      pigmentGlow(c,x,y,Math.min(w,h)*(.017+hash(key+13)*.073),.14,-.47,color,.17+hash(key+3)*.27);
+    }
+    c.restore();
+    pigmentGlow(c,span*.56,base,w*.46,.085,0,p.cloud,.29);
+  }
 }
 const pigments = [
   [[252,151,182],[255,209,145],[114,144,224],[184,118,216],[100,200,214],[255,235,188]],
@@ -151,7 +248,12 @@ const pigments = [
   [[117,222,189],[255,182,139],[93,155,201],[192,163,206],[113,206,207],[255,232,168]],
   [[253,132,177],[255,180,171],[134,141,218],[218,119,186],[114,198,188],[255,223,192]],
   [[179,198,124],[246,194,119],[119,163,175],[215,154,143],[143,185,126],[255,229,159]],
-  [[109,135,191],[164,159,208],[79,131,160],[192,129,157],[116,173,182],[242,178,117]]
+  [[109,135,191],[164,159,208],[79,131,160],[192,129,157],[116,173,182],[242,178,117]],
+  [[106,170,182],[175,211,201],[96,134,166],[168,139,164],[121,195,178],[235,224,178]],
+  [[161,196,228],[229,237,245],[113,162,211],[173,171,220],[135,199,195],[244,228,209]],
+  [[121,163,216],[230,160,204],[114,199,179],[166,137,215],[225,183,124],[244,224,182]],
+  [[158,190,234],[218,171,217],[132,152,226],[191,155,212],[150,219,212],[255,223,186]],
+  [[181,181,181],[226,226,226],[143,143,143],[207,207,207],[166,166,166],[246,246,246]]
 ];
 const skyLighting = [
   null,
@@ -163,7 +265,11 @@ const skyLighting = [
   {point:[.62,.72], veil:[.33,.40], tilt:-.21},
   {point:[.59,.67], veil:[.36,.40], tilt:-.16},
   {point:[.73,.69], veil:[.32,.44], tilt:-.12},
-  {point:[.74,.33], veil:[.42,.52], tilt:-.10}
+  {point:[.74,.33], veil:[.42,.52], tilt:-.10},
+  {point:[.75,.36], veil:[.38,.61], tilt:-.06},
+  {point:[.78,.26], veil:[.35,.58], tilt:-.08},
+  {point:[.53,.57], veil:[.31,.45], tilt:-.22},
+  {point:[.71,.32], veil:[.44,.62], tilt:-.13}
 ];
 const atmospheres = [
   {focus:[.29,.66], tones:[[255,190,161],[226,152,208],[137,182,240]], veil:.32, drift:"petal"},
@@ -175,7 +281,12 @@ const atmospheres = [
   {focus:[.66,.55], tones:[[255,230,173],[137,218,184],[225,171,190]], veil:.48, drift:"glint"},
   {focus:[.57,.66], tones:[[255,215,154],[244,135,190],[154,199,213]], veil:.49, drift:"petal"},
   {focus:[.73,.64], tones:[[255,220,154],[162,202,138],[156,191,203]], veil:.38, drift:"glint"},
-  {focus:[.76,.30], tones:[[196,196,234],[122,158,191],[172,129,169]], veil:.47, drift:"mist"}
+  {focus:[.76,.30], tones:[[196,196,234],[122,158,191],[172,129,169]], veil:.47, drift:"mist"},
+  {focus:[.76,.35], tones:[[221,235,208],[109,193,184],[156,176,211]], veil:.56, drift:"mist"},
+  {focus:[.80,.28], tones:[[231,245,255],[159,207,231],[188,175,232]], veil:.49, drift:"petal"},
+  {focus:[.53,.50], tones:[[244,213,168],[164,225,209],[212,158,231]], veil:.35, drift:"glint"},
+  {focus:[.70,.29], tones:[[250,231,203],[170,193,244],[215,165,227]], veil:.50, drift:"mist"},
+  {focus:[.69,.43], tones:[[249,249,249],[204,204,204],[232,232,232]], veil:.27, drift:"mist"}
 ];
 function sceneAtmosphere(scene){
   return atmospheres[scene.painting ?? [0,2,3,4][scene.index]];
@@ -326,6 +437,7 @@ function drawCached(b, alpha){
 }
 let auroraTextures;
 function nightElements(p,a){
+  if(p.ink)return;
   if(a<=0 || p.forest || (p.index!==1 && p.index!==3)) return;
   const w=sky.width,h=sky.height;
   for(let i=0;i<120;i++){
@@ -369,7 +481,7 @@ function drawSky(light) {
   const oldTones=sceneAtmosphere(previous).tones, newTones=sceneAtmosphere(current).tones;
   const tint=blend(blend(oldTones[0],oldTones[2],skyTone),blend(newTones[0],newTones[2],skyTone),smooth(transition));
   pigmentGlow(sk,sw*(.52+.16*Math.sin(airMass*.64)),sh*.47,sw*.63,.41,-.18,tint,.17);
-  if(!current.forest&&((current.index===0 && !art.naturalWidth) || current.index===2)){
+  if(!current.forest&&!current.peachNight&&((current.index===0 && !art.naturalWidth) || current.index===2)){
     bloom(sk,lx,ly,sh*.15,light,.53*transition);
     ellipse(sk,lx,ly,sh*.015,sh*.015,rgba(light,.58*transition));
   }
@@ -457,7 +569,8 @@ function drawWater(light,water,world) {
   reflectedPigments(world);
   const coolTint=[110,148,255], warmTint=[242,167,197];
   const pearl=blend(light,blend(
-    previous.index%2?coolTint:warmTint,current.index%2?coolTint:warmTint,smooth(transition)),.48);
+    previous.ink?[222,222,222]:previous.index%2?coolTint:warmTint,
+    current.ink?[222,222,222]:current.index%2?coolTint:warmTint,smooth(transition)),.48);
   for(let i=0;i<6;i++){
     const x=W*(.04+i*.186+.06*Math.sin(t*.13+i)), y=horizon+deep*(.22+hash(i+86)*.64);
     const r=W*(.16+hash(i+442)*.10);
@@ -472,7 +585,8 @@ function drawWater(light,water,world) {
 }
 const iceTints=[[135,188,211],[115,185,189],[178,194,243],[103,124,216],[100,157,147],[138,207,181]];
 function iceDetails(light,water,world){
-  const tint=blend(iceTints[previous.index],iceTints[current.index],smooth(transition));
+  const tint=blend(previous.ink?[198,198,198]:iceTints[previous.index],
+    current.ink?[198,198,198]:iceTints[current.index],smooth(transition));
   const lit=blend(tint,light,.45), shaded=blend(water,tint,.28);
   // Soft patches sit beneath the reflection and move with the ice.
   for(const {object:{kind:i,seed,x},depth:z,point:p} of world){
@@ -563,7 +677,7 @@ function skyDetail(c,w,h,p){
     }
 
   }
-  if(cold&&!p.jade){
+  if((cold&&!p.jade)||p.peachNight){
     const mx=w*.81,my=h*.24,r=h*.077;
     bloom(c,mx,my,r*2.9,p.light,.27);
     const moon=c.createLinearGradient(mx-r,my-r,mx+r,my+r);
@@ -713,13 +827,14 @@ function drawCrane(x,y,size,alpha,phase){
 function drawFlight(px,py,scale){
   if(!flight)return;
   const {elapsed,height}=flight, fade=smooth(height*2.6);
+  const colors=flight.mirrorLake?pigments[13]:flightColors;
   const progress=elapsed/flight.duration, w=Math.min(W,H*1.55);
   const cloudTop=H*(.83-.32*height);
   const cloudDeck=ctx.createLinearGradient(0,cloudTop-H*.08,0,H);
-  cloudDeck.addColorStop(0,rgba(flightColors[0],0));
-  cloudDeck.addColorStop(.32,rgba(flightColors[0],fade*.35));
-  cloudDeck.addColorStop(.62,rgba(flightColors[1],fade*.24));
-  cloudDeck.addColorStop(1,rgba(flightColors[2],fade*.38));
+  cloudDeck.addColorStop(0,rgba(colors[0],0));
+  cloudDeck.addColorStop(.32,rgba(colors[0],fade*.35));
+  cloudDeck.addColorStop(.62,rgba(colors[1],fade*.24));
+  cloudDeck.addColorStop(1,rgba(colors[2],fade*.38));
   ctx.fillStyle=cloudDeck;ctx.fillRect(0,cloudTop-H*.08,W,H-cloudTop+H*.08);
   for(let i=0;i<31;i++){
     const depth=hash(i+773), drift=wrap(hash(i+7)+elapsed*(.025+depth*.043),1);
@@ -727,9 +842,10 @@ function drawFlight(px,py,scale){
     const y=cloudTop+drift*H*.50+Math.sin(i*2.1)*H*.045;
     const width=w*(.14+hash(i+127)*.31);
     const alpha=fade*Math.sin(drift*Math.PI)*(.20+depth*.36);
-    pigmentGlow(ctx,x,y,width,.17+depth*.12,-.09+depth*.22,flightColors[i%5],alpha);
-    pigmentGlow(ctx,x+width*.11,y+12,width*.71,.12,0,flightColors[(i+1)%5],alpha*.77);
+    pigmentGlow(ctx,x,y,width,.17+depth*.12,-.09+depth*.22,colors[i%5],alpha);
+    pigmentGlow(ctx,x+width*.11,y+12,width*.71,.12,0,colors[(i+1)%5],alpha*.77);
   }
+  if(flight.mirrorLake)return;
   const rocAlpha=smooth(elapsed/2.6)*(1-smooth((elapsed-14)/7));
   const climb=smooth(progress*1.43);
   drawRoc(W*(.59+.14*climb)-heading*w*.029,

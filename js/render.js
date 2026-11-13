@@ -204,16 +204,23 @@ function render(ms) {
   if(!paused)showIceWhisper();
   const scale=clamp(Math.min(W/1020,H/680),.64,1.32);
   const river=lerp(Number(Boolean(previous.river)),Number(Boolean(current.river)),a);
+  const ink=lerp(Number(Boolean(previous.ink)),Number(Boolean(current.ink)),a);
   if(air<.08){
     ctx.save();ctx.globalAlpha=1-river*.58;
     trail(px,py,scale,light);ctx.restore();
   }
-  ctx.save();ctx.globalAlpha=.20*(1-air)**2*(1-river*.85);
+  ctx.save();ctx.globalAlpha=.20*(1-air)**2*(1-river*.85-ink*.15);
   traveler(ctx,px,groundY+4,scale,true);ctx.restore();
   if(river>0){
     const bearing=-heading*.12;
-    riverBoat(px,groundY+5*scale,scale*.91,river*.29,true,true,bearing);
-    riverBoat(px,groundY,scale*.91,river,true,false,bearing);
+    if(river>ink){
+      riverBoat(px,groundY+5*scale,scale*.91,(river-ink)*.29,true,true,bearing);
+      riverBoat(px,groundY,scale*.91,river-ink,true,false,bearing);
+    }
+    if(ink>0){
+      riverBoat(px,groundY+5*scale,scale*.91,ink*.25,false,true,bearing,true);
+      riverBoat(px,groundY,scale*.91,ink,false,false,bearing,true);
+    }
   }
   drawFlight(px,py,scale);
   bloom(ctx,px,py+2,28*scale,light,.25*(1-air));
@@ -222,7 +229,7 @@ function render(ms) {
   if(!flight)drawCompanions(px,py,scale,light);
   drawPetalShower();
   if(t>0){
-    const weather = flight?"乘风 · 鹤引":!routeMode && !dreamTheme && current.index===0 && timeInDream>25 ? "薄暮 · 湖雾" : current.weather;
+    const weather = flight?(flight.mirrorLake?"青云 · 飞渡":"乘风 · 鹤引"):!routeMode && !dreamTheme && current.index===0 && timeInDream>25 ? "薄暮 · 湖雾" : current.weather;
     if($("weather").textContent!==weather) $("weather").textContent=weather;
   }
   updateSkateSound(paused,throttle);

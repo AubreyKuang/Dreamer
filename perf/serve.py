@@ -45,10 +45,18 @@ def main():
   }else drawWater(light,water,world);
   benchmark.end("water");
   benchmark.start("scenery"); drawRouteScenery(light,water,world); benchmark.end("scenery");''')
-    render = instrument(render, '  ctx.save();ctx.globalAlpha=.20*(1-air)**2*(1-river*.85);',
-                        '  benchmark.start("travelerReflection");\n  if(!benchmark.skipReflections){\n  ctx.save();ctx.globalAlpha=.20*(1-air)**2*(1-river*.85);')
-    render = instrument(render, '    riverBoat(px,groundY,scale*.91,river,true,false,bearing);\n  }',
-                        '  }\n  }\n  benchmark.end("travelerReflection");\n  if(river>0)riverBoat(px,groundY,scale*.91,river,true,false,-heading*.12);')
+    reflection = """  ctx.save();ctx.globalAlpha=.20*(1-air)**2*(1-river*.85-ink*.15);
+  traveler(ctx,px,groundY+4,scale,true);ctx.restore();"""
+    render = instrument(render, reflection, """  benchmark.start("travelerReflection");
+  if(!benchmark.skipReflections){
+""" + reflection + """
+  }
+  benchmark.end("travelerReflection");""")
+    for reflection in (
+        "riverBoat(px,groundY+5*scale,scale*.91,(river-ink)*.29,true,true,bearing);",
+        "riverBoat(px,groundY+5*scale,scale*.91,ink*.25,false,true,bearing,true);",
+    ):
+        render = instrument(render, reflection, "if(!benchmark.skipReflections)" + reflection)
     scenery = instrument(scenery, '    riverBoat(boat.x,boat.y+3*size,size,fade*.27,true,true);',
                         '    if(!benchmark.skipReflections)riverBoat(boat.x,boat.y+3*size,size,fade*.27,true,true);')
     scenery = instrument(scenery, '    riverBoat(p.x,p.y+3*p.scale,p.scale*1.06,fade*.29,true,true);',

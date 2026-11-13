@@ -35,6 +35,18 @@ function setWord(word){
   $("dreamDialog").close();
   play();
   const phrase=word.trim();
+  const newDream=/寒江|江雪|水墨|独钓/.test(phrase)?inkChapter:/镜湖|天姥|剡溪/.test(phrase)?mirrorLakeChapter:
+    /箜篌|李凭/.test(phrase)?harpChapter:/春江花月夜/.test(phrase)?moonRiverChapter:-1;
+  if(newDream>=0){
+    dreamTheme=null;
+    enterChapter(newDream,true);
+    return;
+  }
+  if(/赤壁|水光接天|无尽藏/.test(phrase)){
+    dreamTheme=null;
+    enterChapter(redCliffChapter,true);
+    return;
+  }
   if(/不系|苏轼|东坡|黄州|惠州|儋州|逆旅/.test(phrase)){
     dreamTheme=null;
     enterChapter(riverChapter,true);

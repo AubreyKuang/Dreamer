@@ -133,7 +133,12 @@ const scores = [
   {chord:[50,57,64,69], melody:[74,76,null,81,null,78,76,74,null,69], beat:1.65, wind:510, voice:"sine"},
   {chord:[53,60,67,69], melody:[72,77,null,81,79,null,77,74,null,72], beat:1.57, wind:620, voice:"sine"},
   {chord:[48,55,64,69], melody:[67,72,null,76,74,null,72,69,67,null], beat:1.79, wind:460, voice:"triangle"},
-  {chord:[43,50,58,62], melody:[67,null,null,74,null,70,null,null,65,null], beat:2.24, wind:350, voice:"sine"}
+  {chord:[43,50,58,62], melody:[67,null,null,74,null,70,null,null,65,null], beat:2.24, wind:350, voice:"sine"},
+  {chord:[45,52,57,64], melody:[69,null,76,null,74,72,null,67,null,69], beat:2.07, wind:400, voice:"sine"},
+  {chord:[48,55,62,69], melody:[72,null,79,81,null,76,null,74], beat:2.18, wind:360, voice:"sine"},
+  {chord:[50,57,65,69], melody:[null,74,null,77,null,81,null,69], beat:2.28, wind:310, voice:"sine"},
+  {chord:[48,55,60,67], melody:[67,null,74,79,null,84,79,null], beat:1.81, wind:470, voice:"sine"},
+  {chord:[45,52,57,64], melody:[null,64,null,null,69,null,67,null], beat:2.95, wind:275, voice:"sine"}
 ];
 const frequencyFor = midi => 440*Math.pow(2,(midi-69)/12);
 function scoreFor(scene){
@@ -173,8 +178,15 @@ function scoreTick(){
   const layer=scoreLayer, now=audio.currentTime;
   if(layer.next>now+.075)return;
   const time=Math.max(now+.015,layer.next);
-  const midi=layer.score.melody[layer.step++%layer.score.melody.length];
+  const step=layer.step++;
+  const midi=layer.score.melody[step%layer.score.melody.length];
   if(midi!==null){
+    if(layer.score===scores[harpChapter]){
+      layer.pluckSide=harpSide(step);
+      pluckHarp(midi,time,layer.gain,layer.pluckSide);
+      layer.next=time+layer.score.beat;
+      return;
+    }
     const oscillator=audio.createOscillator(), envelope=audio.createGain();
     oscillator.frequency.value=frequencyFor(midi);oscillator.type="sine";
     envelope.gain.setValueAtTime(.0001,time);
@@ -183,6 +195,20 @@ function scoreTick(){
     oscillator.connect(envelope).connect(layer.gain);oscillator.start(time);oscillator.stop(time+2.75);
   }
   layer.next=time+layer.score.beat;
+}
+function pluckHarp(midi,time,destination,side){
+  const pan=audio.createStereoPanner?.();
+  if(pan){pan.pan.value=side*.73;pan.connect(destination);}
+  for(const [partial,volume,decay] of [[1,.16,1.9],[2,.047,.7],[3,.022,.36]]){
+    const string=audio.createOscillator(), envelope=audio.createGain();
+    string.frequency.value=frequencyFor(midi)*partial;
+    envelope.gain.setValueAtTime(.0001,time);
+    envelope.gain.exponentialRampToValueAtTime(volume*(.79+.21*heading*side),time+.018);
+    envelope.gain.exponentialRampToValueAtTime(.0001,time+decay);
+    string.connect(envelope).connect(pan??destination);
+    string.onended=()=>{string.disconnect();envelope.disconnect();if(partial===1)pan?.disconnect();};
+    string.start(time);string.stop(time+decay+.025);
+  }
 }
 function note(index){
   if(!audioOn||!audio||audio.state!=="running")return;

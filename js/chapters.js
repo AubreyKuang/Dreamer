@@ -39,6 +39,10 @@ function dreamFor(word) {
   const base = palettes[i];
   return {...base,index:i,seed:n%4096+1,word, name:["晚霞","极光","花海","星雨"].includes(word)?base.name:word, whale:/鲸|whale/i.test(word)};
 }
+const peachFeastSource="李白《春夜宴从弟桃花园序》";
+const redCliffSource="苏轼《前赤壁赋》";
+const peachNight={weather:"春夜 · 花月",sky:[30,35,86],mid:[92,69,129],
+  line:[185,125,157],cloud:[202,151,198],water:[30,49,93],light:[255,215,185],peachNight:true};
 const chapters = [
   {at:0, name:"海棠渡", icon:"✿", weather:"晨光 · 花瓣", index:0, seed:45,
     lines:[
@@ -51,6 +55,7 @@ const chapters = [
     lines:[
       [0,"起雾了。看不清远处，\n就先看看脚边这点光。"],
       [105,"白鸟贴着雾飞。\n翅尖一低，冰里便亮了一小片。"],
+      [180,"蒹葭苍苍，白露为霜。\n所谓伊人，在水一方。","《诗经·秦风·蒹葭》",null,"reeds"],
       [255,"气蒸云梦泽，\n波撼岳阳城。","孟浩然《望洞庭湖赠张丞相》"],
       [410,"鸟向远处飞去。\n雾的另一边，有什么缓缓吐出一口气。"],
       [540,"冰下，有影。"]
@@ -62,6 +67,7 @@ const chapters = [
       [150,"青光亮了。\n此刻，有什么让你想多看一眼？"],
       [280,"它抬起背脊。\n几颗水珠停在你眼前，映着同一轮月亮。"],
       [430,"海上生明月，\n天涯共此时。","张九龄《望月怀远》"],
+      [490,"银台出倒景，\n白浪翻长鲸。","李白《游泰山六首·其四》",null,"silver-terrace"],
       [555,"鲲游过月亮。\n你低下头，它却还在冰里。"]
     ]},
   {at:1740, name:"天接云涛", icon:"☁", weather:"云浪 · 天河", index:2, seed:313, painting:3,
@@ -92,6 +98,7 @@ const chapters = [
       [190,"平林漠漠烟如织。","《菩萨蛮》"],
       [355,"树影一摇，\n倒映在冰上的灯火也轻轻晃了一下。"],
       [530,"想在这一盏灯旁，多留一会儿吗？"],
+      [635,"深林人不知，\n明月来相照。","王维《竹里馆》",null,"bamboo-moon"],
       [720,"风从林梢过去。\n你回头时，那些灯还亮着。"]
     ]},
   {at:4300, name:"蓝田日暖", icon:"☼", weather:"晴岚 · 玉光", index:5, seed:966, painting:6, jade:true,
@@ -108,11 +115,22 @@ const chapters = [
     lines:[
       [24,"转过山脚，溪上漂来一瓣桃花。"],
       [190,"忽逢桃花林，\n夹岸数百步。","陶渊明《桃花源记》"],
+      [270,"桃之夭夭，\n灼灼其华。","《诗经·周南·桃夭》",null,"peach-ode"],
       [360,"花影落进溪里，水把它轻轻带远了。"],
       [530,"如果今天可以在这里坐一会儿，\n你会选哪棵树？"],
-      [714,"芳草鲜美，\n落英缤纷。","陶渊明《桃花源记》","petalShower"]
+      [714,"芳草鲜美，\n落英缤纷。","陶渊明《桃花源记》","petalShower"],
+      [850,"夫天地者，万物之逆旅也；\n光阴者，百代之过客也。",peachFeastSource,"peachNight","feast-1"],
+      [965,"而浮生若梦，为欢几何？\n古人秉烛夜游，良有以也。",peachFeastSource,null,"feast-2"],
+      [1080,"况阳春召我以烟景，\n大块假我以文章。",peachFeastSource,null,"feast-3"],
+      [1195,"会桃花之芳园，\n序天伦之乐事。",peachFeastSource,null,"feast-4"],
+      [1310,"群季俊秀，皆为惠连；\n吾人咏歌，独惭康乐。",peachFeastSource,null,"feast-5"],
+      [1425,"幽赏未已，\n高谈转清。",peachFeastSource,null,"feast-6"],
+      [1540,"开琼筵以坐花，\n飞羽觞而醉月。",peachFeastSource,"petalShower","feast-7"],
+      [1600,"我歌月徘徊，\n我舞影零乱。","李白《月下独酌四首·其一》",null,"moon-dance"],
+      [1655,"不有佳咏，何伸雅怀？\n如诗不成，罚依金谷酒数。",peachFeastSource,null,"feast-8"],
+      [1730,"桃花流水窅然去，\n别有天地非人间。","李白《山中问答》",null,"hidden-valley"]
     ]},
-  {at:6080,name:"归园田居",icon:"❧",weather:"田风 · 炊烟",index:0,seed:1261,painting:8,farmland:true,
+  {at:7040,name:"归园田居",icon:"❧",weather:"田风 · 炊烟",index:0,seed:1261,painting:8,farmland:true,
     sky:[93,135,166],mid:[182,191,169],line:[255,215,151],cloud:[246,218,170],shadow:[112,139,159],hills:[108,149,117],water:[49,81,77],light:[255,229,167],
     lines:[
       [25,"沿着溪边再走一程，\n便看见了田和几户人家。"],
@@ -120,19 +138,67 @@ const chapters = [
       [322,"种豆南山下，\n草盛豆苗稀。","陶渊明《归园田居·其三》"],
       [491,"风从豆畦吹来。\n今天，想在什么地方坐到天晚？"],
       [700,"采菊东篱下，\n悠然见南山。","陶渊明《饮酒·其五》"],
+      [774,"昔我往矣，杨柳依依。\n今我来思，雨雪霏霏。","《诗经·小雅·采薇》",null,"returning"],
       [848,"屋顶的烟慢慢淡了，山还在原处。"]
     ]},
-  {at:7100,name:"不系之舟",icon:"☾",weather:"夜江 · 孤灯",index:3,seed:1559,painting:9,river:true,
+  {at:8060,name:"不系之舟",icon:"☾",weather:"夜江 · 孤灯",index:3,seed:1559,painting:9,river:true,
     sky:[22,30,66],mid:[63,73,118],line:[140,119,153],cloud:[158,154,193],shadow:[48,56,104],hills:[49,64,104],water:[24,39,71],light:[218,214,242],
     lines:[
       [25,"黄州。夜深了，岸上只剩一盏灯。"],
       [170,"小舟从此逝，\n江海寄余生。","苏轼《临江仙·夜归临皋》"],
+      [248,"山花如绣颊，\n江火似流萤。","李白《夜下征虏亭》",null,"river-fireflies"],
       [330,"江心也有人赶路。\n两盏灯靠近了一会儿，又各自远去。"],
       [420,"我自飘零\n亦是行人"],
       [510,"惠州。雨停了，屋檐还在滴水。\n你隔着江，看见一扇亮着的窗。"],
+      [600,"峨眉山月半轮秋，\n影入平羌江水流。","李白《峨眉山月歌》",null,"emei-moon"],
       [700,"儋州。海风比江风更咸，\n远处那盏灯，摇得快要看不见。"],
       [880,"人生如逆旅，\n我亦是行人。","苏轼《临江仙·送钱穆父》"],
+      [978,"浮云游子意，\n落日故人情。","李白《送友人》",null,"wandering-cloud"],
       [1065,"天快亮了。那条船还在远处，\n与你隔着一片安静的水。"]
+    ]},
+  {at:9260,name:"赤壁赋",icon:"☾",weather:"清风 · 明月",index:3,seed:1783,painting:10,river:true,redCliff:true,
+    sky:[16,36,62],mid:[48,102,121],line:[153,186,175],cloud:[181,213,205],shadow:[45,75,112],hills:[53,93,104],water:[19,55,77],light:[224,239,211],
+    lines:[
+      [25,"清风徐来，\n水波不兴。",redCliffSource],
+      [165,"白露横江，\n水光接天。",redCliffSource],
+      [315,"惟江上之清风，\n与山间之明月。",redCliffSource],
+      [470,"耳得之而为声，\n目遇之而成色。",redCliffSource],
+      [630,"取之无禁，\n用之不竭。",redCliffSource],
+      [800,"是造物者之无尽藏也，\n而吾与子之所共适。",redCliffSource]
+    ]},
+  {at:10280,name:"春江花月夜",icon:"☾",weather:"春江 · 银花",index:3,seed:1913,painting:11,river:true,moonRiver:true,
+    sky:[24,43,89],mid:[74,119,154],line:[170,213,215],cloud:[209,229,234],shadow:[93,80,146],hills:[54,89,113],water:[27,62,103],light:[228,243,251],
+    lines:[
+      [25,"春江潮水连海平，\n海上明月共潮生。","张若虚《春江花月夜》"],
+      [200,"江流宛转绕芳甸，\n月照花林皆似霰。","张若虚《春江花月夜》"],
+      [370,"你划近了。银白的是花，\n风一过，细枝还在轻轻摇。"],
+      [540,"江天一色无纤尘，\n皎皎空中孤月轮。","张若虚《春江花月夜》"],
+      [720,"不知乘月几人归，\n落月摇情满江树。","张若虚《春江花月夜》"]
+    ]},
+  {at:11180,name:"李凭箜篌引",icon:"♫",weather:"花洲 · 寻弦",index:1,seed:2053,painting:12,harp:true,
+    sky:[29,22,72],mid:[85,64,140],line:[178,121,163],cloud:[202,157,215],shadow:[53,59,125],hills:[64,66,113],water:[29,44,82],light:[248,216,178],
+    lines:[
+      [25,"花洲深处，\n有一根弦轻轻响了。"],
+      [180,"吴丝蜀桐张高秋，\n空山凝云颓不流。","李贺《李凭箜篌引》"],
+      [340,"昆山玉碎凤凰叫，\n芙蓉泣露香兰笑。","李贺《李凭箜篌引》"],
+      [510,"哪一岸先亮起来，\n弦声就从那一岸传来。"],
+      [680,"女娲炼石补天处，\n石破天惊逗秋雨。","李贺《李凭箜篌引》"]
+    ]},
+  {at:12080,name:"镜湖飞渡",icon:"✦",weather:"镜湖 · 月影",index:3,seed:2203,painting:13,mirrorLake:true,
+    sky:[24,36,85],mid:[80,97,164],line:[224,164,190],cloud:[207,187,228],shadow:[68,77,145],hills:[65,91,137],water:[37,58,111],light:[249,226,189],
+    lines:[
+      [25,"我欲因之梦吴越，\n一夜飞度镜湖月。","李白《梦游天姥吟留别》"],
+      [185,"湖月照我影，\n送我至剡溪。","李白《梦游天姥吟留别》"],
+      [345,"脚著谢公屐，\n身登青云梯。","李白《梦游天姥吟留别》"],
+      [520,"霓为衣兮风为马，\n云之君兮纷纷而来下。","李白《梦游天姥吟留别》","flight"],
+      [690,"湖面又近了。\n云散开，那轮月还在等你。"]
+    ]},
+  {at:12980,name:"寒江独钓",icon:"◒",weather:"水墨 · 江雪",index:3,seed:2377,painting:14,river:true,ink:true,
+    sky:[234,234,234],mid:[222,222,222],line:[242,242,242],cloud:[244,244,244],shadow:[106,106,106],hills:[125,125,125],water:[189,189,189],light:[248,248,248],
+    lines:[
+      [25,"千山鸟飞绝，\n万径人踪灭。","柳宗元《江雪》"],
+      [215,"孤舟蓑笠翁，\n独钓寒江雪。","柳宗元《江雪》"],
+      [480,"雪落得很轻。\n你听见船桨拨开水的声音。"]
     ]}
 ];
 const original = {...palettes[0],...chapters[0],word:"",whale:false};
@@ -145,4 +211,9 @@ const jadeChapter=chapters.findIndex(chapter=>chapter.jade);
 const groveChapter=chapters.findIndex(chapter=>chapter.grove);
 const farmChapter=chapters.findIndex(chapter=>chapter.farmland);
 const riverChapter=chapters.findIndex(chapter=>chapter.river);
+const redCliffChapter=chapters.findIndex(chapter=>chapter.redCliff);
+const moonRiverChapter=chapters.findIndex(chapter=>chapter.moonRiver);
+const harpChapter=chapters.findIndex(chapter=>chapter.harp);
+const mirrorLakeChapter=chapters.findIndex(chapter=>chapter.mirrorLake);
+const inkChapter=chapters.findIndex(chapter=>chapter.ink);
 const flightVerse=chapters[cloudChapter].lines.findIndex(line=>line[3]==="flight");
