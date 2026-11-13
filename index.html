@@ -6,10 +6,10 @@
 <meta name="theme-color" content="#212345">
 <meta name="description" content="浮梦之境。循着一尾巨鲲，滑过海棠、北冥与云海。">
 <title>浮梦之境 · Reverie</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=first-skate-1">
 </head>
 <body>
-<canvas id="world" aria-label="梦境航路，左右拖动转向，上下拖动加速或减速"></canvas>
+<canvas id="world" tabindex="-1" aria-label="梦境航路，左右拖动转向，上下拖动加速或减速"></canvas>
 <div class="shade"></div>
 <main class="hud">
   <header class="top">
@@ -51,8 +51,12 @@
     <button class="skate-action" type="button" id="skateForward">↑ 加速</button>
     <button class="skate-action" type="button" id="push">蹬冰</button>
   </div>
+  <div id="skateTip" hidden>
+    <span id="skateTipText" role="status"></span>
+    <button id="dismissSkateTip" class="pill" type="button">跳过</button>
+  </div>
   <dialog id="dreamDialog" aria-labelledby="dreamTitle">
-    <button class="tool close" type="button" aria-label="关闭">×</button>
+    <form method="dialog"><button class="tool close" type="submit" aria-label="关闭">×</button></form>
     <h2 id="dreamTitle">你想梦见什么？</h2>
     <p>写下一个词，它会改变下一片天空。</p>
     <form class="row" id="dreamForm">
@@ -82,13 +86,13 @@
       <button class="chip" id="resumeRoute" type="button">回到航程</button></p>
   </dialog>
   <dialog id="journalDialog" aria-labelledby="journalTitle">
-    <button class="tool close" type="button" aria-label="关闭">×</button>
+    <form method="dialog"><button class="tool close" type="submit" aria-label="关闭">×</button></form>
     <h2 id="journalTitle">滑行手记</h2>
     <div id="journalEntries"></div>
     <button class="chip" id="restartRoute" type="button">从海棠渡重新出发</button>
   </dialog>
   <dialog id="helpDialog" aria-labelledby="helpTitle">
-    <button class="tool close" type="button" aria-label="关闭">×</button>
+    <form method="dialog"><button class="tool close" type="submit" aria-label="关闭">×</button></form>
     <h2 id="helpTitle">自在滑行</h2>
     <p><kbd>←</kbd> <kbd>→</kbd> 或左右拖动转向。<kbd>空格</kbd> 蹬冰，<kbd>↑</kbd> / <kbd>↓</kbd> 加速或刹停。触屏可上下拖动，或按住「加速」「刹停」。</p>
     <p><kbd>Enter</kbd> 换梦，<kbd>H</kbd> 观景，<kbd>P</kbd> 留影。靠近冰面的光点，偶尔会遇见一句轻声问候。可以想一想，也可以继续滑。</p>
@@ -106,13 +110,13 @@
 <script src="js/journal-ui.js"></script>
 <script src="assets/sky-atlas.js"></script>
 <script src="js/scene-state.js"></script>
-<script src="js/journey.js"></script>
+<script src="js/journey.js?v=first-skate-1"></script>
 <script src="js/landscape.js"></script>
 <script src="js/scenery.js"></script>
-<script src="js/render.js"></script>
+<script src="js/render.js?v=first-skate-1"></script>
 <script src="js/controls.js"></script>
 <script src="js/photo.js"></script>
 <script src="js/audio.js"></script>
-<script src="js/main.js"></script>
+<script src="js/main.js?v=first-skate-1"></script>
 </body>
 </html>

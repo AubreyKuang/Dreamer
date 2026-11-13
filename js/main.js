@@ -34,12 +34,10 @@ function toggleFreeRoam(){
 $("start").onclick=play;
 $("quickJournal").onclick=showJournal;
 $("journal").onclick=()=>{ $("helpDialog").close();showJournal(); };
-// Closing a dialog hands focus back to the button that opened it; blur it so
-// the next Space pushes off instead of re-opening the dialog.
+// Return to the ice so gameplay shortcuts work immediately after a dialog.
 for(const id of ["dreamDialog","journalDialog","helpDialog"]){
   $(id).addEventListener("close",()=>{
-    const el=document.activeElement;
-    if(el&&el!==document.body&&typeof el.blur==="function")el.blur();
+    if(start&&!viewingDialog()) canvas.focus({preventScroll:true});
   });
 }
 $("restartRoute").onclick=()=>{
@@ -73,18 +71,16 @@ $("iceSound").onchange=()=>{
 $("view").onclick=toggleView;
 $("photo").onclick=savePhoto;
 $("push").onclick=pushOff;
-document.querySelectorAll(".close").forEach(button=>button.onclick=()=>button.closest("dialog").close());
+$("dismissSkateTip").onclick=()=>{
+  saveSetting("skateTipDone",true);
+  canvas.focus({preventScroll:true});
+  $("skateTip").hidden=true;
+};
 document.querySelectorAll("[data-word]").forEach(button=>button.onclick=()=>setWord(button.dataset.word));
 $("dreamForm").onsubmit=event=>{event.preventDefault();setWord($("word").value);};
 window.addEventListener("keydown",event=>{
   if(event.isComposing||event.altKey||event.ctrlKey||event.metaKey||viewingDialog())return;
-  if(event.target instanceof HTMLButtonElement&&event.code==="Space"){
-    // Space also pushes off when a button retains focus.
-    event.preventDefault();event.target.blur();
-    if(!event.repeat)pushOff();
-    return;
-  }
-  if(event.target instanceof HTMLButtonElement&&event.code==="Enter")return;
+  if(event.target instanceof HTMLButtonElement&&["Enter","Space"].includes(event.code))return;
   if(["ArrowLeft","ArrowRight","ArrowUp","ArrowDown","KeyA","KeyD","KeyW","KeyS"].includes(event.code)){
     event.preventDefault();keys.add(event.code);play();
   } else if(event.code==="Space"){
@@ -131,6 +127,6 @@ art.onload = () => {
   if(transition<1) oldCache=paintSky(previous);
 };
 art.src = skyAtlas;
-window.addEventListener("resize",resize);
+window.addEventListener("resize",()=>{resizePending=true;});
 resize();
 requestAnimationFrame(render);

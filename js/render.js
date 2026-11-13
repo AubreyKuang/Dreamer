@@ -137,7 +137,30 @@ function showIceWhisper(){
   // Leave time for the whisper to fade before showing the next verse.
   if(routeMode)nextStoryAt=Math.max(nextStoryAt,storyTime+seconds+.8);
 }
+let resizePending=false;
+let practicedTurn=false;
+const touchSkating=matchMedia("(pointer: coarse)");
+function updateSkateTip(paused,target,throttle){
+  const tip=$("skateTip");
+  const visible=start&&!settings.skateTipDone&&!clean&&!paused&&!flight&&!freeRoam;
+  if(visible&&practicedTurn&&throttle<0&&velocity===0){
+    saveSetting("skateTipDone",true);
+    if(tip.contains(document.activeElement)) canvas.focus({preventScroll:true});
+  }
+  if(visible&&Math.abs(target)>=.2&&Math.abs(heading)>=.1) practicedTurn=true;
+  tip.hidden=!visible||settings.skateTipDone===true;
+  if(tip.hidden)return;
+  const text=practicedTurn
+    ? (touchSkating.matches?"按住「刹停」，在冰面停下来":"按住 ↓ 刹停")
+    : (touchSkating.matches?"在冰面上左右拖动，试着转向":"按 ← 或 →，试着转向");
+  if($("skateTipText").textContent!==text) $("skateTipText").textContent=text;
+}
+
 function render(ms) {
+  if(resizePending){
+    resizePending=false;
+    resize();
+  }
   const dt=previousFrame?clamp((ms-previousFrame)/1000,0,.045):0;
   previousFrame=ms;t+=dt;timeInDream+=dt;
   const paused=viewingDialog();
@@ -190,9 +213,10 @@ function render(ms) {
       distance+=dt*velocity*(start?32:7);
     }
     position=lerp(position,lateral,1-Math.exp(-dt*1.5));
-    if(start&&routeMode) travelStory(dt,lateralStep);
+    if(start&&routeMode) travelStory(dt,lateralStep,!flight&&throttle<=-.9);
   }
   const airborne=Boolean(flight);
+  updateSkateTip(paused,target,throttle);
   if($("flightHint").hidden===airborne||$("roamHint").hidden===freeRoam){
     $("flightHint").hidden=!airborne;
     $("hint").hidden=airborne||freeRoam;
@@ -212,7 +236,7 @@ function render(ms) {
   const py=groundY-air*H*(reduced?.13:.27);
   drawIceRings(light);
   if(!flight)lights(light,px,py,world);
-  if(!paused)showIceWhisper();
+  if(!paused&&$("skateTip").hidden)showIceWhisper();
   const scale=clamp(Math.min(W/1020,H/680),.64,1.32);
   const river=lerp(Number(Boolean(previous.river)),Number(Boolean(current.river)),a);
   const ink=lerp(Number(Boolean(previous.ink)),Number(Boolean(current.ink)),a);

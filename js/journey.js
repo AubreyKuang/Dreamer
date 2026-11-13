@@ -11,7 +11,7 @@ function play(){
   if(start) return;
   start=true;
   document.body.classList.add("playing");
-  if(document.activeElement===$("start")) $("start").blur();
+  if(document.activeElement===$("start")) canvas.focus({preventScroll:true});
 }
 function changeDream(next) {
   // Keep the visible composite when a second change interrupts the dissolve.

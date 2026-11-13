@@ -35,8 +35,8 @@ function storyLine(chapter, lineIndex) {
   nextStoryAt=Math.max(storyUntil+2.8,gesture==="flight"?storyTime+flight.duration:0);
   if(chapter.redCliff&&lineIndex===chapter.lines.length-1)nextStoryAt+=5;
 }
-function travelStory(dt, sideStep=0) {
-  storyTime+=dt;
+function travelStory(dt, sideStep=0, holdingBrake=false) {
+  if(!holdingBrake||storyTime>=storyUntil)storyTime+=dt;
   if(storyTime>=storyUntil) $("story").classList.remove("show");
   const chapter=chapters[chapterIndex], cue=chapter.lines[nextLine];
   const next=chapters[chapterIndex+1];
@@ -60,6 +60,7 @@ function travelStory(dt, sideStep=0) {
   if(cue) storyLine(chapter,nextLine++);
   else if(next) enterChapter(chapterIndex+1);
 }
+let travellerBank=null;
 let dreamTheme=null; // the dream the player picked; null while the story sets the sky
 // A picked dream keeps tinting the sky when the story moves on: the chapter
 // sets the scene, the dream is blended over it instead of being wiped.
@@ -77,6 +78,7 @@ function sceneForChapter(chapter) {
 }
 function enterChapter(index, jump=false) {
   const chapter=chapters[index];
+  if(index===riverChapter)travellerBank=null;
   if(jump) {
     routePosition=routeDistance=chapter.at;
     roamDistance=roamChapter=0;
