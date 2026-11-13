@@ -226,7 +226,10 @@ function travelStory(dt, sideStep=0, holdingBrake=false) {
     jadeLight.shoalStill=jadeLight.shoalGrace=0;
   }
   if(!cue&&!next&&storyTime>=nextStoryAt){
-    // Keep travelling after the last verse without replaying the story.
+    if(!voyageFinished){
+      voyageFinished=true;
+      announce("诗词航程已读完，还可以继续顺流。",5);
+    }
     roamDistance+=Math.hypot(step,sideStep);
     if(roamDistance>=760){
       roamDistance-=760;
@@ -320,6 +323,8 @@ function groveSteeringStep(step){
   return step*lerp(1,edge,smooth(remaining/80));
 }
 let travellerBank=null;
+let travellerCueShown=false;
+let voyageFinished=false;
 let metTraveller=false;
 let travellerReplyUntil=0;
 let sharedSailingTime=0, sailedTogether=false, sharedLightsUntil=0;
@@ -337,10 +342,14 @@ function updateRiverPier(chapter){
 function updatePassingBoat(chapter,dt){
   if(sailedTogether)return;
   const boat=passingBoat();
+  if(boat&&!metTraveller&&!travellerCueShown&&boat.pass>=.18&&!clean){
+    travellerCueShown=true;
+    announce("左侧有一盏舟灯，可以转向靠近。",4);
+  }
   const gap=boat?Math.abs(boat.x-lateral*.61):Infinity;
   if(!metTraveller&&gap<18){
     metTraveller=true;
-    travellerReplyUntil=t+2;
+    travellerReplyUntil=t+4;
     announce("对面举灯晃了晃。松开转向，可在灯旁顺流一小段。",4);
     const verse=chapter.lines.findIndex(line=>line[3]==="passingBoat");
     if(nextLine>verse)rememberVerse(chapter,verse,true);
@@ -371,7 +380,8 @@ function sceneForChapter(chapter) {
 }
 function enterChapter(index, jump=false) {
   const chapter=chapters[index];
-  travellerBank=null;metTraveller=false;travellerReplyUntil=0;
+  voyageFinished=false;
+  travellerBank=null;metTraveller=false;travellerCueShown=false;travellerReplyUntil=0;
   sharedSailingTime=0;sailedTogether=false;sharedLightsUntil=0;
   riverPier=null;landedAtPier=false;
   groveBanks=null;groveBank=null;

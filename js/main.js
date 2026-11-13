@@ -44,6 +44,8 @@ const canContinue=checkpointChapter>=0 && Number.isInteger(checkpoint.line)
 if(canContinue){
   $("continueVoyage").hidden=false;
   $("continueVoyage").textContent="继续上次航程 · "+checkpoint.chapter;
+  $("start").textContent="从海棠渡重新开始";
+  $("start").classList.add("restart");
 }
 function startReplay(scene){
   hidePhotoReference();
@@ -102,7 +104,10 @@ function resumeCheckpoint(index,saved){
     saved.sailedTogether===true,saved.landedAtPier===true,saved.harpBank,saved.harpDuet===true,saved.mirrorView,
     saved.fireflyTrail===true,saved.followedJadeLight===true,saved.waitedForJadeMist===true);
 }
-$("start").onclick=play;
+$("start").onclick=()=>{
+  if(canContinue&&!start&&!window.confirm("从海棠渡重新开始？下一句诗会更新现在的续航点。"))return;
+  play();
+};
 $("quickJournal").onclick=showJournal;
 $("retryPhotoReference").onclick=()=>{
   if(!photoReference)return;

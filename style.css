@@ -96,7 +96,7 @@ dialog p{color:var(--muted);font-size:13px;margin:8px 0 17px}
 .choices{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
 .chip{padding:6px 10px}
 #touch{display:none}
-.clean .hud>:not(.top){visibility:hidden}
+.clean .hud>:not(.top,.story,.intro,dialog){visibility:hidden}
 .clean .brand,.clean .tools>:not(#view){visibility:hidden}
 @media(pointer:coarse){.hint{display:none}.playing:not(.clean) #touch{display:flex;position:absolute;right:20px;bottom:82px;gap:6px}.skate-action{min-height:44px;touch-action:none}.skate-action.active{background:#69556edd;border-color:#fff2dfaa}}
 @media(max-width:680px){.top{top:max(16px,env(safe-area-inset-top))}.brand{letter-spacing:.19em}.tool{width:38px;height:38px}.tools{gap:6px}.intro{top:clamp(82px,18vh,180px)}.lead{font-size:12px;letter-spacing:.06em;margin-bottom:18px}.subtitle{margin-bottom:16px}.scene{bottom:max(20px,env(safe-area-inset-bottom))}.bottom{bottom:max(20px,env(safe-area-inset-bottom))}.hint{display:none}.scene-icon{width:32px;height:32px}.pill{padding:9px 11px}.bottom .pill svg{display:none}}
@@ -114,7 +114,8 @@ body:not(.playing) .shade{
 .intro .subtitle{margin-bottom:14px}
 .intro .lead{max-width:30ch;margin-bottom:18px}
 .intro .start{min-height:44px;border-radius:6px}
-#continueVoyage{margin:6px 0 0}
+.intro #start.restart{display:flex;margin-top:8px;background:#242039b8;color:#fff4e0;border-color:var(--line)}
+.intro #start.restart:hover{background:#51435de8}
 #journalDialog details{margin-bottom:12px}
 #journalDialog summary{cursor:pointer;pointer-events:auto;min-height:36px;align-content:center}
 #chapterChoices .chip{min-height:36px}

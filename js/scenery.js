@@ -422,7 +422,7 @@ function drawRiver(opacity,world){
     }
     if(!metTraveller||reply){
       const sway=reply&&!reduced?Math.sin(t*12)*3:0;
-      bloom(ctx,p.x+12*p.scale+sway,p.y-27*p.scale,(reply?34:18)*p.scale,riverLamp,fade*(reply?1:.64));
+      bloom(ctx,p.x+12*p.scale+sway,p.y-27*p.scale,(reply?36:26)*p.scale,riverLamp,fade*(reply?1:.86));
     }
     riverBoat(p.x,p.y+3*p.scale,p.scale*1.06,fade*.29,true,true);
     riverBoat(p.x,p.y,p.scale*1.06,fade,true);

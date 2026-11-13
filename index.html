@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#212345">
 <meta name="description" content="浮梦之境。循着一尾巨鲲，滑过海棠、北冥与云海。">
 <title>浮梦之境 · Reverie</title>
-<link rel="stylesheet" href="style.css?v=jade-pair-order-1">
+<link rel="stylesheet" href="style.css?v=5728db0e0f48">
 </head>
 <body>
 <canvas id="world" tabindex="-1" aria-label="梦境航路，左右拖动转向，上下拖动加速或减速"></canvas>
@@ -28,8 +28,8 @@
     <h1 id="title">浮梦之境</h1>
     <p class="subtitle" lang="en">Reverie</p>
     <p class="lead">一朵逆流的海棠，带你去找云的来处。</p>
-    <button class="start" id="start" type="button">踏上冰面 <span aria-hidden="true">→</span></button>
     <button class="start" id="continueVoyage" type="button" hidden></button>
+    <button class="start" id="start" type="button">踏上冰面 <span aria-hidden="true">→</span></button>
   </section>
   <section class="story" id="story" role="status" aria-atomic="true"><strong id="storyTitle"></strong><p id="storyLine"></p></section>
   <div id="whisper" role="status"></div>
@@ -99,15 +99,22 @@
     <form method="dialog"><button class="tool close" type="submit" aria-label="关闭">×</button></form>
     <h2 id="journalTitle">滑行手记</h2>
     <details>
-      <summary>重访航段</summary>
+      <summary>从指定航段继续</summary>
+      <p>选择后会从这一航段继续，更新原来的续航点。</p>
       <div id="chapterChoices" class="choices"></div>
     </details>
     <details>
-      <summary>片段重访</summary>
+      <summary>重访片段 · 保留原航程</summary>
       <p>从选择前开始。试完可回到原航程最近一条诗句。</p>
       <div id="replayChoices" class="choices"></div>
     </details>
-    <div id="journalEntries"></div>
+    <div id="journalEntries">
+      <details id="journalPhotos" hidden>
+        <summary>留影与对照</summary>
+        <div id="journalPhotoEntries"></div>
+      </details>
+      <div id="journalVerses"></div>
+    </div>
     <button class="chip" id="restartRoute" type="button">从海棠渡重新出发</button>
   </dialog>
   <dialog id="helpDialog" aria-labelledby="helpTitle">
@@ -123,19 +130,19 @@
   </dialog>
 </main>
 <script src="js/core.js"></script>
-<script src="js/chapters.js?v=jade-light-1"></script>
+<script src="js/chapters.js?v=d2246c8a2326"></script>
 <script src="js/storage.js?v=jade-pair-replace-1"></script>
-<script src="js/route.js?v=jade-shoal-still-1"></script>
-<script src="js/journal-ui.js?v=jade-fixed-reflection-1"></script>
+<script src="js/route.js?v=4f0843526193"></script>
+<script src="js/journal-ui.js?v=dfe8a561a77f"></script>
 <script src="assets/sky-atlas.js"></script>
 <script src="js/scene-state.js?v=voyage-resume-1"></script>
 <script src="js/journey.js?v=voyage-resume-1"></script>
 <script src="js/landscape.js?v=mirror-flight-1"></script>
-<script src="js/scenery.js?v=jade-shoal-still-1"></script>
+<script src="js/scenery.js?v=0e73803bcd81"></script>
 <script src="js/render.js?v=jade-fixed-reflection-1"></script>
 <script src="js/controls.js"></script>
 <script src="js/photo.js?v=jade-fixed-reflection-1"></script>
 <script src="js/audio.js?v=harp-duet-1"></script>
-<script src="js/main.js?v=jade-fixed-reflection-1"></script>
+<script src="js/main.js?v=76315e20aaaa"></script>
 </body>
 </html>

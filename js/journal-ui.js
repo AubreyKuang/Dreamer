@@ -188,10 +188,13 @@ function renderJournal() {
   const entries=$("journalEntries");
   const previousFocus=entries.contains(document.activeElement)&&document.activeElement.textContent;
   const pairFocus=document.activeElement?.dataset.jadePairOrder;
-  entries.replaceChildren();
+  const verses=$("journalVerses"), photos=$("journalPhotoEntries");
+  verses.replaceChildren();
+  photos.replaceChildren();
+  $("journalPhotos").hidden=!snapshots.length;
   for(const url of replayPreviewUrls)URL.revokeObjectURL(url);
   replayPreviewUrls=[];
-  const featured=renderPhotoComparisons(entries);
+  const featured=renderPhotoComparisons(photos);
   for(const shot of snapshots){
     if(shot.jadeWaterPair?.blob instanceof Blob){
       const heading=document.createElement("h3");
@@ -202,7 +205,7 @@ function renderJournal() {
       replayPreviewUrls.push(src);
       const {when}=shot.jadeWaterPair;
       pair.append(journalPhoto({when,src},"水纹"),journalPhoto(shot,"浅滩倒影"));
-      entries.append(heading,pair);
+      photos.append(heading,pair);
       featured.add(shot);
     }
     if(shot.name===chapters[jadeChapter].name&&shot.jadePair?.blob instanceof Blob){
@@ -255,32 +258,32 @@ function renderJournal() {
           pendingJadePairOrders.delete(shot);
         }
       };
-      entries.append(heading,pair,order,status);
+      photos.append(heading,pair,order,status);
       featured.add(shot);
     }
     if(shot.name===chapters[jadeChapter].name&&shot.replay?.blob instanceof Blob&&
       Number.isFinite(shot.replay.jadePose?.side)&&Number.isFinite(shot.replay.jadePose.depth)&&
       typeof shot.replay.jadePose.cleared==="boolean"&&typeof shot.replay.result==="string"){
-      entries.append(journalReplayComparison(shot));
+      photos.append(journalReplayComparison(shot));
       featured.add(shot);
     }
   }
   if(snapshots.length>featured.size){
     const shots=document.createElement("h3");
-    shots.textContent="留影";entries.append(shots);
+    shots.textContent="旅途留影";photos.append(shots);
     for(const shot of snapshots){
       if(featured.has(shot))continue;
       const comparison=photoComparisons.find(({chapter})=>chapters[chapter].name===shot.name);
       const label=comparison?.views.find(([id])=>id===photoComparison(shot))?.[1];
-      entries.append(journalPhoto(shot,label?shot.name+" · "+label:shot.name));
+      photos.append(journalPhoto(shot,label?shot.name+" · "+label:shot.name));
     }
   }
-  if(!journal.size && !snapshots.length) entries.textContent="启航后，旅途中读过的话会留在这里。";
+  if(!journal.size && !snapshots.length) verses.textContent="启航后，旅途中读过的话会留在这里。";
   let lastChapter="";
   for(const {name,text,source} of journal.values()){
     if(name!==lastChapter){
       const title=document.createElement("h3");
-      title.textContent=name;entries.append(title);lastChapter=name;
+      title.textContent=name;verses.append(title);lastChapter=name;
     }
     const line=document.createElement("p");
     line.textContent=text;
@@ -288,7 +291,7 @@ function renderJournal() {
       const attribution=document.createElement("cite");
       attribution.textContent=source;line.append(attribution);
     }
-    entries.append(line);
+    verses.append(line);
   }
   if(pairFocus){
     entries.querySelector(`[data-jade-pair-order="${pairFocus}"]`)?.focus({preventScroll:true});
