@@ -238,15 +238,19 @@ function savePhoto(retake=false){
         ...(focusGuided?{practiceGuided:true}:singleHintUsed?{practiceHint:true}:{})
       }:{})};
     }
-    snapshots.unshift({...shot,src:URL.createObjectURL(blob)});
+    const snapshot={...shot,src:URL.createObjectURL(blob)};
+    snapshots.unshift(snapshot);
     trimJournalPhotos();
     if ($("journalDialog").open) renderJournal();
     savedJournal.then(() => journalTransaction("photos", "readwrite", tx => {
       const photos=tx.objectStore("photos");
-      photos.add(shot);
+      const added=photos.add(shot);
       const keys=photos.getAllKeys();
       keys.onsuccess=()=>keys.result.slice(0,-PHOTO_LIMIT).forEach(key=>photos.delete(key));
-    })).then(()=>{
+      return added;
+    })).then(added=>{
+      snapshot.storageKey=added.result;
+      if(shot.jadePair&&$("journalDialog").open)renderJournal();
       if(pairStep){
         run.pending=false;
         if(pairStep==="second")run.complete=true;

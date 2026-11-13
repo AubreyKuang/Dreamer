@@ -17,6 +17,7 @@ const replayScenes=[
 ];
 let replayPreviewUrls=[];
 const replayGuesses=new WeakMap();
+const pendingJadePairOrders=new WeakSet();
 function journalPhoto(shot,label=shot.name){
   const figure=document.createElement("figure");
   const img=document.createElement("img");
@@ -184,6 +185,7 @@ function renderPhotoComparisons(entries){
 function renderJournal() {
   const entries=$("journalEntries");
   const previousFocus=entries.contains(document.activeElement)&&document.activeElement.textContent;
+  const pairFocus=document.activeElement?.dataset.jadePairOrder;
   entries.replaceChildren();
   for(const url of replayPreviewUrls)URL.revokeObjectURL(url);
   replayPreviewUrls=[];
@@ -196,8 +198,42 @@ function renderJournal() {
       pair.className="photo-comparison";
       const src=URL.createObjectURL(shot.jadePair.blob);
       replayPreviewUrls.push(src);
-      pair.append(journalPhoto({...shot.jadePair,src},"溪心双峰"),journalPhoto(shot,"浅滩倒影"));
-      entries.append(heading,pair);
+      const peaks=journalPhoto({...shot.jadePair,src},"溪心双峰");
+      const shoal=journalPhoto(shot,"浅滩倒影");
+      const order=document.createElement("button");
+      order.type="button";order.className="chip photo-revisit";
+      order.textContent="浅滩倒影放在前面";
+      order.disabled=shot.storageKey===undefined;
+      if(!order.disabled)order.dataset.jadePairOrder=shot.storageKey;
+      const status=document.createElement("p");
+      status.setAttribute("role","status");
+      status.className="jade-pair-order-status";
+      const applyOrder=()=>{
+        const shoalFirst=shot.jadePairShoalFirst===true;
+        const last=shoalFirst?peaks:shoal;
+        if(typeof pair.moveBefore==="function")pair.moveBefore(last,null);
+        else pair.append(last);
+        order.setAttribute("aria-pressed",String(shoalFirst));
+      };
+      pair.append(peaks,shoal);
+      applyOrder();
+      order.onclick=async()=>{
+        if(pendingJadePairOrders.has(shot))return;
+        pendingJadePairOrders.add(shot);
+        try{
+          await saveJadePairOrder(shot,shot.jadePairShoalFirst!==true);
+          if(!order.isConnected&&$("journalDialog").open)renderJournal();
+          else applyOrder();
+          const current=entries.querySelector(`[data-jade-pair-order="${shot.storageKey}"]`);
+          if(current)current.nextElementSibling.textContent=shot.jadePairShoalFirst?"浅滩倒影在前。":"溪心双峰在前。";
+        }catch{
+          const current=entries.querySelector(`[data-jade-pair-order="${shot.storageKey}"]`);
+          if(current)current.nextElementSibling.textContent="未能保存顺序，请再试一次。";
+        }finally{
+          pendingJadePairOrders.delete(shot);
+        }
+      };
+      entries.append(heading,pair,order,status);
       featured.add(shot);
     }
     if(shot.name===chapters[jadeChapter].name&&shot.replay?.blob instanceof Blob&&
@@ -232,7 +268,9 @@ function renderJournal() {
     }
     entries.append(line);
   }
-  if(previousFocus){
+  if(pairFocus){
+    entries.querySelector(`[data-jade-pair-order="${pairFocus}"]`)?.focus({preventScroll:true});
+  }else if(previousFocus){
     [...entries.querySelectorAll("button")].find(button=>button.textContent===previousFocus)?.focus({preventScroll:true});
   }
 }

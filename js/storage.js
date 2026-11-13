@@ -49,7 +49,8 @@ function loadJournal() {
   return journalTransaction(["verses", "photos"], "readonly", tx => ({
     verses: tx.objectStore("verses").getAll(),
     photos: tx.objectStore("photos").getAll(),
-  })).then(({verses, photos}) => {
+    photoKeys: tx.objectStore("photos").getAllKeys(),
+  })).then(({verses, photos, photoKeys}) => {
     const current = [...journal];
     journal.clear();
     const peachFeastKeys=new Set(chapters[groveChapter].lines.filter(line=>line[2]===peachFeastSource)
@@ -59,13 +60,26 @@ function loadJournal() {
       journal.set(key, entry);
     }
     for (const [key, entry] of current) journal.set(key, entry);
-    const older = photos.result.slice(-PHOTO_LIMIT).reverse().map(shot => ({
-      ...shot, src: URL.createObjectURL(shot.blob),
+    const keys = photoKeys.result.slice(-PHOTO_LIMIT).reverse();
+    const older = photos.result.slice(-PHOTO_LIMIT).reverse().map((shot, index) => ({
+      ...shot, storageKey: keys[index], src: URL.createObjectURL(shot.blob),
     }));
     snapshots.push(...older);
     trimJournalPhotos();
     if ($("journalDialog").open) renderJournal();
   }).catch(reportJournalFailure);
+}
+async function saveJadePairOrder(shot, shoalFirst) {
+  await journalTransaction("photos", "readwrite", tx => {
+    const photos = tx.objectStore("photos");
+    const request = photos.get(shot.storageKey);
+    request.onsuccess = () => {
+      const saved = request.result;
+      if (!saved?.jadePair) { tx.abort(); return; }
+      photos.put({...saved, jadePairShoalFirst: shoalFirst}, shot.storageKey);
+    };
+  });
+  shot.jadePairShoalFirst = shoalFirst;
 }
 function trimJournalPhotos() {
   for (const old of snapshots.splice(PHOTO_LIMIT)) URL.revokeObjectURL(old.src);
