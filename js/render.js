@@ -266,6 +266,6 @@ function render(ms) {
   }
   updateSkateSound(paused,throttle);
   scoreTick();
-  lastPose={name:current.name};
+  lastPose={name:current.name,comparison:comparisonInView()};
   requestAnimationFrame(render);
 }

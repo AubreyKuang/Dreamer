@@ -4,11 +4,25 @@ const viewingDialog = () => ["dreamDialog","helpDialog","journalDialog"].some(id
 const MOON_REFLECTION_STOP=2, MOON_REFLECTION_HOLD=3.5, MOON_REFLECTION_FADE=1.8;
 let moonStillTime=0, moonReflection=null, moonResultAt=null;
 const GROVE_BANK_OFFSET=30, GROVE_BANK_EDGE=54;
+const GROVE_SCENERY_LENGTH=370, GROVE_SCENERY_FADE=90;
 const groveBankVerses={
   stones:"你贴着左岸滑行。\n桃枝遮住了石阶，只留几级在水边。",
   petals:"你滑到右侧浅湾。\n岸边的落花聚在一起，水纹从花瓣之间穿过。"
 };
 let groveBanks=null, groveBank=null;
+
+function comparisonInView(){
+  if(!routeMode)return null;
+  if(chapterIndex===groveChapter&&groveBanks&&groveBank&&
+      chapters[chapterIndex].lines[nextLine-1]?.[3]==="groveBanksResult"&&
+      routeDistance-groveBanks.start<GROVE_SCENERY_LENGTH-GROVE_SCENERY_FADE/2){
+    const offset=lateral*.61-groveBanks.x;
+    if(groveBank==="stones"?offset<=-GROVE_BANK_OFFSET:offset>=GROVE_BANK_OFFSET)return groveBank;
+  }
+  if(chapterIndex===moonRiverChapter&&moonReflection&&
+      (moonResultAt===null||storyTime-moonResultAt<MOON_REFLECTION_HOLD+MOON_REFLECTION_FADE/2))return moonReflection;
+  return null;
+}
 
 function rememberVerse(chapter,lineIndex,near){
   const [,originalText,source,gesture,id]=chapter.lines[lineIndex];
@@ -129,7 +143,7 @@ function rememberGroveBank(chapter){
 }
 function groveSteeringStep(step){
   if(!routeMode||chapterIndex!==groveChapter||!groveBanks)return step;
-  const remaining=370-(routeDistance-groveBanks.start);
+  const remaining=GROVE_SCENERY_LENGTH-(routeDistance-groveBanks.start);
   const offset=lateral*.61-groveBanks.x;
   if(remaining<=0||Math.sign(offset)!==Math.sign(step))return step;
   const edge=smooth((GROVE_BANK_EDGE-Math.abs(offset))/(GROVE_BANK_EDGE-GROVE_BANK_OFFSET));

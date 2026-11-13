@@ -722,7 +722,7 @@ function drawPeachGrove(opacity,world){
 }
 function drawGroveBanks(opacity){
   const travelled=routeDistance-groveBanks.start;
-  const fade=opacity*smooth((370-travelled)/90);
+  const fade=opacity*smooth((GROVE_SCENERY_LENGTH-travelled)/GROVE_SCENERY_FADE);
   if(fade<=0)return;
   for(let i=8;i>=0;i--){
     const z=248+i*18-travelled;
