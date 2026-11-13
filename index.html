@@ -109,6 +109,7 @@ dialog p{color:var(--muted);font-size:13px;margin:8px 0 17px}
     <span class="scene-icon" id="sceneIcon" aria-hidden="true">☼</span>
     <div><strong id="sceneName">海棠渡</strong><small id="weather">晨光 · 花瓣</small></div>
   </div>
+  <div class="hint" id="flightHint" hidden><kbd>←</kbd><kbd>→</kbd> 乘风转向　<kbd>↑</kbd><kbd>↓</kbd> 抬升 / 俯瞰</div>
   <div class="hint" id="hint"><kbd>←</kbd><kbd>→</kbd> 转向　<kbd>↑</kbd><kbd>↓</kbd> 加速 / 刹停　<kbd>空格</kbd> 蹬冰</div>
   <div class="bottom">
     <button class="pill" id="photo" type="button" title="留影 · P" aria-label="留影">
@@ -132,6 +133,7 @@ dialog p{color:var(--muted);font-size:13px;margin:8px 0 17px}
     <div class="choices" aria-label="预设梦境">
       <button class="chip" type="button" data-word="北冥">北冥</button>
       <button class="chip" type="button" data-word="云海">云海</button>
+      <button class="chip" type="button" data-word="扶摇">扶摇</button>
       <button class="chip" type="button" data-word="晚霞">晚霞</button>
       <button class="chip" type="button" data-word="极光">极光</button>
       <button class="chip" type="button" data-word="花海">花海</button>
@@ -150,6 +152,7 @@ dialog p{color:var(--muted);font-size:13px;margin:8px 0 17px}
     <h2 id="helpTitle">自在滑行</h2>
     <p><kbd>←</kbd> <kbd>→</kbd> 或左右拖动转向。<kbd>空格</kbd> 蹬冰，<kbd>↑</kbd> / <kbd>↓</kbd> 加速或刹停。触屏可上下拖动，或按住「加速」「刹停」。</p>
     <p><kbd>Enter</kbd> 换梦，<kbd>H</kbd> 观景，<kbd>P</kbd> 留影。靠近冰面上的光点，会遇见几句旅途中的话。</p>
+    <p>随大鹏离开冰面时，左右仍可转向。向上迎风抬升，向下俯瞰云海。「换一个梦」里选「扶摇」，可以直接飞这一段。</p>
     <p>松开按键后，你会凭惯性继续滑。按住刹停可以留在原地看风景。海棠、海雾、鲲与云海会依次出现。配乐会随场景变化，点右上角扬声器可以开关。</p>
     <p><label><input type="checkbox" id="iceSound" checked> 冰面音效</label></p>
     <button class="chip" id="journal" type="button">滑行手记</button>
@@ -216,7 +219,9 @@ const chapters = [
       [180,"鲲在云里一翻身，几尾飞鱼衔着海棠，从云浪里跃了出来。"],
       [310,"蝶停在肩。"],
       [430,"留连戏蝶时时舞，\n自在娇莺恰恰啼。","杜甫《江畔独步寻花》"],
-      [575,"你把肩放低。蝴蝶借了一点风，飞进桃色的云里。"]
+      [575,"你把肩放低。蝴蝶借了一点风，飞进桃色的云里。"],
+      [625,"大鹏一日同风起，\n扶摇直上九万里。","李白《上李邕》","flight"],
+      [700,"鹤群散入云霞。你沿着一缕金光落下，冰刀又轻轻碰到了冰。"]
     ]},
   {at:2470, name:"天河星原", icon:"✦", weather:"星雨 · 长夜", index:3, seed:411, painting:4,
     sky:[18,25,68], mid:[77,67,141], line:[159,145,202], cloud:[164,150,230], shadow:[66,62,136], hills:[83,90,155], water:[25,37,84], light:[218,222,255],
@@ -231,6 +236,9 @@ const chapters = [
 ];
 const original = {...palettes[0],...chapters[0],word:"",whale:false};
 let chapterIndex=0, routeDistance=0, routePosition=0, routeMode=true, nextLine=0, storyTime=0, storyUntil=0, nextStoryAt=0, waveUntil=0;
+let flight=null, flightWind=0;
+const cloudChapter=3;
+const flightVerse=chapters[cloudChapter].lines.findIndex(line=>line[3]==="flight");
 const journal = new Map();
 const snapshots = [];
 const viewingDialog = () => ["dreamDialog","helpDialog","journalDialog"].some(id=>$(id).open);
@@ -241,9 +249,13 @@ function storyLine(chapter, lineIndex) {
   $("storyLine").textContent=text;
   $("story").classList.add("show");
   if(gesture==="wave") waveUntil=t+2.8;
+  if(gesture==="flight"){
+    flight={elapsed:0,duration:22,height:0,glide:0};
+    note(4);
+  }
   const characters=Array.from(text.replace(/\s/g,"")).length;
   storyUntil=storyTime+clamp(7+characters*.18,8,15);
-  nextStoryAt=storyUntil+2.8;
+  nextStoryAt=Math.max(storyUntil+2.8,gesture==="flight"?storyTime+flight.duration:0);
 }
 function travelStory(dt) {
   storyTime+=dt;
@@ -275,7 +287,7 @@ function enterChapter(index, jump=false) {
   const chapter=chapters[index];
   if(jump) {
     routePosition=routeDistance=chapter.at;
-    storyUntil=nextStoryAt=storyTime;waveUntil=0;
+    storyUntil=nextStoryAt=storyTime;waveUntil=0;flight=null;
     $("story").classList.remove("show");
   }
   routeMode=true;chapterIndex=index;nextLine=0;
@@ -357,10 +369,17 @@ function setWord(word){
   $("dreamDialog").close();
   play();
   const phrase=word.trim();
+  if(/扶摇|大鹏|仙鹤|九万里/.test(phrase)){
+    enterChapter(cloudChapter,true);
+    nextLine=flightVerse;
+    routePosition=routeDistance=chapters[cloudChapter].at+chapters[cloudChapter].lines[flightVerse][0];
+    travelStory(0);
+    return;
+  }
   if(/鲲|北冥/.test(phrase)){enterChapter(2,true);return;}
   if(/云海|云涛|天接/.test(phrase)){enterChapter(3,true);return;}
   if(/海棠/.test(phrase)){enterChapter(0,true);return;}
-  routeMode=false;
+  routeMode=false;flight=null;
   $("story").classList.remove("show");
   const next=phrase?dreamFor(phrase):{...palettes[(current.index+1)%palettes.length],index:(current.index+1)%palettes.length,seed:Math.floor(t*13)+19,word:""};
   // A named dream stays picked until the trip is restarted; an empty word
@@ -542,9 +561,9 @@ function drawCompanions(px,py,scale,light){
       const reach=bird?95:butterfly?47:52;
       const follow=(12+hash(seed+9)*reach)*scale;
       const x=px+side*(follow+(1-arrival+leave)*W*.39)+Math.cos(phase)*scale*(bird?17:13);
-      const flight=reduced?.48:1;
+      const flutter=reduced?.48:1;
       const y=py-(bird?120+hash(seed+7)*94:butterfly?53+hash(seed+7)*62:14+hash(seed+7)*49)*scale
-        +Math.sin(phase*.83)*scale*11*flight-leave*H*.32;
+        +Math.sin(phase*.83)*scale*11*flutter-leave*H*.32;
       const size=scale*(.68+hash(seed+12)*.58);
       ctx.save();ctx.translate(x,y);ctx.scale(size,size);ctx.globalAlpha=opacity;
       if(bird){
@@ -839,7 +858,9 @@ function kun(c,x,y,size,tilt,alpha,light,shadow){
 function drawSkyLife(light) {
   const w=sky.width,h=sky.height,travel=routeDistance;
   const ascent=smooth((travel-1060)/540);
-  const alpha=routeMode?smooth((travel-1060)/280)*(1-smooth((travel-2270)/460)):0;
+  const afterAscent=chapterIndex>cloudChapter||(chapterIndex===cloudChapter&&nextLine>flightVerse);
+  const transformation=afterAscent?(flight?1-smooth(flight.elapsed/2.8):0):1;
+  const alpha=routeMode?smooth((travel-1060)/280)*(1-smooth((travel-2270)/460))*transformation:0;
   const preset=(current.whale?smooth(transition):0)+(previous.whale?1-smooth(transition):0);
   const size=Math.min(w/770,h/380);
   if(alpha>.001){
@@ -871,6 +892,105 @@ function drawSkyLife(light) {
     }
   }
 }
+const flightColors=[[255,234,191],[248,161,201],[164,207,253],[176,137,241],[128,223,215]];
+function drawRoc(x,y,size,progress,alpha){
+  if(alpha<.002)return;
+  const flap=(reduced?0:Math.sin(t*2.35))*.12;
+  ctx.save();ctx.translate(x,y);ctx.scale(size,size);ctx.globalAlpha=alpha;
+  for(const side of [-1,1]){
+    ctx.save();ctx.scale(side,1);ctx.rotate(flap);
+    const gold=ctx.createLinearGradient(0,-77,73,54);
+    gold.addColorStop(0,"#fff1be");gold.addColorStop(.42,"#e6a4aa");
+    gold.addColorStop(.82,"#766097");gold.addColorStop(1,"#54557e");
+    ctx.beginPath();ctx.moveTo(-2,-11);
+    ctx.bezierCurveTo(51,-67,125,-65,214,-101);
+    ctx.bezierCurveTo(189,-51,154,-29,110,-7);
+    for(let i=0;i<7;i++){
+      const end=101-i*14, y=5+i*5;
+      ctx.quadraticCurveTo(end+15,y-9,end,y+12);
+      ctx.quadraticCurveTo(end-5,y+6,end-12,y+3);
+    }
+    ctx.quadraticCurveTo(5,42,0,19);ctx.closePath();ctx.fillStyle=gold;ctx.fill();
+    ctx.lineWidth=1.15;
+    for(let i=0;i<11;i++){
+      const u=i/10, endX=33+u*157, endY=40-u*119;
+      ctx.beginPath();ctx.moveTo(5+u*29,-7-u*24);
+      ctx.bezierCurveTo(56+u*43,-28-u*14,29+u*126,11-u*47,endX,endY);
+      ctx.strokeStyle=rgba(flightColors[i%flightColors.length],.25+u*.34);ctx.stroke();
+    }
+    ctx.restore();
+  }
+  const body=ctx.createLinearGradient(0,-25,0,48);
+  body.addColorStop(0,"#fff3d1");body.addColorStop(.58,"#c78eaa");body.addColorStop(1,"#765d92");
+  ctx.beginPath();ctx.moveTo(0,-35);ctx.bezierCurveTo(13,-26,16,-7,10,15);
+  ctx.lineTo(19,44);ctx.lineTo(0,34);ctx.lineTo(-19,44);ctx.lineTo(-10,15);
+  ctx.bezierCurveTo(-16,-7,-13,-26,0,-35);ctx.fillStyle=body;ctx.fill();
+  bloom(ctx,0,-19,40,flightColors[0],.45*(1-progress*.35));
+  ctx.restore();
+}
+function drawCrane(x,y,size,alpha,phase){
+  if(alpha<.002)return;
+  ctx.save();ctx.translate(x,y);ctx.scale(size,size);ctx.globalAlpha=alpha;
+  const flap=reduced?.3:Math.sin(phase);
+  for(const side of [-1,1]){
+    ctx.save();ctx.scale(side,1);
+    const tip=-16-25*flap;
+    const feather=ctx.createLinearGradient(0,-12,45,tip);
+    feather.addColorStop(0,"#fff6e6");feather.addColorStop(.76,"#e7e9f4");feather.addColorStop(1,"#655e86");
+    ctx.beginPath();ctx.moveTo(0,0);ctx.bezierCurveTo(12,-14,24,tip-1,45,tip);
+    ctx.quadraticCurveTo(31,tip+13,22,5);ctx.quadraticCurveTo(13,10,1,7);ctx.closePath();
+    ctx.fillStyle=feather;ctx.fill();ctx.restore();
+  }
+  ellipse(ctx,0,3,4.1,9,"#fff0dd");
+  ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(1,-11,0,-16);
+  ctx.lineWidth=2.7;ctx.strokeStyle="#f3e7dd";ctx.stroke();
+  ellipse(ctx,0,-17,2.1,3.2,"#f9e9d5");ellipse(ctx,0,-18.8,1.1,1.3,"#ba586d");
+  ctx.beginPath();ctx.moveTo(-1,9);ctx.lineTo(-2,17);ctx.moveTo(2,9);ctx.lineTo(3,17);
+  ctx.strokeStyle="#6b5977";ctx.lineWidth=.85;ctx.stroke();ctx.restore();
+}
+function drawFlight(px,py,scale){
+  if(!flight)return;
+  const {elapsed,height}=flight, fade=smooth(height*2.6);
+  const progress=elapsed/flight.duration, w=Math.min(W,H*1.55);
+  const cloudTop=H*(.83-.32*height);
+  const cloudDeck=ctx.createLinearGradient(0,cloudTop-H*.08,0,H);
+  cloudDeck.addColorStop(0,rgba(flightColors[0],0));
+  cloudDeck.addColorStop(.32,rgba(flightColors[0],fade*.35));
+  cloudDeck.addColorStop(.62,rgba(flightColors[1],fade*.24));
+  cloudDeck.addColorStop(1,rgba(flightColors[2],fade*.38));
+  ctx.fillStyle=cloudDeck;ctx.fillRect(0,cloudTop-H*.08,W,H-cloudTop+H*.08);
+  for(let i=0;i<31;i++){
+    const depth=hash(i+773), drift=wrap(hash(i+7)+elapsed*(.025+depth*.043),1);
+    const x=W*(-.15+hash(i+343)*1.30)-heading*w*.024*depth;
+    const y=cloudTop+drift*H*.50+Math.sin(i*2.1)*H*.045;
+    const width=w*(.14+hash(i+127)*.31);
+    const alpha=fade*Math.sin(drift*Math.PI)*(.20+depth*.36);
+    pigmentGlow(ctx,x,y,width,.17+depth*.12,-.09+depth*.22,flightColors[i%5],alpha);
+    pigmentGlow(ctx,x+width*.11,y+12,width*.71,.12,0,flightColors[(i+1)%5],alpha*.77);
+  }
+  const rocAlpha=smooth(elapsed/2.6)*(1-smooth((elapsed-14)/7));
+  const climb=smooth(progress*1.43);
+  drawRoc(W*(.59+.14*climb)-heading*w*.029,
+    H*(.30-.14*climb),w*(.00118-.00042*climb),progress,rocAlpha*.92);
+  for(let i=0;i<(reduced?8:22);i++){
+    const drift=wrap(hash(i+585)+elapsed*(.08+hash(i+723)*.035),1);
+    const side=i%2===0?-1:1, radius=(.45+hash(i+921)*1.65)*scale;
+    const x=px+side*w*(.04+hash(i+516)*.22)*(.6+drift*.4);
+    const y=py-68*scale+drift*H*.46;
+    const color=flightColors[i%flightColors.length];
+    const alpha=fade*Math.sin(Math.PI*drift)*(.15+hash(i+300)*.38);
+    ellipse(ctx,x,y,radius,radius*(1.3+drift),rgba(color,alpha),side*.32);
+    if(i%5===0)bloom(ctx,x,y,7+radius*5,color,alpha*.42);
+  }
+  for(let i=0;i<7;i++){
+    const side=i%2===0?-1:1, lane=19+hash(i+55)*105;
+    const out=smooth((elapsed-15-i*.27)/5);
+    const x=px+side*(lane*scale+(1-fade+out)*W*.21)+Math.sin(t*1.1+i)*7;
+    const y=py-scale*(55+hash(i+177)*132)-out*H*.17;
+    drawCrane(x,y,scale*(.37+hash(i+77)*.41),fade*(1-out)*.89,t*4+i*1.1);
+  }
+}
+
 function project(x,z) {
   const near=62/z, deep=H-horizon;
   return {x:W*.54+(x-lateral*.61)*near*W*.018,
@@ -981,10 +1101,10 @@ function trail(x,y,scale,light){
   }
   ctx.restore();
 }
-function traveler(c,x,y,scale,reflection){
+function traveler(c,x,y,scale,reflection,air=0){
   c.save();c.translate(x,y);c.scale(scale,reflection?-scale*.51:scale);
   c.lineJoin="round";c.lineCap="round";
-  const stride=(reduced?0:Math.sin(stridePhase))*Math.min(1,velocity*1.8)*(.4+Math.min(velocity,2)*.29);
+  const stride=(reduced?0:Math.sin(stridePhase))*Math.min(1,velocity*1.8)*(.4+Math.min(velocity,2)*.29)*(1-air);
   const crouch=brake*10+kick*12+Math.min(velocity,2)*2;
   const lean=edgeLean*21;
   const hipX=lean*.39,hipY=-39+crouch*.44;
@@ -999,7 +1119,7 @@ function traveler(c,x,y,scale,reflection){
   const foot=(side)=>{
     const extension=Math.max(0,side*stride);
     const fx=side*(9+extension*16)-edgeLean*4;
-    const fy=side*stride*5+extension*9;
+    const fy=side*stride*5+extension*9-air*(side===1?9:3);
     line(side===1?"#31445e":"#25304a",9,hipX+side*6,hipY,fx+lean*.28,-20+crouch*.21,fx,fy-7);
     line("#6d7b92",2.1,hipX+side*7,hipY,fx+lean*.24,-20+crouch*.21,fx,fy-7);
     c.save();c.translate(fx,fy);c.rotate(edgeLean*.38+side*extension*.46);
@@ -1014,9 +1134,9 @@ function traveler(c,x,y,scale,reflection){
   foot(stride>0?-1:1);foot(stride>0?1:-1);
   const farewell=routeMode&&!reduced?Math.sin(Math.PI*clamp((waveUntil-t)/2.8,0,1)):0;
   for(const side of [-1,1]){
-    const spread=24+Math.abs(edgeLean)*8+brake*6;
+    const spread=24+Math.abs(edgeLean)*8+brake*6+air*14;
     const handX=shoulderX+side*spread;
-    const handY=shoulderY+17+side*edgeLean*13-side*stride*5-(side===1?farewell*32:0);
+    const handY=shoulderY+17+side*edgeLean*13-side*stride*5-air*19-(side===1?farewell*32:0);
     line(side===-1?"#a34e65":"#db7f88",8,shoulderX+side*9,shoulderY+3,handX-side*8,handY+1,handX,handY);
     ellipse(c,handX,handY,3.7,3.3,"#ede1d5",side*.28);
   }
@@ -1030,7 +1150,7 @@ function traveler(c,x,y,scale,reflection){
   });
   line("#ffe0b6",1.15,shoulderX+2,shoulderY,shoulderX+3,hipY-9,hipX+1,hipY+5);
   line("#f4a69b",1.4,hipX-13,hipY+3,hipX,hipY+8,hipX+13,hipY+3);
-  const wind=(reduced?0:Math.sin(t*5))*4-edgeLean*19;
+  const wind=(reduced?0:Math.sin(t*5))*4-edgeLean*19+air*9;
   const scarf=c.createLinearGradient(0,shoulderY,0,shoulderY+49);
   scarf.addColorStop(0,"#fff2c5");scarf.addColorStop(.62,"#f9b96f");scarf.addColorStop(1,"#e98e89");
   shape(scarf,()=>{
@@ -1101,9 +1221,20 @@ function render(ms) {
   const forward=keys.has("ArrowUp")||keys.has("KeyW")||[...touchControls.values()].includes(1);
   const slow=keys.has("ArrowDown")||keys.has("KeyS")||[...touchControls.values()].includes(-1);
   const throttle=clamp(Number(forward)-Number(slow)+(drag?.throttle??0),-1,1);
-  const pace=start?Math.max(0,.86+throttle*(throttle<0?.86:1.52)+kick*.9*(1-Math.max(0,-throttle))):.28;
+  if(flight&&!paused){
+    flight.elapsed+=dt;
+    const rise=smooth(flight.elapsed/4.1), fall=smooth((flight.duration-flight.elapsed)/5.4);
+    flight.glide=lerp(flight.glide,throttle,1-Math.exp(-dt*1.8));
+    flight.height=rise*fall*(.88+flight.glide*.12);
+    if(flight.elapsed>=flight.duration){
+      flight=null;
+      skateBurst("edge");
+    }
+  }
+  const air=flight?.height??0;
+  const pace=flight?1.06+throttle*.48:start?Math.max(0,.86+throttle*(throttle<0?.86:1.52)+kick*.9*(1-Math.max(0,-throttle))):.28;
   if(!paused){
-    brake=lerp(brake,Math.max(0,-throttle),1-Math.exp(-dt*8));
+    brake=lerp(brake,flight?0:Math.max(0,-throttle),1-Math.exp(-dt*8));
     edgeLean=lerp(edgeLean,heading,1-Math.exp(-dt*6));
     velocity=lerp(velocity,pace*(1-brake*.27),1-Math.exp(-dt*(throttle<0?7:2.7)));
     if(velocity<.025&&brake>.9)velocity=0;
@@ -1117,22 +1248,33 @@ function render(ms) {
     distance+=dt*velocity*(start?32:7);
     if(start&&routeMode) travelStory(dt);
   }
+  const airborne=Boolean(flight);
+  if($("flightHint").hidden===airborne){
+    $("flightHint").hidden=!airborne;
+    $("hint").hidden=airborne;
+    $("skateForward").textContent=airborne?"↑ 抬升":"↑ 加速";
+    $("skateBrake").textContent=airborne?"↓ 俯瞰":"↓ 刹停";
+    $("push").hidden=airborne;
+    $("touch").setAttribute("aria-label",airborne?"乘风操作":"滑冰操作");
+  }
   drawSky(light);drawWater(light,water);
   drawRouteScenery(light,water);
   particles(current,light);
   const px=W*.54+heading*W*(reduced?.009:.022);
-  const py=horizon+(H-horizon)*(.61-clamp((velocity-.84)*.047,-.09,.08));
+  const groundY=horizon+(H-horizon)*(.61-clamp((velocity-.84)*.047,-.09,.08));
+  const py=groundY-air*H*(reduced?.13:.27);
   drawIceRings(light);
-  lights(light,px,py);
+  if(!flight)lights(light,px,py);
   const scale=clamp(Math.min(W/1020,H/680),.64,1.32);
-  trail(px,py,scale,light);
-  ctx.save();ctx.globalAlpha=.20;
-  traveler(ctx,px,py+4,scale,true);ctx.restore();
-  bloom(ctx,px,py+2,28*scale,light,.25);
-  traveler(ctx,px,py,scale,false);
-  drawCompanions(px,py,scale,light);
+  if(air<.08)trail(px,py,scale,light);
+  ctx.save();ctx.globalAlpha=.20*(1-air)**2;
+  traveler(ctx,px,groundY+4,scale,true);ctx.restore();
+  drawFlight(px,py,scale);
+  bloom(ctx,px,py+2,28*scale,light,.25*(1-air));
+  traveler(ctx,px,py,scale,false,air);
+  if(!flight)drawCompanions(px,py,scale,light);
   if(t>0){
-    const weather = !routeMode && !dreamTheme && current.index===0 && timeInDream>25 ? "薄暮 · 湖雾" : current.weather;
+    const weather = flight?"乘风 · 鹤引":!routeMode && !dreamTheme && current.index===0 && timeInDream>25 ? "薄暮 · 湖雾" : current.weather;
     if($("weather").textContent!==weather) $("weather").textContent=weather;
   }
   updateSkateSound(paused,throttle);
@@ -1142,6 +1284,7 @@ function render(ms) {
 }
 function pushOff(){
   play();
+  if(flight)return;
   if(kick>.22)return;
   kick=1;
   velocity=Math.min(3.15,Math.max(.85,velocity)+.8);
@@ -1273,7 +1416,12 @@ function updateSkateSound(paused,throttle){
   if(!skateAudio||!audioOn||audio.state!=="running"||audio.currentTime<nextSkateUpdate)return;
   const now=audio.currentTime;
   nextSkateUpdate=now+.032;
-  const speed=start&&!paused?clamp(velocity/2.4,0,1):0;
+  const wind=scoreLayer?.score.wind??410;
+  if(flight||flightWind){
+    flightWind=!paused?(flight?.height??0):0;
+    windFilter.frequency.setTargetAtTime(wind+flightWind*570,now,.25);
+  }
+  const speed=start&&!paused&&!flight?clamp(velocity/2.4,0,1):0;
   const edge=Math.abs(edgeLean);
   const cue=speed<.06?"glide":brake>.33?"brake":throttle>.55?"rush":edge>(skateCue==="edge"?.34:.51)?"edge":"glide";
   if(cue!==skateCue && cue!=="glide")skateBurst(cue);
