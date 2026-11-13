@@ -56,6 +56,8 @@ kbd{font:inherit;border:1px solid #fff0d34f;border-radius:4px;padding:2px 5px;ma
 #photoReference button{min-height:44px}
 #photoReferenceFeedback summary{min-height:44px;align-content:center;cursor:pointer;font-size:12px;pointer-events:auto}
 #photoReferenceFeedback p{margin:0 0 5px;font-size:12px}
+#photoReferenceResult{white-space:pre-line}
+#photoReferenceFocus{margin:0;font-size:12px}
 #photoReferenceGuidance[aria-pressed="true"]{background:#69556e;border-color:#fff2df86}
 @media(max-width:680px){body:has(#photoReference:not([hidden])) .story{max-width:calc(100vw - 150px)}}
 @media(max-height:440px){#photoReference{inset-block-start:56px}}
@@ -71,6 +73,7 @@ kbd{font:inherit;border:1px solid #fff0d34f;border-radius:4px;padding:2px 5px;ma
 #journalEntries .replay-feedback{margin-top:6px}
 #journalEntries .replay-guess{display:grid;justify-items:start;gap:4px;margin-top:10px}
 #journalEntries .replay-guess select{min-height:44px;max-width:100%;padding:4px 8px;font:inherit;color:inherit;background:#242039;border:1px solid var(--line);border-radius:8px}
+#journalEntries .replay-comparison > button{min-height:44px;margin-top:6px}
 @media(pointer:coarse){.photo-revisit,#replayChoices button{min-height:44px}}
 @media(max-width:680px){.story{top:19vh}.story p{font-size:17px}}
 @media(prefers-reduced-motion:reduce){.story{transition:none}}

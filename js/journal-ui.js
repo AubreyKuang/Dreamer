@@ -17,9 +17,6 @@ const replayScenes=[
 ];
 let replayPreviewUrls=[];
 const replayGuesses=new WeakMap();
-const replayDifferenceLabels={
-  match:"接近旧取景",window:"错过取景时段",mist:"雾况或散雾方式",shoal:"浅滩倒影",side:"左右位置",depth:"快门早晚",
-};
 function journalPhoto(shot,label=shot.name){
   const figure=document.createElement("figure");
   const img=document.createElement("img");
@@ -37,6 +34,7 @@ function journalPhoto(shot,label=shot.name){
   return figure;
 }
 function journalReplayComparison(shot){
+  const differenceLabels={match:"接近旧取景",window:"错过取景时段",...JADE_REPLAY_FOCUS};
   const details=document.createElement("details");
   details.className="replay-comparison";
   const summary=document.createElement("summary");
@@ -50,7 +48,6 @@ function journalReplayComparison(shot){
   old.querySelector("figcaption").textContent="旧取景";
   const retry=old.querySelector("button");
   retry.textContent="沿用旧图重试";
-  retry.onclick=()=>startPhotoReplay(reference,false);
   const next=journalPhoto(shot,"本次复拍");
   const reuse=next.querySelector("button");
   if(reuse)reuse.textContent="用新角度重访";
@@ -59,17 +56,23 @@ function journalReplayComparison(shot){
   feedback.className="replay-feedback";
   const reveal=document.createElement("summary");
   reveal.textContent="查看取景反馈";
+  feedback.append(reveal);
   const result=document.createElement("p");
   result.textContent=shot.replay.result;
+  if(typeof shot.replay.focusResult==="string"){
+    const practice=document.createElement("p");
+    practice.textContent=shot.replay.focusResult;
+    feedback.append(practice);
+  }
   const check=document.createElement("p");
   check.hidden=true;
-  feedback.append(reveal,check,result);
+  feedback.append(check,result);
   const picker=document.createElement("label");
   picker.className="replay-guess";
   picker.textContent="你觉得主要差在哪？（可跳过）";
   const choice=document.createElement("select");
   choice.append(new Option("先看一看",""));
-  for(const [key,label] of Object.entries(replayDifferenceLabels))choice.append(new Option(label,key));
+  for(const [key,label] of Object.entries(differenceLabels))choice.append(new Option(label,key));
   picker.append(choice);
   const guess=replayGuesses.get(shot)||{choice:"",revealed:false};
   choice.value=guess.choice;
@@ -78,8 +81,8 @@ function journalReplayComparison(shot){
     if(!guess.choice)return;
     const actual=photoReplayDifference(shot.jadePose,reference.jadePose);
     check.hidden=false;
-    check.textContent=guess.choice===actual?`你的判断一致：${replayDifferenceLabels[actual]}。`
-      :`你选了「${replayDifferenceLabels[guess.choice]}」。手记优先提示「${replayDifferenceLabels[actual]}」。`;
+    check.textContent=guess.choice===actual?`你的判断一致：${differenceLabels[actual]}。`
+      :`你选了「${differenceLabels[guess.choice]}」。手记优先提示「${differenceLabels[actual]}」。`;
   };
   choice.addEventListener("change",()=>{
     guess.choice=choice.value;
@@ -93,7 +96,15 @@ function journalReplayComparison(shot){
     replayGuesses.set(shot,guess);
     showCheck();
   });
-  details.append(summary,pair,picker,feedback);
+  const focusPicker=document.createElement("label");
+  focusPicker.className="replay-guess";
+  focusPicker.textContent="下一趟专练";
+  const area=document.createElement("select");
+  area.append(new Option("不限",""));
+  for(const [key,label] of Object.entries(JADE_REPLAY_FOCUS))area.append(new Option(label,key));
+  focusPicker.append(area);
+  retry.addEventListener("click",()=>startPhotoReplay(reference,false,area.value?{area:area.value,previous:shot.jadePose}:null));
+  details.append(summary,pair,picker,feedback,focusPicker,retry);
   return details;
 }
 function renderPhotoComparisons(entries){

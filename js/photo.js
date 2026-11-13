@@ -2,6 +2,7 @@
 
 let photoReference=null;
 const JADE_PHOTO_SIDE_TOLERANCE=12, JADE_PHOTO_DEPTH_TOLERANCE=35;
+const JADE_REPLAY_FOCUS={mist:"雾况或散雾方式",shoal:"浅滩倒影",side:"左右位置",depth:"快门早晚"};
 function jadeComparison(pose){
   if(pose?.cleared!==true||!Number.isFinite(pose.side)||!Number.isFinite(pose.depth))return null;
   return pose.waited===true?"jade-wait":"jade-light";
@@ -18,9 +19,11 @@ function jadePhotoPose(){
   return {side:lateral*.61-jadeLight.x,depth:routeDistance-jadeLight.start,cleared:followedJadeLight||waitedForJadeMist,
     ...(waitedForJadeMist?{waited:true}:{}),...(shoal?{shoal:true}:{})};
 }
-function showPhotoReference(shot,guided=true){
+function showPhotoReference(shot,guided=true,focus=null){
   hidePhotoReference();
-  photoReference={shot,guided,src:URL.createObjectURL(shot.blob)};
+  photoReference={shot,guided,focus,src:URL.createObjectURL(shot.blob)};
+  $("photoReferenceFocus").hidden=!focus;
+  $("photoReferenceFocus").textContent=focus?`本趟专练：${JADE_REPLAY_FOCUS[focus.area]}`:"";
   $("photoReferenceFeedback").open=false;
   $("photoReferenceImage").src=photoReference.src;
   $("photoReferenceGuidance").setAttribute("aria-pressed",String(guided));
@@ -69,6 +72,25 @@ function photoReplayDifference(pose,target){
   if(Math.abs(pose.side-target.side)>JADE_PHOTO_SIDE_TOLERANCE)return "side";
   return "depth";
 }
+function photoFocusDistance(pose,target,area){
+  switch(area){
+    case "mist": return Number(pose.cleared!==target.cleared||Boolean(pose.waited)!==Boolean(target.waited));
+    case "shoal": return Number(Boolean(pose.shoal)!==Boolean(target.shoal));
+    case "side": return Math.max(0,Math.abs(pose.side-target.side)-JADE_PHOTO_SIDE_TOLERANCE);
+    case "depth": return Math.max(0,Math.abs(pose.depth-target.depth)-JADE_PHOTO_DEPTH_TOLERANCE);
+  }
+}
+function photoFocusResult(pose,target,focus){
+  const {area,previous}=focus;
+  const label=JADE_REPLAY_FOCUS[area];
+  if(!pose)return `专练${label}：快门落在取景时段之外，本次无法比较。`;
+  const distance=photoFocusDistance(pose,target,area);
+  if(distance===0)return `专练${label}：已接近旧取景。`;
+  if(!previous)return `专练${label}：仍与旧取景有差别。`;
+  const before=photoFocusDistance(previous,target,area);
+  const change=distance<before?"比上次更接近旧取景":distance>before?"比上次离旧取景更远":"与上次的偏差相同";
+  return `专练${label}：${change}。`;
+}
 function photoReplayResult(pose,target){
   let clue;
   switch(photoReplayDifference(pose,target)){
@@ -102,6 +124,7 @@ function savePhoto(){
   const reference=photoReference;
   const compare=reference&&!reference.guided&&routeMode&&chapterIndex===jadeChapter&&name===chapters[jadeChapter].name;
   const result=compare&&photoReplayResult(jadePose,reference.shot.jadePose);
+  const focusResult=compare&&reference.focus&&photoFocusResult(jadePose,reference.shot.jadePose,reference.focus);
   const attempt=compare&&(reference.attempt=(reference.attempt||0)+1);
   if(compare){
     reference.result=null;
@@ -117,7 +140,7 @@ function savePhoto(){
     const shot={blob,name,when,...(comparison?{comparison}:{}),...(jadePose?{jadePose}:{})};
     if(compare){
       const {blob,jadePose}=reference.shot;
-      shot.replay={blob,jadePose,result};
+      shot.replay={blob,jadePose,result,...(focusResult?{focusResult}:{})};
     }
     snapshots.unshift({...shot,src:URL.createObjectURL(blob)});
     trimJournalPhotos();
@@ -130,7 +153,7 @@ function savePhoto(){
     })).then(()=>{
       if(compare&&photoReference===reference){
         if(attempt===reference.attempt){
-          reference.result=result;
+          reference.result=focusResult?`${focusResult}\n${result}`:result;
           updatePhotoReference(jadePhotoPose());
         }
       }else announce(comparison?"留影已收进手记的「两种走法」。":"留影已存入手记。");

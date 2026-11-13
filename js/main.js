@@ -53,9 +53,9 @@ function startReplay(scene){
   $("returnFromReplay").hidden=false;
   seekVoyage(scene.chapter,scene.line);
 }
-function startPhotoReplay(shot,guided=true){
+function startPhotoReplay(shot,guided=true,focus=null){
   startReplay(replayScenes.find(scene=>scene.chapter===jadeChapter));
-  showPhotoReference(shot,guided);
+  showPhotoReference(shot,guided,focus);
   canvas.focus({preventScroll:true});
 }
 function endReplay(){
@@ -89,7 +89,7 @@ function resumeCheckpoint(index,saved){
 $("start").onclick=play;
 $("quickJournal").onclick=showJournal;
 $("retryPhotoReference").onclick=()=>{
-  if(photoReference)startPhotoReplay(photoReference.shot,photoReference.guided);
+  if(photoReference)startPhotoReplay(photoReference.shot,photoReference.guided,photoReference.focus);
 };
 $("photoReferenceGuidance").onclick=()=>{
   if(!photoReference)return;
