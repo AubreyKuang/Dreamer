@@ -102,10 +102,16 @@
 
 ## 本地运行
 
-游戏由一个 HTML 文件运行，无需安装依赖。用浏览器打开 `index.html` 即可。场景由 Canvas 2D 绘制，配乐、风声和冰刀声由 Web Audio 合成。GitHub Pages 从 `main` 分支根目录提供游戏。
+下载整个项目后，用浏览器打开 `index.html` 即可，无需安装依赖。保留同目录下的 `style.css`、`js/` 和 `assets/`。场景由 Canvas 2D 绘制，配乐、风声和冰刀声由 Web Audio 合成。GitHub Pages 从 `main` 分支根目录提供游戏。
 
 | 路径 | 内容 |
 | --- | --- |
-| `index.html` | 游戏入口、航程脚本、绘制与音频。 |
+| `index.html`、`style.css` | 页面结构、脚本加载顺序和界面样式。 |
+| `js/chapters.js`、`js/route.js`、`js/journey.js` | 诗词与章节数据、航程推进、梦境切换。 |
+| `js/scene-state.js`、`js/landscape.js`、`js/scenery.js`、`js/render.js` | 画面状态、天光与冰面、沿途地貌、人物与每帧绘制。 |
+| `js/storage.js`、`js/journal-ui.js`、`js/photo.js` | 本地设置、手记和留影。 |
+| `js/audio.js`、`js/controls.js`、`js/main.js` | 配乐和音效、滑行操作、键鼠与触屏绑定和启动。 |
+| `assets/sky-atlas.js` | 天空纹理，使用数据 URL 以支持从本地文件留影。 |
+| `perf/serve.py` | 生成临时的渲染基准页面，运行后打开终端输出的网址。 |
 | `README.md` | 航程、诗词、玩法和操作说明。 |
 | `reverie-*.jpg` | 十个场景、扶摇飞行和手机竖屏的实机渲染画面。 |
