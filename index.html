@@ -91,7 +91,6 @@ dialog p{color:var(--muted);font-size:13px;margin:8px 0 17px}
       <button class="tool" id="view" type="button" aria-label="开启观景模式" aria-pressed="false" title="观景模式 · H">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v5m11-5h5v5M4 15v5h5m11-5v5h-5"/></svg>
       </button>
-      <button class="tool" id="journal" type="button" aria-label="打开滑行手记" title="滑行手记">卷</button>
       <button class="tool" id="help" type="button" aria-label="操作说明" title="操作说明">?</button>
     </nav>
   </header>
@@ -150,7 +149,8 @@ dialog p{color:var(--muted);font-size:13px;margin:8px 0 17px}
     <h2 id="helpTitle">自在滑行</h2>
     <p><kbd>←</kbd> <kbd>→</kbd> 或左右拖动转向。<kbd>空格</kbd> 蹬冰，<kbd>↑</kbd> / <kbd>↓</kbd> 加速或刹停。触屏可上下拖动，或按住「加速」「刹停」。</p>
     <p><kbd>Enter</kbd> 换梦，<kbd>H</kbd> 观景，<kbd>P</kbd> 留影。靠近冰面上的光点，会遇见几句旅途中的话。</p>
-    <p>松开按键后，你会凭惯性继续滑。按住刹停可以留在原地看风景。海棠、海雾、鲲与云海会依次出现，读过的话会留在「卷」里。配乐会随场景变化，点右上角扬声器可以开关。</p>
+    <p>松开按键后，你会凭惯性继续滑。按住刹停可以留在原地看风景。海棠、海雾、鲲与云海会依次出现。配乐会随场景变化，点右上角扬声器可以开关。</p>
+    <button class="chip" id="journal" type="button">滑行手记</button>
   </dialog>
 </main>
 <script>
@@ -185,19 +185,21 @@ function dreamFor(word) {
 const chapters = [
   {at:0, name:"海棠渡", icon:"✿", weather:"晨光 · 花瓣", index:0, seed:45,
     lines:[[0,"一朵海棠逆着风，在你的冰刀前打了个旋。"],[205,"花瓣贴着冰面滑向水天交界处。你侧过身，顺着它划出的弧线追过去。"]]},
-  {at:450, name:"海雾深处", icon:"≋", weather:"潮声 · 雾起", index:2, seed:109,
-    sky:[53,59,93], mid:[137,128,159], line:[235,178,166], cloud:[224,177,179], hills:[112,94,137], water:[43,42,73], light:[255,205,178],
-    lines:[[0,"花瓣一片片沉入雾里。雾的另一侧，有什么缓缓吐出一口气。"],[230,"那一口气吹开了海面。你看见水下有一条比岛还长的影子。"]]},
-  {at:1010, name:"北冥有鱼", icon:"◒", weather:"深海 · 鲲游", index:1, seed:193,
-    lines:[[35,"北冥有鱼，其名为鲲。"],[315,"它从水里抬起背脊，散落的水珠停在了空中。"]]},
-  {at:1700, name:"天接云涛", icon:"☁", weather:"云浪 · 天河", index:2, seed:313,
-    sky:[61,66,113], mid:[145,133,170], line:[255,204,179], cloud:[247,195,196], hills:[133,109,159], water:[67,61,107], light:[255,228,195],
-    lines:[[45,"天接云涛连海雾。"],[325,"鲲在云浪间翻身，惊起几只白色的飞鱼。它们衔着海棠，把天边染得微红。"]]},
-  {at:2440, name:"天河星原", icon:"✦", weather:"星雨 · 长夜", index:3, seed:411,
-    lines:[[55,"鲲往更深的夜里去了。一片花瓣落在你的围巾上，和出发时一样轻。"],[340,"远处还有星光。你可以跟着它继续滑，也可以在这里多待一会儿。"]]}
+  {at:450, name:"海雾深处", icon:"≋", weather:"潮声 · 雾起", index:2, seed:109, painting:1,
+    sky:[48,57,99], mid:[155,117,158], line:[237,178,158], cloud:[229,159,187], shadow:[94,84,143], hills:[97,114,151], water:[41,47,81], light:[255,217,180],
+    lines:[[0,"雾从冰缝里慢慢涨起来，把远山染成淡紫色。"],[155,"一只白鸟贴着雾飞。它每拍一下翅膀，冰里就亮一小片。"],[310,"白鸟转向了海的另一边。你听见雾深处，有什么长长地呼出一口气。"],[465,"薄冰之下，一条比岛还长的影子，正朝着天光游去。"]]},
+  {at:1080, name:"北冥有鱼", icon:"◒", weather:"深海 · 鲲游", index:1, seed:193, painting:2,
+    sky:[21,34,77], mid:[56,119,139], line:[139,205,194], cloud:[135,180,223], shadow:[77,62,133], hills:[56,91,125], water:[16,44,75], light:[196,255,223],
+    lines:[[35,"北冥有鱼，其名为鲲。"],[190,"它抬起背脊，冰下的青光沿着鳞纹，一寸一寸亮起来。"],[340,"从它身上落下来的水珠没有落地。一颗停在眉前，一颗成了远处的星。"],[510,"你抬头时，它已游过月亮。冰面还替你留着它的影子。"]]},
+  {at:1740, name:"天接云涛", icon:"☁", weather:"云浪 · 天河", index:2, seed:313, painting:3,
+    sky:[60,69,135], mid:[162,125,168], line:[255,205,165], cloud:[250,165,174], shadow:[112,107,180], hills:[125,110,164], water:[69,61,115], light:[255,231,186],
+    lines:[[40,"天接云涛连海雾。"],[195,"鲲在云浪间翻身，惊起几只白色的飞鱼。它们衔着海棠，把天边染得微红。"],[350,"两只蝶在你肩旁停了一会儿。它们的翅膀，一面是暮色，一面是金光。"],[520,"云从你脚下过去，留下一道桃色的倒影。再回头，蝴蝶已经飞进云里。"]]},
+  {at:2470, name:"天河星原", icon:"✦", weather:"星雨 · 长夜", index:3, seed:411, painting:4,
+    sky:[18,25,68], mid:[77,67,141], line:[159,145,202], cloud:[164,150,230], shadow:[66,62,136], hills:[83,90,155], water:[25,37,84], light:[218,222,255],
+    lines:[[45,"鲲往更深的夜里去了。一片海棠落在你的围巾上，和出发时一样轻。"],[220,"几只萤火虫跟在冰刀后面，像怕踩疼星光，一闪一闪地绕过你的脚边。"],[430,"萤火虫在远处各自散开。最后一点光停了一瞬，也飞走了。"],[590,"我挥一挥衣袖，不带走一片云彩。"],[775,"冰上还留着两道浅浅的弧线。过一会儿，天光就会把它们填满。"]]}
 ];
 const original = {...palettes[0],...chapters[0],word:"",whale:false};
-let chapterIndex=0, routeDistance=0, routePosition=0, routeMode=true, nextLine=0, storyUntil=0;
+let chapterIndex=0, routeDistance=0, routePosition=0, routeMode=true, nextLine=0, storyUntil=0, waveUntil=0;
 const journal = new Map(), pendingLines = [];
 const snapshots = [];
 const viewingDialog = () => ["dreamDialog","helpDialog","journalDialog"].some(id=>$(id).open);
@@ -207,7 +209,8 @@ function storyLine(chapter, lineIndex) {
   $("storyTitle").textContent=chapter.name;
   $("storyLine").textContent=text;
   $("story").classList.add("show");
-  storyUntil=t+7;
+  if(chapter===chapters[4]&&lineIndex===3) waveUntil=t+2.8;
+  storyUntil=t+Math.max(6.6,Math.min(9.2,3.8+Array.from(text).length*.102));
 }
 function travelStory(dt) {
   routePosition=Math.max(0,routePosition+dt*velocity*32);
@@ -218,7 +221,7 @@ function travelStory(dt) {
   }
   const next=chapters[chapterIndex+1];
   if(next && routeDistance>=next.at) enterChapter(chapterIndex+1);
-  if(pendingLines.length && t>=storyUntil-(velocity>1.45?3:1.3)){
+  if(pendingLines.length && t>=storyUntil-(velocity>1.45?3.7:1.7)){
     storyLine(...pendingLines.shift());
   }
 }
@@ -238,7 +241,7 @@ function enterChapter(index, jump=false) {
   const chapter=chapters[index];
   if(jump) {
     routePosition=routeDistance=chapter.at;
-    pendingLines.length=0;storyUntil=0;
+    pendingLines.length=0;storyUntil=waveUntil=0;
     $("story").classList.remove("show");
   }
   routeMode=true;chapterIndex=index;nextLine=0;
@@ -385,6 +388,7 @@ function paintSky(p) {
         bloom(c,0,0,rx,blend(p.shadow,p.cloud,.24+v*.72),.12+size*.4);c.restore();
       }
     }
+    if(p.painting) paintedClouds(c,w,h,p);
     skyDetail(c,w,h,p);
     for(let i=0;i<3;i++) ridge(c,w,h,p,i);
     for(let i=0;i<10;i++){
@@ -395,6 +399,110 @@ function paintSky(p) {
   }
   return b;
 }
+const pigments = [
+  [[251,168,178],[255,210,156],[143,162,220],[174,118,190],[128,193,207],[252,226,184]],
+  [[245,174,152],[231,143,185],[117,161,217],[164,124,208],[120,204,198],[255,225,189]],
+  [[179,240,206],[107,185,235],[160,122,228],[249,173,193],[94,224,199],[249,227,169]],
+  [[255,192,143],[250,140,178],[133,164,241],[181,118,212],[148,211,209],[255,234,175]],
+  [[151,177,250],[208,136,227],[100,174,221],[245,158,180],[118,209,224],[255,220,160]]
+];
+function paintedClouds(c,w,h,p){
+  const colors=pigments[p.painting];
+  // The same sky grain sits under each study, with its own colored cloud banks.
+  if(art.complete&&art.naturalWidth){
+    c.save();c.globalAlpha=p.painting===3?.34:.22;c.globalCompositeOperation="luminosity";
+    const sw=Math.min(art.naturalWidth,art.naturalHeight*w/h);
+    const sh=Math.min(art.naturalHeight,sw*h/w);
+    c.drawImage(art,(art.naturalWidth-sw)*hash(p.seed),0,sw,sh,0,0,w,h);c.restore();
+  }
+  const banks=p.painting===3?9:7;
+  for(let bank=0;bank<banks;bank++){
+    const seed=p.seed*29+bank*101;
+    const x=w*(-.17+hash(seed)*1.26), y=h*(.14+hash(seed+7)*.68);
+    const span=w*(.35+hash(seed+11)*.49), thick=h*(.11+hash(seed+16)*.18);
+    const tone=colors[bank%colors.length], accent=colors[(bank+2)%colors.length];
+    for(let i=0;i<112;i++){
+      const q=seed+i*53, u=hash(q+1), v=hash(q+5), crest=Math.sin(u*Math.PI)**.7;
+      const bend=Math.sin(u*5.8+bank)*.38+Math.sin(u*12+bank*3)*.13;
+      const cx=x+(u-.5)*span, cy=y+(bend+(v-.50)*crest)*thick;
+      const r=span*(.012+hash(q+9)**2*.063);
+      const hue=blend(tone,accent,hash(q+12)*.68);
+      c.save();c.translate(cx,cy);c.rotate(-.17+.33*Math.cos(u*6+bank));c.scale(1,.20+hash(q+2)*.51);
+      bloom(c,0,0,r,hue,crest*(.14+hash(q+21)*.38));c.restore();
+      if(i%4===0){
+        const stroke=blend(hue,colors[5],.29+hash(q+34)*.39);
+        c.save();c.translate(cx,cy+thick*.09);c.rotate(-.17+hash(q+43)*.31);
+        c.scale(1,.12+hash(q+8)*.26);
+        bloom(c,0,0,r*.67,stroke,crest*.39);c.restore();
+      }
+    }
+  }
+}
+function reflectedPigments(){
+  const deep=H-horizon, mix=smooth(transition);
+  const strength=lerp(Number(Boolean(previous.painting)),Number(Boolean(current.painting)),mix);
+  if(strength<.005)return;
+  const before=pigments[previous.painting||0], after=pigments[current.painting||0];
+  for(let i=0;i<40;i++){
+    const offset=hash(i+612)*880-distance, z=66+wrap(offset,880);
+    const seed=i+Math.floor(offset/880)*47, p=project((hash(seed+83)-.5)*640,z);
+    const width=(22+hash(seed+128)*108)*p.scale;
+    if(p.x+width<0||p.x-width>W)continue;
+    const amount=strength*smooth((z-66)/48)*smooth((930-z)/520);
+    const color=blend(before[i%6],after[i%6],mix);
+    ctx.save();ctx.translate(p.x,p.y);ctx.rotate(-.12+hash(seed+9)*.19);ctx.scale(1,.12+hash(seed+34)*.14);
+    bloom(ctx,0,0,width,color,amount*(.18+hash(seed+217)*.35));ctx.restore();
+    if(i%5===0) ellipse(ctx,p.x,p.y+deep*.006,width*.24,.75+p.scale,rgba(color,amount*.36),-.09);
+  }
+}
+const encounters = [
+  {kind:"bird",at:560,end:762,count:3},
+  {kind:"bird",at:1380,end:1675,count:2},
+  {kind:"butterfly",at:2025,end:2245,count:4},
+  {kind:"firefly",at:2535,end:2925,count:9}
+];
+function drawCompanions(px,py,scale,light){
+  if(!routeMode)return;
+  for(const {kind,at,end,count} of encounters){
+    if(routeDistance<at-130||routeDistance>end+95+(count-1)*11)continue;
+    for(let i=0;i<count;i++){
+      const delay=i*11, arrival=smooth((routeDistance-at+115-delay)/135);
+      const leave=smooth((routeDistance-end+58-delay)/153);
+      const opacity=arrival*(1-leave);
+      if(opacity<.004)continue;
+      const seed=at+i*51, side=i%2?1:-1, phase=t*(.9+hash(seed)*.46)+i*2.39;
+      const bird=kind==="bird", butterfly=kind==="butterfly";
+      const reach=bird?95:butterfly?47:52;
+      const follow=(12+hash(seed+9)*reach)*scale;
+      const x=px+side*(follow+(1-arrival+leave)*W*.39)+Math.cos(phase)*scale*(bird?17:13);
+      const flight=reduced?.48:1;
+      const y=py-(bird?120+hash(seed+7)*94:butterfly?53+hash(seed+7)*62:14+hash(seed+7)*49)*scale
+        +Math.sin(phase*.83)*scale*11*flight-leave*H*.32;
+      const size=scale*(.68+hash(seed+12)*.58);
+      ctx.save();ctx.translate(x,y);ctx.scale(size,size);ctx.globalAlpha=opacity;
+      if(bird){
+        const wing=4+Math.sin(t*6+i)*5;
+        ctx.fillStyle=rgba(blend(light,[234,227,255],.54),1);ctx.beginPath();
+        ctx.moveTo(-18,2);ctx.quadraticCurveTo(-8,-wing,0,1);ctx.quadraticCurveTo(9,-wing-2,19,0);
+        ctx.quadraticCurveTo(9,-1,1,5);ctx.quadraticCurveTo(-9,1,-18,2);ctx.fill();
+        ellipse(ctx,0,3,2.2,2.1,"#fff1d7");
+      }else if(butterfly){
+        const spread=.32+.68*Math.abs(Math.sin(t*9+i));
+        bloom(ctx,0,0,15,[255,167,174],.33);
+        ellipse(ctx,-4*spread,0,6*spread,5,rgba([244,142,185],.91),-.32);
+        ellipse(ctx,4*spread,0,6*spread,5,rgba([255,206,141],.91),.32);
+        ellipse(ctx,-2,3,2.9*spread,2.3,"#ebafdf");ellipse(ctx,2,3,2.9*spread,2.3,"#ffe1ac");
+      }else{
+        const glow=.37+.57*(.5+.5*Math.sin(phase*1.6));
+        const color=i%3?[255,224,148]:[163,247,211];
+        bloom(ctx,0,0,10+glow*9,color,glow*.68);
+        ellipse(ctx,0,0,1.5,1.5,rgba(color,glow));
+      }
+      ctx.restore();
+    }
+  }
+}
+
 function drawCached(b, alpha){
   if(!b||alpha<=0)return;
   sk.globalAlpha=alpha;
@@ -473,6 +581,7 @@ function drawWater(light,water) {
   const veil=ctx.createLinearGradient(0,horizon,0,H);
   veil.addColorStop(0,rgba(light,.09));veil.addColorStop(.43,rgba(water,.19));veil.addColorStop(1,rgba(water,.46));
   ctx.fillStyle=veil;ctx.fillRect(0,horizon,W,deep);
+  reflectedPigments();
   const coolTint=[110,148,255], warmTint=[242,167,197];
   const pearl=blend(light,blend(
     previous.index%2?coolTint:warmTint,current.index%2?coolTint:warmTint,smooth(transition)),.48);
@@ -662,8 +771,8 @@ function kun(c,x,y,size,tilt,alpha,light,shadow){
 }
 function drawSkyLife(light) {
   const w=sky.width,h=sky.height,travel=routeDistance;
-  const ascent=smooth((travel-995)/570);
-  const alpha=routeMode?smooth((travel-995)/320)*(1-smooth((travel-2270)/460)):0;
+  const ascent=smooth((travel-1060)/540);
+  const alpha=routeMode?smooth((travel-1060)/280)*(1-smooth((travel-2270)/460)):0;
   const preset=(current.whale?smooth(transition):0)+(previous.whale?1-smooth(transition):0);
   const size=Math.min(w/770,h/380);
   if(alpha>.001){
@@ -836,10 +945,11 @@ function traveler(c,x,y,scale,reflection){
     c.restore();
   };
   foot(stride>0?-1:1);foot(stride>0?1:-1);
+  const farewell=routeMode&&!reduced?Math.sin(Math.PI*clamp((waveUntil-t)/2.8,0,1)):0;
   for(const side of [-1,1]){
     const spread=24+Math.abs(edgeLean)*8+brake*6;
     const handX=shoulderX+side*spread;
-    const handY=shoulderY+17+side*edgeLean*13-side*stride*5;
+    const handY=shoulderY+17+side*edgeLean*13-side*stride*5-(side===1?farewell*32:0);
     line(side===-1?"#a34e65":"#db7f88",8,shoulderX+side*9,shoulderY+3,handX-side*8,handY+1,handX,handY);
     ellipse(c,handX,handY,3.7,3.3,"#ede1d5",side*.28);
   }
@@ -934,6 +1044,7 @@ function render(ms) {
   traveler(ctx,px,py+4,scale,true);ctx.restore();
   bloom(ctx,px,py+2,28*scale,light,.25);
   traveler(ctx,px,py,scale,false);
+  drawCompanions(px,py,scale,light);
   if(t>0){
     const weather = !routeMode && !dreamTheme && current.index===0 && timeInDream>25 ? "薄暮 · 湖雾" : current.weather;
     if($("weather").textContent!==weather) $("weather").textContent=weather;
@@ -1094,7 +1205,7 @@ function openDream(){
   $("word").focus();
 }
 $("start").onclick=play;
-$("journal").onclick=showJournal;
+$("journal").onclick=()=>{ $("helpDialog").close();showJournal(); };
 // Closing a dialog hands focus back to the button that opened it; blur it so
 // the next Space pushes off instead of re-opening the dialog.
 for(const id of ["dreamDialog","journalDialog","helpDialog"]){
