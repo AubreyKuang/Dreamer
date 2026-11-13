@@ -3,6 +3,12 @@
 let photoReference=null;
 const JADE_PHOTO_SIDE_TOLERANCE=12, JADE_PHOTO_DEPTH_TOLERANCE=35;
 const JADE_REPLAY_FOCUS={mist:"雾况或散雾方式",shoal:"浅滩倒影",side:"左右位置",depth:"快门早晚"};
+function startJadePractice(shot,area){
+  const series=shot.replay.practiceArea===area&&shot.replay.practiceSeries;
+  const latest=series&&snapshots.find(entry=>entry.replay?.practiceSeries===series&&entry.jadePose);
+  return {area,previous:latest?.jadePose??shot.jadePose,
+    series:series||Date.now().toString(36)+"-"+Math.random().toString(36).slice(2)};
+}
 function jadeComparison(pose){
   if(pose?.cleared!==true||!Number.isFinite(pose.side)||!Number.isFinite(pose.depth))return null;
   return pose.waited===true?"jade-wait":"jade-light";
@@ -140,7 +146,9 @@ function savePhoto(){
     const shot={blob,name,when,...(comparison?{comparison}:{}),...(jadePose?{jadePose}:{})};
     if(compare){
       const {blob,jadePose}=reference.shot;
-      shot.replay={blob,jadePose,result,...(focusResult?{focusResult}:{})};
+      shot.replay={blob,jadePose,result,...(focusResult?{
+        focusResult,practiceArea:reference.focus.area,practiceSeries:reference.focus.series
+      }:{})};
     }
     snapshots.unshift({...shot,src:URL.createObjectURL(blob)});
     trimJournalPhotos();
@@ -154,6 +162,7 @@ function savePhoto(){
       if(compare&&photoReference===reference){
         if(attempt===reference.attempt){
           reference.result=focusResult?`${focusResult}\n${result}`:result;
+          if(reference.focus&&jadePose)reference.focus={...reference.focus,previous:jadePose};
           updatePhotoReference(jadePhotoPose());
         }
       }else announce(comparison?"留影已收进手记的「两种走法」。":"留影已存入手记。");

@@ -64,6 +64,21 @@ function journalReplayComparison(shot){
     practice.textContent=shot.replay.focusResult;
     feedback.append(practice);
   }
+  if(shot.replay.practiceSeries){
+    const recent=snapshots.filter(({replay})=>replay?.practiceSeries===shot.replay.practiceSeries&&
+      typeof replay.focusResult==="string").slice(0,4).reverse();
+    if(recent.length>1){
+      const heading=document.createElement("p");
+      heading.textContent="这组最近的练习（由早到晚）";
+      const history=document.createElement("ol");
+      for(const entry of recent){
+        const item=document.createElement("li");
+        item.textContent=entry.when+" · "+entry.replay.focusResult;
+        history.append(item);
+      }
+      feedback.append(heading,history);
+    }
+  }
   const check=document.createElement("p");
   check.hidden=true;
   feedback.append(check,result);
@@ -102,8 +117,9 @@ function journalReplayComparison(shot){
   const area=document.createElement("select");
   area.append(new Option("不限",""));
   for(const [key,label] of Object.entries(JADE_REPLAY_FOCUS))area.append(new Option(label,key));
+  if(Object.hasOwn(JADE_REPLAY_FOCUS,shot.replay.practiceArea))area.value=shot.replay.practiceArea;
   focusPicker.append(area);
-  retry.addEventListener("click",()=>startPhotoReplay(reference,false,area.value?{area:area.value,previous:shot.jadePose}:null));
+  retry.addEventListener("click",()=>startPhotoReplay(reference,false,area.value?startJadePractice(shot,area.value):null));
   details.append(summary,pair,picker,feedback,focusPicker,retry);
   return details;
 }
