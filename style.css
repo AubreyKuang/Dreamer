@@ -54,6 +54,7 @@ kbd{font:inherit;border:1px solid #fff0d34f;border-radius:4px;padding:2px 5px;ma
 #photoReference figcaption{font-size:12px}
 #photoReference .photo-reference-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px}
 #photoReference button{min-height:44px}
+#photoReferenceGuidance[aria-pressed="true"]{background:#69556e;border-color:#fff2df86}
 @media(max-width:680px){body:has(#photoReference:not([hidden])) .story{max-width:calc(100vw - 150px)}}
 @media(max-height:440px){#photoReference{inset-block-start:56px}}
 #journalEntries p{margin:7px 0 16px;line-height:1.7;white-space:pre-line;line-break:strict}

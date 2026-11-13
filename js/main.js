@@ -53,9 +53,9 @@ function startReplay(scene){
   $("returnFromReplay").hidden=false;
   seekVoyage(scene.chapter,scene.line);
 }
-function startPhotoReplay(shot){
+function startPhotoReplay(shot,guided=true){
   startReplay(replayScenes.find(scene=>scene.chapter===jadeChapter));
-  showPhotoReference(shot);
+  showPhotoReference(shot,guided);
   canvas.focus({preventScroll:true});
 }
 function endReplay(){
@@ -89,7 +89,13 @@ function resumeCheckpoint(index,saved){
 $("start").onclick=play;
 $("quickJournal").onclick=showJournal;
 $("retryPhotoReference").onclick=()=>{
-  if(photoReference)startPhotoReplay(photoReference.shot);
+  if(photoReference)startPhotoReplay(photoReference.shot,photoReference.guided);
+};
+$("photoReferenceGuidance").onclick=()=>{
+  if(!photoReference)return;
+  photoReference.guided=!photoReference.guided;
+  $("photoReferenceGuidance").setAttribute("aria-pressed",String(photoReference.guided));
+  updatePhotoReference(jadePhotoPose());
 };
 $("closePhotoReference").onclick=()=>{
   hidePhotoReference();
