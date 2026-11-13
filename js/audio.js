@@ -182,8 +182,9 @@ function scoreTick(){
   const midi=layer.score.melody[step%layer.score.melody.length];
   if(midi!==null){
     if(layer.score===scores[harpChapter]){
-      layer.pluckSide=harpSide(step);
-      pluckHarp(midi,time,layer.gain,layer.pluckSide);
+      const side=listeningHarpSide();
+      layer.pluckSide=side??harpSide(step);
+      pluckHarp(midi+(side===-1?-5:side===1?7:0),time,layer.gain,layer.pluckSide);
       layer.next=time+layer.score.beat;
       return;
     }

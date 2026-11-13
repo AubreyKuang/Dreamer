@@ -11,6 +11,17 @@ const groveBankVerses={
   petals:"你滑到右侧浅湾。\n岸边的落花聚在一起，水纹从花瓣之间穿过。"
 };
 let groveBanks=null, groveBank=null;
+const HARP_BANK_OFFSET=25, HARP_PHRASE_TIME=1.8, HARP_BANK_INTERVAL=4;
+const harpBankVerses={
+  left:"左岸的低弦穿过花丛。\n余音贴着水面，慢慢远了。",
+  right:"右岸的高弦越过水面。\n花梢轻轻一颤，又归于安静。"
+};
+let harpListening=null, harpBank=null;
+function listeningHarpSide(){
+  if(!routeMode||chapterIndex!==harpChapter||!harpListening)return null;
+  if(harpBank)return harpBank==='left'?-1:1;
+  return Math.floor((storyTime-harpListening.start)/HARP_BANK_INTERVAL)%2?-1:1;
+}
 let replaying=false;
 function saveVoyageCheckpoint(checkpoint){
   if(!replaying)saveSetting("voyageCheckpoint",checkpoint);
@@ -62,6 +73,7 @@ function rememberJournalEntry(key,entry){
 function storyLine(chapter, lineIndex) {
   const gesture=chapter.lines[lineIndex][3];
   if(gesture==="groveBanks")groveBanks={x:lateral*.61,start:routeDistance};
+  if(gesture==="harpListen")harpListening={x:lateral*.61,start:storyTime,side:0,elapsed:0};
   if(gesture==="riverPier"&&sailedTogether)riverPier={x:lateral*.61-PIER_OFFSET,start:routeDistance};
   if(gesture==="moonReflectionResult"){
     moonReflection ??= "ribbon";
@@ -72,10 +84,14 @@ function storyLine(chapter, lineIndex) {
   let text=gesture==="groveBanksResult"&&groveBank?verse+"\n"+groveBankVerses[groveBank]:verse;
   if(gesture==="riverPier"&&riverPier)text=landedAtPier?pierFarewell:"旅人把船灯转向左岸。\n可以靠向渡口的灯送他上岸，也可以继续顺流。";
   if(gesture==="riverPierResult"&&landedAtPier)text=verse+"\n"+pierFarewell;
+  if(gesture==="harpListen")text=verse+"\n靠向亮起的一岸，顺行听完一小段弦声。";
+  if(gesture==="harpResult"&&harpBank)text=harpBankVerses[harpBank];
+  if(gesture==="harpResult"&&!harpBank)harpListening=null;
   saveVoyageCheckpoint({chapter:chapter.name,line:lineIndex,metTraveller,
     ...(chapterIndex===riverChapter&&sailedTogether?{sailedTogether:true}:{}),
     ...(chapterIndex===riverChapter&&landedAtPier?{landedAtPier:true}:{}),
     ...(chapter.moonRiver&&moonReflection?{moonReflection}:{}),
+    ...(chapter.harp&&harpBank?{harpBank}:{}),
     ...(chapter.grove&&groveBank?{groveBank}:{})});
   $("storyTitle").textContent=chapter.name;
   $("storyLine").textContent=text;
@@ -117,6 +133,7 @@ function travelStory(dt, sideStep=0, holdingBrake=false) {
     updatePassingBoat(chapter,dt);
     if(cue?.[3]==="riverPierResult")updateRiverPier(chapter);
   }
+  if(cue?.[3]==="harpResult"&&!harpBank)updateHarpListening(chapter,dt);
   if(!cue&&!next&&storyTime>=nextStoryAt){
     // Keep travelling after the last verse without replaying the story.
     roamDistance+=Math.hypot(step,sideStep);
@@ -139,6 +156,19 @@ function travelStory(dt, sideStep=0, holdingBrake=false) {
     storyLine(chapter,nextLine++);
   }
   else if(next) enterChapter(chapterIndex+1);
+}
+function updateHarpListening(chapter,dt){
+  const side=listeningHarpSide();
+  if(!side)return;
+  const near=(lateral*.61-harpListening.x)*side>=HARP_BANK_OFFSET;
+  if(!near||velocity<.35){harpListening.elapsed=0;return;}
+  harpListening.elapsed=(harpListening.side===side?harpListening.elapsed:0)+dt;
+  harpListening.side=side;
+  if(harpListening.elapsed<HARP_PHRASE_TIME)return;
+  harpBank=side<0?'left':'right';
+  rememberJournalEntry(chapter.name+'-harp-'+harpBank,{name:chapter.name,text:harpBankVerses[harpBank],source:""});
+  announce(side<0?'听见了左岸的低弦。':'听见了右岸的高弦。',3.5);
+  saveVoyageCheckpoint({chapter:chapter.name,line:nextLine-1,harpBank});
 }
 function rememberGroveBank(chapter){
   const key=chapter.name+"-bank-"+groveBank;
@@ -208,6 +238,7 @@ function enterChapter(index, jump=false) {
   sharedSailingTime=0;sailedTogether=false;sharedLightsUntil=0;
   riverPier=null;landedAtPier=false;
   groveBanks=null;groveBank=null;
+  harpListening=null;harpBank=null;
   if(chapter.moonRiver){moonStillTime=0;moonReflection=null;moonResultAt=null;}
   if(jump) {
     routePosition=routeDistance=chapter.at;
@@ -219,7 +250,7 @@ function enterChapter(index, jump=false) {
   changeDream(sceneForChapter(chapter));
 }
 
-function seekVoyage(index,line=0,met=false,reflection=null,bank=null,shared=false,landed=false){
+function seekVoyage(index,line=0,met=false,reflection=null,bank=null,shared=false,landed=false,heardBank=null){
   leaveFreeRoam();
   enterChapter(index,true);
   const chapter=chapters[index];
@@ -229,6 +260,10 @@ function seekVoyage(index,line=0,met=false,reflection=null,bank=null,shared=fals
   sailedTogether=index===riverChapter&&shared;
   landedAtPier=sailedTogether&&landed;
   metTraveller=met||sailedTogether;
+  if(chapter.harp&&Object.hasOwn(harpBankVerses,heardBank)){
+    harpBank=heardBank;
+    harpListening={x:0,start:storyTime,side:0,elapsed:0};
+  }
   if(chapter.moonRiver){
     const resultLine=chapter.lines.findIndex(cue=>cue[3]==="moonReflectionResult");
     if(line<=resultLine&&(reflection==="flower"||reflection==="ribbon"))moonReflection=reflection;

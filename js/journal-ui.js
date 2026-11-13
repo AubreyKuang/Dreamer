@@ -6,6 +6,7 @@ const photoComparisons=[
 ];
 const replayScenes=[
   {chapter:riverChapter,line:chapters[riverChapter].lines.findIndex(line=>line[3]==="passingBoat")-1,label:"不系之舟 · 江心船灯"},
+  {chapter:harpChapter,line:chapters[harpChapter].lines.findIndex(line=>line[3]==="harpListen"),label:"李凭箜篌引 · 两岸弦声"},
   ...photoComparisons.map(({chapter,cue})=>({
     chapter,line:chapters[chapter].lines.findIndex(line=>line[3]===cue),
     label:chapters[chapter].name+(chapter===groveChapter?" · 左右两岸":" · 停船或顺流"),

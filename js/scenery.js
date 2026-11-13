@@ -224,9 +224,11 @@ function drawMoonRiver(opacity,world){
 }
 function harpSide(step){return Math.floor(step/3)%2?-1:1;}
 function drawHarpBanks(opacity,world){
-  const active=scoreLayer?.score===scores[harpChapter]&&audioOn?(scoreLayer.pluckSide??1):harpSide(Math.floor(timeInDream/2.28));
+  const listeningSide=listeningHarpSide();
+  const active=listeningSide??(scoreLayer?.score===scores[harpChapter]&&audioOn?(scoreLayer.pluckSide??1):harpSide(Math.floor(timeInDream/2.28)));
   const glowX=W*(.54+active*.26);
-  pigmentGlow(ctx,glowX,horizon+(H-horizon)*.20,W*.25,.28,0,[177,155,238],opacity*.42);
+  const bankColor=listeningSide&&active<0?[127,218,184]:[211,168,244];
+  pigmentGlow(ctx,glowX,horizon+(H-horizon)*.20,W*.25,.28,0,bankColor,opacity*(listeningSide?.76:.42));
   for(let i=0;i<12;i++){
     const depth=(i+.5)/12, x=lerp(glowX,W*(.54+active*.43),depth);
     const y=horizon+(H-horizon)*depth**1.4;
