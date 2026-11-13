@@ -21,7 +21,9 @@ const fireflyVerse="你松开刹车，那点萤光也从袖口飞了起来。\n�
 let fireflyStill=0, fireflyCoast=0, fireflySettled=false, fireflyTrail=false;
 const JADE_LIGHT_HOLD=1.8, JADE_LIGHT_WIDTH=12;
 const jadeLightVerse="你沿着冰上的日光滑了一段。\n雾从两边散开，山脚露出了玉色。";
-let jadeLight=null, followedJadeLight=false;
+const jadeWaitVerse="你停在溪心等了一会儿。\n雾渐渐变薄，两道山脊在日光里露了出来。";
+const JADE_MIST_WAIT=4, JADE_MIST_CENTER=14;
+let jadeLight=null, followedJadeLight=false, waitedForJadeMist=false;
 function jadeLightOffset(ahead=0){
   const progress=clamp((routeDistance-jadeLight.start+ahead)/182,0,1);
   return jadeLight.x+30+19*smooth(progress)-lateral*.61;
@@ -100,7 +102,7 @@ function rememberJournalEntry(key,entry){
 }
 function storyLine(chapter, lineIndex) {
   const gesture=chapter.lines[lineIndex][3];
-  if(gesture==="jadeLight")jadeLight={x:lateral*.61,start:routeDistance,held:0};
+  if(gesture==="jadeLight")jadeLight={x:lateral*.61,start:routeDistance,held:0,still:0};
   if(gesture==="groveBanks")groveBanks={x:lateral*.61,start:routeDistance};
   if(gesture==="harpListen")harpListening={x:lateral*.61,start:storyTime,side:0,elapsed:0};
   if(gesture==="riverPier"&&sailedTogether)riverPier={x:lateral*.61-PIER_OFFSET,start:routeDistance};
@@ -123,10 +125,9 @@ function storyLine(chapter, lineIndex) {
     text=fireflyTrail?fireflyVerse:verse+"\n可以按住刹停等它落稳，再松手顺滑一小段。";
   }
   if(gesture==="fireflyResult"&&fireflyTrail)text=verse+"\n"+fireflyVerse;
-  if(gesture==="jadeLight"){
-    text=followedJadeLight?jadeLightVerse:verse+"\n向右靠近光带，再松开转向顺滑一小段。";
-  }
-  if(gesture==="jadeLightResult"&&followedJadeLight)text=verse+"\n"+jadeLightVerse;
+  const jadeVerse=followedJadeLight?jadeLightVerse:waitedForJadeMist?jadeWaitVerse:null;
+  if(gesture==="jadeLight")text=jadeVerse||verse+"\n向右靠近光带，再松开转向顺滑一小段。\n也可在溪心刹停，等雾散开。";
+  if(gesture==="jadeLightResult"&&jadeVerse)text=verse+"\n"+jadeVerse;
   saveVoyageCheckpoint({chapter:chapter.name,line:lineIndex,metTraveller,
     ...(chapterIndex===riverChapter&&sailedTogether?{sailedTogether:true}:{}),
     ...(chapterIndex===riverChapter&&landedAtPier?{landedAtPier:true}:{}),
@@ -136,6 +137,7 @@ function storyLine(chapter, lineIndex) {
     ...(chapter.mirrorLake&&mirrorView?{mirrorView}:{}),
     ...(chapter.fireflies&&fireflyTrail?{fireflyTrail:true}:{}),
     ...(chapter.jade&&followedJadeLight?{followedJadeLight:true}:{}),
+    ...(chapter.jade&&waitedForJadeMist?{waitedForJadeMist:true}:{}),
     ...(chapter.grove&&groveBank?{groveBank}:{})});
   $("storyTitle").textContent=chapter.name;
   $("storyLine").textContent=text;
@@ -194,7 +196,7 @@ function travelStory(dt, sideStep=0, holdingBrake=false) {
   if(cue?.[3]==="harpResult"&&!harpBank)updateHarpListening(chapter,dt);
   if(cue?.[3]==="harpDuet"&&harpBank&&!harpDuet)updateHarpListening(chapter,dt);
   if(cue?.[3]==="fireflyResult"&&!fireflyTrail)updateFirefly(chapter,dt,holdingBrake);
-  if(cue?.[3]==="jadeLightResult"&&jadeLight&&!followedJadeLight)updateJadeLight(chapter,dt);
+  if(cue?.[3]==="jadeLightResult"&&jadeLight&&!followedJadeLight&&!waitedForJadeMist)updateJadeLight(chapter,dt,holdingBrake);
   if(!cue&&!next&&storyTime>=nextStoryAt){
     // Keep travelling after the last verse without replaying the story.
     roamDistance+=Math.hypot(step,sideStep);
@@ -218,7 +220,16 @@ function travelStory(dt, sideStep=0, holdingBrake=false) {
   }
   else if(next) enterChapter(chapterIndex+1);
 }
-function updateJadeLight(chapter,dt){
+function updateJadeLight(chapter,dt,holdingBrake){
+  const inCenter=Math.abs(lateral*.61-jadeLight.x)<=JADE_MIST_CENTER;
+  jadeLight.still=inCenter&&holdingBrake&&velocity===0?jadeLight.still+dt:0;
+  if(jadeLight.still>=JADE_MIST_WAIT){
+    waitedForJadeMist=true;
+    rememberJournalEntry(chapter.name+"-jade-wait",{name:chapter.name,text:jadeWaitVerse,source:""});
+    announce("雾散了。松开刹车继续，或留在这里看山。",4);
+    saveVoyageCheckpoint({chapter:chapter.name,line:nextLine-1,waitedForJadeMist});
+    return;
+  }
   const gliding=velocity>=.35&&Math.abs(heading)<.45;
   jadeLight.held=gliding&&Math.abs(jadeLightOffset())<=JADE_LIGHT_WIDTH?jadeLight.held+dt:0;
   if(jadeLight.held<JADE_LIGHT_HOLD)return;
@@ -339,7 +350,7 @@ function enterChapter(index, jump=false) {
   harpListening=null;harpBank=null;harpDuet=false;
   mirrorView=null;
   fireflyStill=fireflyCoast=0;fireflySettled=fireflyTrail=false;
-  jadeLight=null;followedJadeLight=false;
+  jadeLight=null;followedJadeLight=waitedForJadeMist=false;
   if(chapter.moonRiver){moonStillTime=0;moonReflection=null;moonResultAt=null;}
   if(jump) {
     routePosition=routeDistance=chapter.at;
@@ -351,7 +362,7 @@ function enterChapter(index, jump=false) {
   changeDream(sceneForChapter(chapter));
 }
 
-function seekVoyage(index,line=0,met=false,reflection=null,bank=null,shared=false,landed=false,heardBank=null,duet=false,moonView=null,litTrail=false,jadeView=false){
+function seekVoyage(index,line=0,met=false,reflection=null,bank=null,shared=false,landed=false,heardBank=null,duet=false,moonView=null,litTrail=false,jadeView=false,jadeWait=false){
   leaveFreeRoam();
   enterChapter(index,true);
   const chapter=chapters[index];
@@ -363,7 +374,10 @@ function seekVoyage(index,line=0,met=false,reflection=null,bank=null,shared=fals
   metTraveller=met||sailedTogether;
   if(chapter.mirrorLake&&Object.hasOwn(mirrorVerses,moonView))mirrorView=moonView;
   if(chapter.fireflies)fireflyTrail=litTrail;
-  if(chapter.jade)followedJadeLight=jadeView;
+  if(chapter.jade){
+    followedJadeLight=jadeView;
+    waitedForJadeMist=!jadeView&&jadeWait;
+  }
   if(chapter.harp&&Object.hasOwn(harpBankVerses,heardBank)){
     harpBank=heardBank;
     harpDuet=duet;

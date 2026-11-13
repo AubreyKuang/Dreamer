@@ -6,7 +6,8 @@ function jadePhotoPose(){
   if(!routeMode||chapterIndex!==jadeChapter||!jadeLight||storyTime>=storyUntil)return null;
   const cue=chapters[jadeChapter].lines[nextLine-1]?.[3];
   if(cue!=="jadeLight"&&cue!=="jadeLightResult")return null;
-  return {side:lateral*.61-jadeLight.x,depth:routeDistance-jadeLight.start,cleared:followedJadeLight};
+  return {side:lateral*.61-jadeLight.x,depth:routeDistance-jadeLight.start,cleared:followedJadeLight||waitedForJadeMist,
+    ...(waitedForJadeMist?{waited:true}:{})};
 }
 function showPhotoReference(shot){
   hidePhotoReference();
@@ -28,7 +29,7 @@ function updatePhotoReference(pose){
   const target=photoReference.shot.jadePose;
   const passed=(jadeLight&&routeDistance-jadeLight.start>target.depth+JADE_PHOTO_DEPTH_TOLERANCE)||
     (!pose&&chapters[jadeChapter].lines[nextLine-1]?.[3]!=="jadeLight");
-  $("retryPhotoReference").hidden=!passed&&!(pose?.cleared&&!target.cleared);
+  $("retryPhotoReference").hidden=!passed&&!(pose?.cleared&&(!target.cleared||Boolean(pose.waited)!==Boolean(target.waited)));
   const text=passed?"已滑过旧取景，可以重试。":photoReferenceHint(pose,target);
   const status=$("photoReferenceStatus");
   if(status.textContent!==text)status.textContent=text;
@@ -37,6 +38,8 @@ function photoReferenceHint(pose,target){
   if(!pose)return "对照旧留影找角度";
   const side=target.side-pose.side;
   const depth=target.depth-pose.depth;
+  if(target.waited&&!pose.waited)return "旧图是在溪心等雾散后拍的。";
+  if(pose.waited&&target.cleared&&!target.waited)return "旧图是循光后拍的，可以重试。";
   if(pose.cleared!==target.cleared)return target.cleared?"旧图的雾已散开，先向右循光。":"旧图仍有雾，这次已拨雾。";
   if(side>JADE_PHOTO_SIDE_TOLERANCE)return "旧取景在右侧。";
   if(side< -JADE_PHOTO_SIDE_TOLERANCE)return "旧取景在左侧。";

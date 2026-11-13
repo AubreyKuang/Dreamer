@@ -84,7 +84,7 @@ $("continueVoyage").onclick=()=>{
 function resumeCheckpoint(index,saved){
   seekVoyage(index,saved.line,saved.metTraveller===true,saved.moonReflection,saved.groveBank,
     saved.sailedTogether===true,saved.landedAtPier===true,saved.harpBank,saved.harpDuet===true,saved.mirrorView,
-    saved.fireflyTrail===true,saved.followedJadeLight===true);
+    saved.fireflyTrail===true,saved.followedJadeLight===true,saved.waitedForJadeMist===true);
 }
 $("start").onclick=play;
 $("quickJournal").onclick=showJournal;

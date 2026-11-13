@@ -471,7 +471,8 @@ function drawJadeBanks(opacity,world){
   }
   const cue=chapters[chapterIndex].lines[nextLine-1]?.[3];
   const onJadePath=routeMode&&chapterIndex===jadeChapter&&(cue==="jadeLight"||cue==="jadeLightResult");
-  const revealed=onJadePath&&followedJadeLight;
+  const waitingView=onJadePath&&waitedForJadeMist;
+  const revealed=onJadePath&&(followedJadeLight||waitingView);
   const mistTime=reduced?0:t;
   for(let i=0;i<9;i++){
     const x=W*(.09+i*.103+.036*Math.sin(mistTime*.23+i)), y=horizon+(H-horizon)*(.04+hash(i+31)*.39);
@@ -488,8 +489,13 @@ function drawJadeBanks(opacity,world){
   }
   if(revealed){
     const y=horizon+(H-horizon)*.17;
-    pigmentGlow(ctx,W*.72,y,W*.26,.22,-.15,jadeColors[2],opacity*.8);
-    pigmentGlow(ctx,W*.79,y-9,W*.18,.15,-.15,jadeColors[3],opacity*.72);
+    if(waitingView){
+      pigmentGlow(ctx,W*.36,y,W*.24,.18,-.16,jadeColors[2],opacity*.85);
+      pigmentGlow(ctx,W*.65,y-7,W*.22,.17,.16,jadeColors[2],opacity*.82);
+    }else{
+      pigmentGlow(ctx,W*.72,y,W*.26,.22,-.15,jadeColors[2],opacity*.8);
+      pigmentGlow(ctx,W*.79,y-9,W*.18,.15,-.15,jadeColors[3],opacity*.72);
+    }
   }
 }
 const forestLeaves=[[49,97,91],[81,121,107],[70,100,119],[122,105,130],[168,131,104]];
