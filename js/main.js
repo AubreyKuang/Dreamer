@@ -46,6 +46,7 @@ if(canContinue){
   $("continueVoyage").textContent="继续上次航程 · "+checkpoint.chapter;
 }
 function startReplay(scene){
+  hidePhotoReference();
   $("journalDialog").close();
   play();
   replaying=true;
@@ -53,6 +54,7 @@ function startReplay(scene){
   seekVoyage(scene.chapter,scene.line);
 }
 function endReplay(){
+  hidePhotoReference();
   replaying=false;
   $("returnFromReplay").hidden=true;
 }
@@ -81,6 +83,10 @@ function resumeCheckpoint(index,saved){
 }
 $("start").onclick=play;
 $("quickJournal").onclick=showJournal;
+$("closePhotoReference").onclick=()=>{
+  hidePhotoReference();
+  canvas.focus({preventScroll:true});
+};
 $("journal").onclick=()=>{ $("helpDialog").close();showJournal(); };
 // Return to the ice so gameplay shortcuts work immediately after a dialog.
 for(const id of ["dreamDialog","journalDialog","helpDialog"]){

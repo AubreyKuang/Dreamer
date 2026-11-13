@@ -22,6 +22,16 @@ function journalPhoto(shot,label=shot.name){
   const caption=document.createElement("figcaption");
   caption.textContent=label+" · "+shot.when;
   figure.append(img,caption);
+  const pose=shot.jadePose;
+  if(shot.name===chapters[jadeChapter].name&&Number.isFinite(pose?.side)&&Number.isFinite(pose.depth)&&typeof pose.cleared==="boolean"){
+    const compare=document.createElement("button");
+    compare.type="button";compare.className="chip";compare.textContent="带上这张留影重访";
+    compare.onclick=()=>{
+      startReplay(replayScenes.find(scene=>scene.chapter===jadeChapter));
+      showPhotoReference(shot);
+    };
+    figure.append(compare);
+  }
   return figure;
 }
 function renderPhotoComparisons(entries){

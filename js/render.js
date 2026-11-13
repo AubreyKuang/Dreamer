@@ -288,6 +288,8 @@ function render(ms) {
   }
   updateSkateSound(paused,throttle);
   scoreTick();
-  lastPose={name:current.name,comparison:comparisonInView()};
+  const jadePose=jadePhotoPose();
+  lastPose={name:current.name,comparison:comparisonInView(),jadePose};
+  updatePhotoReference(jadePose);
   requestAnimationFrame(render);
 }
