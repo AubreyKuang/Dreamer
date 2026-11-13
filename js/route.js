@@ -5,6 +5,7 @@ const MOON_REFLECTION_STOP=2, MOON_REFLECTION_HOLD=3.5, MOON_REFLECTION_FADE=1.8
 let moonStillTime=0, moonReflection=null, moonResultAt=null;
 const GROVE_BANK_OFFSET=30, GROVE_BANK_EDGE=54;
 const GROVE_SCENERY_LENGTH=370, GROVE_SCENERY_FADE=90;
+const PIER_OFFSET=46, PIER_REACH=23, PIER_APPROACH=80;
 const groveBankVerses={
   stones:"你贴着左岸滑行。\n桃枝遮住了石阶，只留几级在水边。",
   petals:"你滑到右侧浅湾。\n岸边的落花聚在一起，水纹从花瓣之间穿过。"
@@ -33,11 +34,13 @@ function rememberVerse(chapter,lineIndex,near){
   const moonResult=gesture==="moonReflectionResult";
   let text=originalText;
   if(near)text="你向那盏船灯靠了过去。\n对面举灯晃了晃。\n我自飘零，亦是行人。";
+  if(gesture==="riverDawn"&&landedAtPier)text="天快亮了。你回头望去，\n渡口的灯还在远处。";
   if(moonResult&&moonReflection==="flower")text="桨停了，水里的碎光合成一朵花。\n岸上的细枝还在摇。";
   // New cues use explicit IDs so older entries retain their stored keys.
   const originalIndex=chapter.lines.slice(0,lineIndex).filter(line=>!line[4]).length;
   let entryId=id??originalIndex;
   if(near)entryId="passing-boat-near";
+  if(gesture==="riverDawn"&&landedAtPier)entryId="pier-dawn";
   if(moonResult)entryId="reflection-"+(moonReflection??"ribbon");
   if(gesture==="groveBanks")entryId="grove-bank-invitation";
   const key=chapter.name+"-"+entryId;
@@ -59,15 +62,19 @@ function rememberJournalEntry(key,entry){
 function storyLine(chapter, lineIndex) {
   const gesture=chapter.lines[lineIndex][3];
   if(gesture==="groveBanks")groveBanks={x:lateral*.61,start:routeDistance};
+  if(gesture==="riverPier"&&sailedTogether)riverPier={x:lateral*.61-PIER_OFFSET,start:routeDistance};
   if(gesture==="moonReflectionResult"){
     moonReflection ??= "ribbon";
     moonResultAt=storyTime;
   }
   const verse=rememberVerse(chapter,lineIndex,gesture==="passingBoat"&&metTraveller);
   if(gesture==="groveBanksResult"&&groveBank)rememberGroveBank(chapter);
-  const text=gesture==="groveBanksResult"&&groveBank?verse+"\n"+groveBankVerses[groveBank]:verse;
+  let text=gesture==="groveBanksResult"&&groveBank?verse+"\n"+groveBankVerses[groveBank]:verse;
+  if(gesture==="riverPier"&&riverPier)text=landedAtPier?pierFarewell:"旅人把船灯转向左岸。\n可以靠向渡口的灯送他上岸，也可以继续顺流。";
+  if(gesture==="riverPierResult"&&landedAtPier)text=verse+"\n"+pierFarewell;
   saveVoyageCheckpoint({chapter:chapter.name,line:lineIndex,metTraveller,
     ...(chapterIndex===riverChapter&&sailedTogether?{sailedTogether:true}:{}),
+    ...(chapterIndex===riverChapter&&landedAtPier?{landedAtPier:true}:{}),
     ...(chapter.moonRiver&&moonReflection?{moonReflection}:{}),
     ...(chapter.grove&&groveBank?{groveBank}:{})});
   $("storyTitle").textContent=chapter.name;
@@ -106,7 +113,10 @@ function travelStory(dt, sideStep=0, holdingBrake=false) {
       saveVoyageCheckpoint({chapter:chapter.name,line:nextLine-1,moonReflection});
     }
   }
-  if(chapterIndex===riverChapter)updatePassingBoat(chapter,dt);
+  if(chapterIndex===riverChapter){
+    updatePassingBoat(chapter,dt);
+    if(cue?.[3]==="riverPierResult")updateRiverPier(chapter);
+  }
   if(!cue&&!next&&storyTime>=nextStoryAt){
     // Keep travelling after the last verse without replaying the story.
     roamDistance+=Math.hypot(step,sideStep);
@@ -146,7 +156,17 @@ let travellerBank=null;
 let metTraveller=false;
 let travellerReplyUntil=0;
 let sharedSailingTime=0, sailedTogether=false, sharedLightsUntil=0;
+let riverPier=null, landedAtPier=false;
+const pierFarewell="你陪旅人靠了岸。\n他把灯搁在木桩上，照着你重新入江。";
 const SHARED_SAILING_SECONDS=2.4;
+function updateRiverPier(chapter){
+  if(!riverPier||landedAtPier)return;
+  if(routeDistance-riverPier.start<PIER_APPROACH||Math.abs(lateral*.61-riverPier.x)>PIER_REACH)return;
+  landedAtPier=true;
+  rememberJournalEntry(chapter.name+"-pier-farewell",{name:chapter.name,text:pierFarewell,source:""});
+  announce("旅人上了岸，渡口的灯还亮着。",4);
+  saveVoyageCheckpoint({chapter:chapter.name,line:nextLine-1,metTraveller,sailedTogether,landedAtPier});
+}
 function updatePassingBoat(chapter,dt){
   if(sailedTogether)return;
   const boat=passingBoat();
@@ -186,6 +206,7 @@ function enterChapter(index, jump=false) {
   const chapter=chapters[index];
   travellerBank=null;metTraveller=false;travellerReplyUntil=0;
   sharedSailingTime=0;sailedTogether=false;sharedLightsUntil=0;
+  riverPier=null;landedAtPier=false;
   groveBanks=null;groveBank=null;
   if(chapter.moonRiver){moonStillTime=0;moonReflection=null;moonResultAt=null;}
   if(jump) {
@@ -198,7 +219,7 @@ function enterChapter(index, jump=false) {
   changeDream(sceneForChapter(chapter));
 }
 
-function seekVoyage(index,line=0,met=false,reflection=null,bank=null,shared=false){
+function seekVoyage(index,line=0,met=false,reflection=null,bank=null,shared=false,landed=false){
   leaveFreeRoam();
   enterChapter(index,true);
   const chapter=chapters[index];
@@ -206,6 +227,7 @@ function seekVoyage(index,line=0,met=false,reflection=null,bank=null,shared=fals
   distance=routePosition=routeDistance=chapter.at+chapter.lines[line][0];
   lateral=position=0;
   sailedTogether=index===riverChapter&&shared;
+  landedAtPier=sailedTogether&&landed;
   metTraveller=met||sailedTogether;
   if(chapter.moonRiver){
     const resultLine=chapter.lines.findIndex(cue=>cue[3]==="moonReflectionResult");

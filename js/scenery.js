@@ -411,6 +411,33 @@ function drawRiver(opacity,world){
     riverBoat(p.x,p.y+3*p.scale,p.scale*1.06,fade*.29,true,true);
     riverBoat(p.x,p.y,p.scale*1.06,fade,true);
   }
+  if(routeMode&&chapterIndex===riverChapter&&riverPier)drawRiverPier(opacity);
+}
+function drawRiverPier(opacity){
+  const approach=routeDistance-riverPier.start;
+  const fade=opacity*smooth((405-approach)/108);
+  if(fade<=0)return;
+  const z=Math.max(110,286-approach*.67);
+  const p=project(riverPier.x,z);
+  const s=p.scale*1.8;
+  ctx.save();
+  ctx.translate(p.x,p.y);
+  ctx.scale(s,s);
+  ctx.globalAlpha*=fade;
+  ellipse(ctx,-29,4,55,13,"#27344e",-.08);
+  ctx.fillStyle="#7b645d";
+  ctx.fillRect(-26,-6,44,7);
+  ctx.fillStyle="#ae8571";
+  for(const x of [-23,-8,7,16])ctx.fillRect(x,-8,2,17);
+  ctx.fillRect(14,-28,3,23);
+  bloom(ctx,17,-30,landedAtPier?28:19,riverLamp,.86);
+  ctx.fillStyle="#ffe0a6";
+  ctx.fillRect(14,-34,7,9);
+  ctx.restore();
+  if(!landedAtPier){
+    const boat=project(riverPier.x+lerp(25,7,smooth(approach/190)),z-10);
+    riverBoat(boat.x,boat.y,boat.scale,fade,true);
+  }
 }
 const jadeColors=[[73,151,139],[102,172,151],[166,211,170],[255,222,164]];
 function drawJadeBanks(opacity,world){
