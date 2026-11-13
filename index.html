@@ -282,7 +282,7 @@ const chapters = [
       [760,"你慢慢滑过去。那一点暖意，也跟了上来。"]
     ]},
   {at:5220,name:"桃源深处",icon:"✿",weather:"桃雨 · 溪声",index:2,seed:1103,painting:7,grove:true,
-    sky:[81,73,132],mid:[180,119,163],line:[255,193,188],cloud:[255,169,189],shadow:[115,83,151],hills:[156,99,144],water:[52,63,105],light:[255,220,192],
+    sky:[75,80,137],mid:[163,133,180],line:[255,210,181],cloud:[249,176,199],shadow:[89,96,148],hills:[77,112,127],water:[52,77,109],light:[255,223,180],
     lines:[
       [24,"转过山脚，溪上漂来一瓣桃花。"],
       [190,"忽逢桃花林，夹岸数百步。","陶渊明《桃花源记》"],
@@ -564,21 +564,6 @@ function paintForestHorizon(c,w,h,p){
     pigmentGlow(c,w*.54,ground,w*.55,.063,0,layer===1?p.light:p.cloud,.27);
   }
 }
-function paintPeachHorizon(c,w,h,p){
-  for(let layer=0;layer<3;layer++){
-    for(let i=0;i<95;i++){
-      const seed=layer*431+i*23, u=(i+hash(seed)) / 95;
-      const x=w*u, opening=smooth(Math.abs(u-.54)/.28);
-      const height=h*(.013+opening*(.041+hash(seed+7)*.12));
-      const radius=Math.min(w,h*2)*(.008+hash(seed+4)*.015);
-      const y=h*(.92+layer*.036)-height*.42;
-      const rose=blend(peachLeaves[(i+layer)%5],p.cloud,.32);
-      ellipse(c,x,y,radius,height,rgba(rose,.45+layer*.14),.17*(hash(seed+3)-.5));
-      ellipse(c,x-radius*.4,y-height*.48,radius*.59,height*.55,rgba(p.light,.19+layer*.10),-.16);
-    }
-    pigmentGlow(c,w*.53,h*(.87+layer*.06),w*.53,.10,-.04,p.light,.29);
-  }
-}
 function paintFarmHorizon(c,w,h,p){
   for(let layer=0;layer<3;layer++){
     const base=h*(.90+layer*.055), height=h*(.44-layer*.076);
@@ -656,10 +641,10 @@ function paintSky(p) {
     }
     if(p.painting) paintedClouds(c,w,h,p);
     skyDetail(c,w,h,p);
-    for(let i=0;i<3;i++) ridge(c,w,h,p,i);
+    const landscape=p.grove?{...p,line:[135,159,175],hills:[65,99,116]}:p;
+    for(let i=0;i<3;i++) ridge(c,w,h,landscape,i);
     if(p.forest) paintForestHorizon(c,w,h,p);
     if(p.jade) paintJadeValley(c,w,h,p);
-    if(p.grove) paintPeachHorizon(c,w,h,p);
     if(p.farmland) paintFarmHorizon(c,w,h,p);
     for(let i=0;i<10;i++){
       const x=w*hash(i+320+p.seed), y=h*(.81+hash(i+621)*.20), r=w*(.12+hash(i+312)*.21);
@@ -702,7 +687,7 @@ const atmospheres = [
   {focus:[.76,.22], tones:[[165,180,255],[210,146,236],[116,200,222]], veil:.26, drift:"star"},
   {focus:[.51,.76], tones:[[255,189,110],[123,177,154],[174,156,191]], veil:.62, drift:"firefly"},
   {focus:[.66,.55], tones:[[255,230,173],[137,218,184],[225,171,190]], veil:.48, drift:"glint"},
-  {focus:[.57,.66], tones:[[255,181,206],[231,119,170],[191,159,232]], veil:.58, drift:"petal"},
+  {focus:[.57,.66], tones:[[255,215,154],[244,135,190],[154,199,213]], veil:.49, drift:"petal"},
   {focus:[.73,.64], tones:[[255,220,154],[162,202,138],[156,191,203]], veil:.38, drift:"glint"},
   {focus:[.76,.30], tones:[[196,196,234],[122,158,191],[172,129,169]], veil:.47, drift:"mist"}
 ];
@@ -1459,7 +1444,63 @@ function drawJadeBanks(opacity,world){
 }
 const forestLeaves=[[49,97,91],[81,121,107],[70,100,119],[122,105,130],[168,131,104]];
 const lanternGlow=[255,177,93];
-const peachLeaves=[[154,72,126],[199,103,155],[236,135,176],[255,169,196],[255,211,211]];
+const peachPetals=[[151,66,130],[201,80,145],[239,120,169],[255,159,188],[255,209,210],[255,233,202]];
+const peachTrees=[];
+function peachTreeImage(seed){
+  const variant=Math.floor(hash(seed+57)*24);
+  if(peachTrees[variant])return peachTrees[variant];
+  const image=document.createElement("canvas");
+  image.width=320;image.height=282;
+  const c=image.getContext("2d"), key=variant*997;
+  c.translate(160,266);
+  const lean=(hash(key+2)-.5)*52;
+  const wood=c.createLinearGradient(-15,0,19,-17);
+  wood.addColorStop(0,"#3e344e");wood.addColorStop(.57,"#664759");wood.addColorStop(1,"#aa776d");
+  c.fillStyle=wood;
+  c.beginPath();c.moveTo(-12,0);c.bezierCurveTo(1,-37,-21,-93,lean-5,-141);
+  c.lineTo(lean+4,-144);c.bezierCurveTo(-3,-88,16,-41,10,0);c.closePath();c.fill();
+  const crowns=[];
+  c.lineCap="round";
+  for(let i=0;i<7;i++){
+    const k=key+i*67, side=i%2?1:-1;
+    const x=lean+side*(26+hash(k+7)*99);
+    const y=-124-hash(k+19)*80;
+    const jointY=-48-i*12, splitX=x*.61, splitY=lerp(jointY,y,.69);
+    c.strokeStyle=i%3===0?"#9f6669":"#664359";
+    c.lineWidth=8-i*.65;
+    c.beginPath();c.moveTo(lean*.36,jointY);
+    c.quadraticCurveTo(x*.15,splitY+14,splitX,splitY);c.stroke();
+    for(let j=0;j<3;j++){
+      const tipX=x+(j-1)*(13+hash(k+j*9)*14);
+      const tipY=y+(j===1?-20:hash(k+j*11)*17);
+      c.lineWidth=2.3-j*.35;c.strokeStyle=j===1?"#ac6e74":"#69455e";
+      c.beginPath();c.moveTo(splitX,splitY);c.quadraticCurveTo(x*.82,tipY+15,tipX,tipY);c.stroke();
+      crowns.push({x:tipX,y:tipY,key:k+j*113});
+    }
+  }
+  for(const {x,y,key:k} of crowns){
+    const radius=20+hash(k+31)*15;
+    pigmentGlow(c,x,y,radius*1.37,.73,-.18,peachPetals[Math.floor(hash(k+27)*4)],.62);
+    for(let i=0;i<15;i++){
+      const q=k+i*19, angle=hash(q+7)*TAU, spread=Math.sqrt(hash(q+19))*radius;
+      const px=x+Math.cos(angle)*spread, py=y+Math.sin(angle)*spread*.70;
+      const r=2.6+hash(q+13)*6.5;
+      const color=peachPetals[Math.floor(hash(q+15)*peachPetals.length)];
+      if(i%4===0)ellipse(c,px+r,py+r*.5,r*1.22,r*.39,rgba([113,159,112],.79),angle);
+      if(i%3!==0){
+        ellipse(c,px,py,r,r*.73,rgba(color,.80),angle);
+        continue;
+      }
+      for(let petal=0;petal<5;petal++){
+        const turn=angle+petal*TAU/5;
+        ellipse(c,px+Math.cos(turn)*r*.46,py+Math.sin(turn)*r*.46,r*.53,r*.37,rgba(color,.94),turn);
+      }
+      ellipse(c,px,py,r*.22,r*.19,"#ffe0a5");
+    }
+  }
+  peachTrees[variant]=image;
+  return image;
+}
 const fieldColors=[[119,147,89],[151,171,94],[183,171,103],[102,144,106]];
 function drawFarmland(opacity,world){
   drawCreeks(opacity*.56,false);
@@ -1535,11 +1576,18 @@ function drawCreeks(opacity,petals){
     for(let i=1;i<steps;i+=2){
       const a=banks[0][i], b=banks[1][i], width=b.x-a.x;
       const shimmer=.5+.5*Math.sin((reduced?0:t*1.35)+i*.72+column);
+      if(a.x>W+50||b.x< -50)continue;
       ellipse(ctx,(a.x+b.x)*.5+width*.12*shimmer,a.y,width*.28,.5+shimmer*.85,rgba([255,212,231],opacity*shimmer*.45));
       const radius=Math.min(38,width*.21), fade=opacity*smooth((steps-i)/12);
       const bankColor=petals?[255,166,193]:[229,206,135];
       pigmentGlow(ctx,a.x,a.y,radius,.14,0,bankColor,fade*.28);
       pigmentGlow(ctx,b.x,b.y,radius,.14,0,bankColor,fade*.32);
+      if(petals){
+        const colors=[[255,211,130],[136,226,196],[213,171,249]];
+        const tint=colors[(i+Math.abs(column))%3];
+        const cx=lerp(a.x,b.x,.27+shimmer*.45);
+        pigmentGlow(ctx,cx,a.y,Math.min(56,width*.44),.085,-.03,tint,fade*(.24+shimmer*.40));
+      }
     }
     if(!petals)continue;
     for(let i=0;i<15;i++){
@@ -1547,32 +1595,56 @@ function drawCreeks(opacity,petals){
       const z=64+wrap(offset,1155);
       const x=creekCenter(column,distance+z)+(hash(seed+9)-.5)*19;
       const p=project(x,z);
+      if(p.x< -12||p.x>W+12)continue;
       const fade=opacity*smooth((z-64)/64)*smooth((1220-z)/420);
-      ellipse(ctx,p.x,p.y,1+p.scale*5,.6+p.scale*1.7,rgba(peachLeaves[3+i%2],fade*.82),hash(seed+4)-.5);
+      ellipse(ctx,p.x,p.y,1+p.scale*5,.6+p.scale*1.7,rgba(peachPetals[3+i%3],fade*.82),hash(seed+4)-.5);
     }
   }
 }
 function drawPeachGrove(opacity,world){
   drawCreeks(opacity,true);
+  const trees=[];
   for(const {object:{kind,seed,x,z:worldZ},depth:z,point:p} of world){
     if(kind>4)continue;
     const bankDistance=Math.abs(x-creekCenter(Math.round(x/creekSpacing),worldZ));
     if(bankDistance<31)continue;
+    trees.push({seed,z,p});
+  }
+  const center=Math.round(lateral*.61/creekSpacing);
+  const firstRow=Math.floor((distance+63)/96), lastRow=Math.floor((distance+920)/96);
+  for(let column=center-2;column<=center+2;column++){
+    for(let row=firstRow;row<=lastRow;row++){
+      for(const side of [-1,1]){
+        const seed=column*12097+row*871+side*47;
+        const worldZ=(row+hash(seed+39))*96, z=worldZ-distance;
+        if(z<63||z>920)continue;
+        const x=creekCenter(column,worldZ)+side*(42+hash(seed+43)*43);
+        const p=project(x,z);
+        if(p.x< -115||p.x>W+115)continue;
+        trees.push({seed,z,p});
+      }
+    }
+  }
+  trees.sort((a,b)=>b.z-a.z);
+  for(const {seed,z,p} of trees){
     const fade=opacity*smooth((z-63)/78)*smooth((1240-z)/530);
-    const size=(115+hash(seed+25)*172)*p.scale;
-    const sway=reduced?0:Math.sin(t*.73+seed*.023)*size*.047;
+    const size=(134+hash(seed+25)*180)*p.scale;
+    const sway=reduced?0:Math.sin(t*.73+seed*.023)*.026;
+    const tree=peachTreeImage(seed), width=size*1.21;
     ctx.save();ctx.translate(p.x,p.y);
-    pigmentGlow(ctx,0,-size*.14,size*.66,.48,-.07,[255,151,191],fade*.28);
-    pigmentGlow(ctx,0,size*.13,size*.48,.20,0,[250,144,186],fade*.48);
+    pigmentGlow(ctx,0,size*.11,size*.48,.20,0,[98,175,161],fade*.44);
+    pigmentGlow(ctx,0,size*.15,size*.53,.17,-.07,[253,152,192],fade*.34);
     ctx.save();ctx.beginPath();ctx.rect(-size,0,size*2,H-p.y);ctx.clip();
-    ctx.scale(.93,-.48);ctx.globalAlpha=fade*.24;forestTree(size,seed,sway,peachLeaves);ctx.restore();
-    ctx.globalAlpha=fade;forestTree(size,seed,sway,peachLeaves);ctx.restore();
+    ctx.scale(.93,-.46);ctx.rotate(sway);
+    ctx.globalAlpha=fade*.32;ctx.drawImage(tree,-width/2,-size,width,size*1.06);ctx.restore();
+    ctx.rotate(sway);
+    ctx.globalAlpha=fade;ctx.drawImage(tree,-width/2,-size,width,size*1.06);ctx.restore();
   }
 }
-function forestTree(size,seed,sway,leaves=forestLeaves){
+function forestTree(size,seed,sway){
   const lean=sway+(hash(seed+1)-.5)*size*.16;
   const spread=size*(.18+hash(seed+2)*.11);
-  ctx.fillStyle=leaves===peachLeaves?"#644563":"#283d49";
+  ctx.fillStyle="#283d49";
   ctx.beginPath();ctx.moveTo(-size*.045,0);
   ctx.bezierCurveTo(-size*.033,-size*.34,lean-size*.06,-size*.69,lean,-size);
   ctx.bezierCurveTo(lean+size*.015,-size*.62,size*.031,-size*.26,size*.048,0);
@@ -1587,7 +1659,7 @@ function forestTree(size,seed,sway,leaves=forestLeaves){
     const k=seed+i*17, x=lean+(hash(k+5)-.5)*spread*2.45;
     const y=-size*(.52+hash(k+7)*.5)+Math.abs(x-lean)*.20;
     const r=size*(.033+hash(k+11)*.095);
-    const color=leaves[Math.floor(hash(k+3)*leaves.length)];
+    const color=forestLeaves[Math.floor(hash(k+3)*forestLeaves.length)];
     const tilt=.65*(hash(k+4)-.5);
     ellipse(ctx,x,y,r,r*(.42+hash(k+2)*.33),rgba(color,.48+hash(k+9)*.31),tilt);
     ellipse(ctx,x-r*.24,y-r*.29,r*.52,r*.21,rgba(blend(color,lanternGlow,.28),.36),tilt-.14);
