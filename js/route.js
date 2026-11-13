@@ -16,11 +16,23 @@ const harpBankVerses={
   left:"左岸的低弦穿过花丛。\n余音贴着水面，慢慢远了。",
   right:"右岸的高弦越过水面。\n花梢轻轻一颤，又归于安静。"
 };
-let harpListening=null, harpBank=null;
+const harpDuetVerse="两岸的弦声隔水相应。\n花影都亮起来了。";
+const HARP_CROSSING_TIME=22;
+let harpListening=null, harpBank=null, harpDuet=false;
 function listeningHarpSide(){
   if(!routeMode||chapterIndex!==harpChapter||!harpListening)return null;
-  if(harpBank)return harpBank==='left'?-1:1;
+  if(harpBank){
+    const first=harpBank==='left'?-1:1;
+    const crossing=chapters[harpChapter].lines[nextLine-1]?.[3]==="harpResult";
+    return crossing&&!harpDuet?-first:first;
+  }
   return Math.floor((storyTime-harpListening.start)/HARP_BANK_INTERVAL)%2?-1:1;
+}
+function harpSteeringStep(step){
+  if(!listeningHarpSide())return step;
+  const offset=lateral*.61-harpListening.x;
+  if(Math.sign(offset)!==Math.sign(step))return step;
+  return step*smooth((40-Math.abs(offset))/12);
 }
 let replaying=false;
 function saveVoyageCheckpoint(checkpoint){
@@ -85,13 +97,15 @@ function storyLine(chapter, lineIndex) {
   if(gesture==="riverPier"&&riverPier)text=landedAtPier?pierFarewell:"旅人把船灯转向左岸。\n可以靠向渡口的灯送他上岸，也可以继续顺流。";
   if(gesture==="riverPierResult"&&landedAtPier)text=verse+"\n"+pierFarewell;
   if(gesture==="harpListen")text=verse+"\n靠向亮起的一岸，顺行听完一小段弦声。";
-  if(gesture==="harpResult"&&harpBank)text=harpBankVerses[harpBank];
+  if(gesture==="harpResult"&&harpBank)text=harpBankVerses[harpBank]+"\n"+(harpDuet?harpDuetVerse:"也可横渡，去听对岸的回应。");
   if(gesture==="harpResult"&&!harpBank)harpListening=null;
+  if(gesture==="harpDuet"&&harpDuet)text=verse+"\n"+harpDuetVerse;
   saveVoyageCheckpoint({chapter:chapter.name,line:lineIndex,metTraveller,
     ...(chapterIndex===riverChapter&&sailedTogether?{sailedTogether:true}:{}),
     ...(chapterIndex===riverChapter&&landedAtPier?{landedAtPier:true}:{}),
     ...(chapter.moonRiver&&moonReflection?{moonReflection}:{}),
     ...(chapter.harp&&harpBank?{harpBank}:{}),
+    ...(chapter.harp&&harpDuet?{harpDuet:true}:{}),
     ...(chapter.grove&&groveBank?{groveBank}:{})});
   $("storyTitle").textContent=chapter.name;
   $("storyLine").textContent=text;
@@ -109,6 +123,7 @@ function storyLine(chapter, lineIndex) {
   const characters=Array.from(text.replace(/\s/g,"")).length;
   storyUntil=storyTime+clamp(7+characters*.18,8,15);
   nextStoryAt=Math.max(storyUntil+2.8,gesture==="flight"?storyTime+flight.duration:0);
+  if(gesture==="harpResult"&&harpBank&&!harpDuet)nextStoryAt=Math.max(nextStoryAt,storyTime+HARP_CROSSING_TIME);
   if(chapter.redCliff&&lineIndex===chapter.lines.length-1)nextStoryAt+=5;
 }
 function travelStory(dt, sideStep=0, holdingBrake=false) {
@@ -134,6 +149,7 @@ function travelStory(dt, sideStep=0, holdingBrake=false) {
     if(cue?.[3]==="riverPierResult")updateRiverPier(chapter);
   }
   if(cue?.[3]==="harpResult"&&!harpBank)updateHarpListening(chapter,dt);
+  if(cue?.[3]==="harpDuet"&&harpBank&&!harpDuet)updateHarpListening(chapter,dt);
   if(!cue&&!next&&storyTime>=nextStoryAt){
     // Keep travelling after the last verse without replaying the story.
     roamDistance+=Math.hypot(step,sideStep);
@@ -165,6 +181,13 @@ function updateHarpListening(chapter,dt){
   harpListening.elapsed=(harpListening.side===side?harpListening.elapsed:0)+dt;
   harpListening.side=side;
   if(harpListening.elapsed<HARP_PHRASE_TIME)return;
+  if(harpBank){
+    harpDuet=true;
+    rememberJournalEntry(chapter.name+"-harp-duet",{name:chapter.name,text:harpDuetVerse,source:""});
+    announce("两岸的弦声隔水相应。",3.5);
+    saveVoyageCheckpoint({chapter:chapter.name,line:nextLine-1,harpBank,harpDuet});
+    return;
+  }
   harpBank=side<0?'left':'right';
   rememberJournalEntry(chapter.name+'-harp-'+harpBank,{name:chapter.name,text:harpBankVerses[harpBank],source:""});
   announce(side<0?'听见了左岸的低弦。':'听见了右岸的高弦。',3.5);
@@ -238,7 +261,7 @@ function enterChapter(index, jump=false) {
   sharedSailingTime=0;sailedTogether=false;sharedLightsUntil=0;
   riverPier=null;landedAtPier=false;
   groveBanks=null;groveBank=null;
-  harpListening=null;harpBank=null;
+  harpListening=null;harpBank=null;harpDuet=false;
   if(chapter.moonRiver){moonStillTime=0;moonReflection=null;moonResultAt=null;}
   if(jump) {
     routePosition=routeDistance=chapter.at;
@@ -250,7 +273,7 @@ function enterChapter(index, jump=false) {
   changeDream(sceneForChapter(chapter));
 }
 
-function seekVoyage(index,line=0,met=false,reflection=null,bank=null,shared=false,landed=false,heardBank=null){
+function seekVoyage(index,line=0,met=false,reflection=null,bank=null,shared=false,landed=false,heardBank=null,duet=false){
   leaveFreeRoam();
   enterChapter(index,true);
   const chapter=chapters[index];
@@ -262,7 +285,9 @@ function seekVoyage(index,line=0,met=false,reflection=null,bank=null,shared=fals
   metTraveller=met||sailedTogether;
   if(chapter.harp&&Object.hasOwn(harpBankVerses,heardBank)){
     harpBank=heardBank;
+    harpDuet=duet;
     harpListening={x:0,start:storyTime,side:0,elapsed:0};
+    lateral=position=(harpBank==="left"?-1:1)*HARP_BANK_OFFSET/.61;
   }
   if(chapter.moonRiver){
     const resultLine=chapter.lines.findIndex(cue=>cue[3]==="moonReflectionResult");

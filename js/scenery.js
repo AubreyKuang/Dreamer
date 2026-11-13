@@ -229,6 +229,11 @@ function drawHarpBanks(opacity,world){
   const glowX=W*(.54+active*.26);
   const bankColor=listeningSide&&active<0?[127,218,184]:[211,168,244];
   pigmentGlow(ctx,glowX,horizon+(H-horizon)*.20,W*.25,.28,0,bankColor,opacity*(listeningSide?.76:.42));
+  const duet=listeningSide&&harpDuet;
+  if(duet){
+    const otherColor=active<0?[211,168,244]:[127,218,184];
+    pigmentGlow(ctx,W*(.54-active*.26),horizon+(H-horizon)*.20,W*.25,.28,0,otherColor,opacity*.76);
+  }
   for(let i=0;i<12;i++){
     const depth=(i+.5)/12, x=lerp(glowX,W*(.54+active*.43),depth);
     const y=horizon+(H-horizon)*depth**1.4;
@@ -241,7 +246,7 @@ function drawHarpBanks(opacity,world){
     const side=p.x<W*.54?-1:1;
     const pulse=reduced?.55:.52+.43*Math.sin(t*1.1+seed*.018);
     const fade=opacity*smooth((z-63)/90)*smooth((1240-z)/480);
-    const power=side===active?(.55+pulse*.45):.25;
+    const power=duet||side===active?(.55+pulse*.45):.25;
     const r=(20+hash(seed+29)*44)*p.scale;
     const color=kind%2?[244,151,197]:[151,219,193];
     pigmentGlow(ctx,p.x,p.y,r*2.8,.25,0,color,fade*power*.55);

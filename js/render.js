@@ -206,7 +206,7 @@ function render(ms) {
       distance+=viewCos*roamVelocity*dt;
       velocity=Math.abs(roamVelocity)/44;
     }else{
-      lateral+=groveSteeringStep(lateralStep);
+      lateral+=harpSteeringStep(groveSteeringStep(lateralStep));
       distance+=dt*velocity*(start?32:7);
     }
     position=lerp(position,lateral,1-Math.exp(-dt*1.5));

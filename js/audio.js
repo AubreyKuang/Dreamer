@@ -185,6 +185,7 @@ function scoreTick(){
       const side=listeningHarpSide();
       layer.pluckSide=side??harpSide(step);
       pluckHarp(midi+(side===-1?-5:side===1?7:0),time,layer.gain,layer.pluckSide);
+      if(side&&harpDuet)pluckHarp(midi+(side===-1?7:-5),time+.09,layer.gain,-side);
       layer.next=time+layer.score.beat;
       return;
     }

@@ -61,7 +61,7 @@ $("returnFromReplay").onclick=()=>{
   const index=chapters.findIndex(chapter=>chapter.name===saved?.chapter);
   endReplay();
   if(index>=0&&Number.isInteger(saved.line)&&chapters[index].lines[saved.line]){
-    seekVoyage(index,saved.line,saved.metTraveller===true,saved.moonReflection,saved.groveBank,saved.sailedTogether===true,saved.landedAtPier===true,saved.harpBank);
+    seekVoyage(index,saved.line,saved.metTraveller===true,saved.moonReflection,saved.groveBank,saved.sailedTogether===true,saved.landedAtPier===true,saved.harpBank,saved.harpDuet===true);
   }else{
     leaveFreeRoam();
     lateral=position=distance=0;
@@ -72,7 +72,7 @@ $("returnFromReplay").onclick=()=>{
 $("continueVoyage").onclick=()=>{
   if(!canContinue)return;
   play();
-  seekVoyage(checkpointChapter,checkpoint.line,checkpoint.metTraveller===true,checkpoint.moonReflection,checkpoint.groveBank,checkpoint.sailedTogether===true,checkpoint.landedAtPier===true,checkpoint.harpBank);
+  seekVoyage(checkpointChapter,checkpoint.line,checkpoint.metTraveller===true,checkpoint.moonReflection,checkpoint.groveBank,checkpoint.sailedTogether===true,checkpoint.landedAtPier===true,checkpoint.harpBank,checkpoint.harpDuet===true);
 };
 $("start").onclick=play;
 $("quickJournal").onclick=showJournal;
