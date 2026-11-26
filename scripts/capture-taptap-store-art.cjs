@@ -17,7 +17,7 @@ const {root,sleep,gameSession}=require("./lib/taptap-chrome.cjs");
 const out=path.join(root,"docs/taptap");
 // The title screen without its tool buttons and start buttons.
 const BARE_TITLE=`const style=document.createElement("style");
-  style.textContent=".tools,#start,#continueVoyage,.brand{visibility:hidden!important}";document.head.append(style);`;
+  style.textContent=".tools,#start,#continueVoyage,.brand,.lead{visibility:hidden!important}";document.head.append(style);`;
 
 async function capture(viewport,file,format,prepare){
   const game=await gameSession(viewport);
