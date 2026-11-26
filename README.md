@@ -141,9 +141,12 @@
 | `index.html`、`style.css` | 页面结构、脚本加载顺序和界面样式。 |
 | `js/chapters.js`、`js/route.js`、`js/journey.js` | 诗词与章节数据、航程推进、梦境切换。 |
 | `js/scene-state.js`、`js/landscape.js`、`js/scenery.js`、`js/render.js` | 画面状态、天光与冰面、沿途地貌、人物与每帧绘制。 |
-| `js/storage.js`、`js/journal-ui.js`、`js/photo.js` | 本地设置、手记和留影。 |
+| `js/dream-storage.js`、`js/storage.js`、`js/journal-ui.js`、`js/photo.js` | 存档位置的探测与回退、本地设置、手记和留影。 |
+| `js/taptap.js` | 检测 TapTap H5 宿主，不登录、不联网。 |
 | `js/audio.js`、`js/controls.js`、`js/main.js` | 配乐和音效、滑行操作、键鼠与触屏绑定和启动。 |
 | `assets/sky-atlas.js` | 天空纹理，使用数据 URL 以支持从本地文件留影。 |
 | `perf/serve.py` | 生成临时的渲染基准页面，运行后打开终端输出的网址。 |
+| `tests/`、`package.json` | 存档回退的单元测试（`npm install && npm test`）和浏览器实测脚本。 |
+| `scripts/`、`docs/taptap/`、`privacy.html` | TapTap H5 打包、截图录屏脚本、上架材料和隐私政策。 |
 | `README.md` | 航程、诗词、玩法和操作说明。 |
 | `reverie-*.jpg` | 十五个场景、扶摇飞行和手机竖屏的实机渲染画面。 |

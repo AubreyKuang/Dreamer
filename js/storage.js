@@ -3,82 +3,63 @@
 const journal = new Map();
 const snapshots = [];
 const PHOTO_LIMIT = 12;
-const SETTINGS_KEY = "dreamer-settings-v1";
 function readSettings() {
-  try {
-    const value=JSON.parse(localStorage.getItem(SETTINGS_KEY));
-    return value && typeof value==="object" && !Array.isArray(value) ? value : {};
-  }
-  catch { return {}; }
+  return DreamStorage.readSettings();
 }
 const settings = readSettings();
 function saveSetting(key, value) {
   settings[key] = value;
-  try { localStorage.setItem(SETTINGS_KEY, JSON.stringify({...readSettings(), [key]:value})); }
+  try { DreamStorage.writeSettings({...readSettings(), [key]:value}); }
   catch { /* Settings still apply for this visit. */ }
 }
-const journalDatabase = new Promise((resolve, reject) => {
-  const open = indexedDB.open("dreamer-journal", 1);
-  open.onupgradeneeded = () => {
-    open.result.createObjectStore("verses");
-    open.result.createObjectStore("photos", {autoIncrement:true});
-  };
-  open.onsuccess = () => {
-    open.result.onversionchange = () => open.result.close();
-    resolve(open.result);
-  };
-  open.onerror = () => reject(open.error);
-  open.onblocked = () => reject(new Error("Journal database is busy"));
-});
-async function journalTransaction(stores, mode, run) {
-  const db = await journalDatabase;
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(stores, mode);
-    const result = run(transaction);
-    transaction.oncomplete = () => resolve(result);
-    transaction.onabort = () => reject(transaction.error);
-  });
-}
+const journalStore = DreamStorage.openJournal();
+let journalKeepsPhotos = true;
+journalStore.then(store => { journalKeepsPhotos = store.keepsPhotos; });
 let journalWarning = false;
 function reportJournalFailure() {
   if (journalWarning) return;
   journalWarning = true;
   announce("无法保存手记和留影，本次游玩中仍可查看。");
 }
+// Nowhere to keep anything: play on, and say so once at the first saved moment.
+let journalNoticeShown = false;
+function noteJournalStore(store) {
+  if (journalNoticeShown || store.kind !== "memory") return;
+  journalNoticeShown = true;
+  announce("当前环境无法保存手记和航程，本次游玩中仍可查看。", 5);
+}
 function loadJournal() {
-  return journalTransaction(["verses", "photos"], "readonly", tx => ({
-    verses: tx.objectStore("verses").getAll(),
-    photos: tx.objectStore("photos").getAll(),
-    photoKeys: tx.objectStore("photos").getAllKeys(),
-  })).then(({verses, photos, photoKeys}) => {
+  return journalStore.then(store => store.load()).then(({verses, photos}) => {
     const current = [...journal];
     journal.clear();
     const peachFeastKeys=new Set(chapters[groveChapter].lines.filter(line=>line[2]===peachFeastSource)
       .map(line=>chapters[groveChapter].name+"-"+line[4]));
-    for (const {key, entry} of verses.result.sort((a,b)=>a.readAt-b.readAt)){
+    for (const {key, entry} of verses.sort((a,b)=>a.readAt-b.readAt)){
       if(key==="不系之舟-6"||key==="赤壁赋-3"||(entry.source===peachFeastSource&&!peachFeastKeys.has(key)))continue;
       journal.set(key, entry);
     }
     for (const [key, entry] of current) journal.set(key, entry);
-    const keys = photoKeys.result.slice(-PHOTO_LIMIT).reverse();
-    const older = photos.result.slice(-PHOTO_LIMIT).reverse().map((shot, index) => ({
-      ...shot, storageKey: keys[index], src: URL.createObjectURL(shot.blob),
+    const older = photos.slice(-PHOTO_LIMIT).reverse().map(shot => ({
+      ...shot, src: URL.createObjectURL(shot.blob),
     }));
     snapshots.push(...older);
     trimJournalPhotos();
     if ($("journalDialog").open) renderJournal();
   }).catch(reportJournalFailure);
 }
-async function updateJadePair(shot, update) {
-  await journalTransaction("photos", "readwrite", tx => {
-    const photos = tx.objectStore("photos");
-    const request = photos.get(shot.storageKey);
-    request.onsuccess = () => {
-      const saved = request.result;
-      if (!saved?.jadePair) { tx.abort(); return; }
-      photos.put(update(saved), shot.storageKey);
-    };
+function addJournalVerse(key, entry) {
+  return journalStore.then(store => {
+    noteJournalStore(store);
+    return store.addVerse(key, entry);
   });
+}
+// Resolves to the photo's storage key once it is in the journal.
+function addJournalPhoto(shot) {
+  return journalStore.then(store => store.addPhoto(shot, PHOTO_LIMIT));
+}
+async function updateJadePair(shot, update) {
+  const store = await journalStore;
+  await store.updatePhoto(shot.storageKey, saved => saved?.jadePair ? update(saved) : null);
 }
 async function saveJadePairOrder(shot, shoalFirst) {
   await updateJadePair(shot, saved => ({...saved, jadePairShoalFirst: shoalFirst}));

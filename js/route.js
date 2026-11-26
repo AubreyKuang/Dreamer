@@ -101,13 +101,7 @@ function rememberVerse(chapter,lineIndex,near){
 function rememberJournalEntry(key,entry){
   if (!journal.has(key)) {
     journal.set(key, entry);
-    journalTransaction("verses", "readwrite", tx => {
-      const verses=tx.objectStore("verses");
-      const existing=verses.getKey(key);
-      existing.onsuccess=()=>{
-        if(existing.result===undefined)verses.add({key, entry, readAt:Date.now()}, key);
-      };
-    }).catch(reportJournalFailure);
+    addJournalVerse(key, entry).catch(reportJournalFailure);
   }
 }
 function storyLine(chapter, lineIndex) {
