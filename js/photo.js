@@ -322,14 +322,8 @@ function savePhoto(retake=false){
     snapshots.unshift(snapshot);
     trimJournalPhotos();
     if ($("journalDialog").open) renderJournal();
-    savedJournal.then(() => journalTransaction("photos", "readwrite", tx => {
-      const photos=tx.objectStore("photos");
-      const added=photos.add(shot);
-      const keys=photos.getAllKeys();
-      keys.onsuccess=()=>keys.result.slice(0,-PHOTO_LIMIT).forEach(key=>photos.delete(key));
-      return added;
-    })).then(added=>{
-      snapshot.storageKey=added.result;
+    savedJournal.then(() => addJournalPhoto(shot)).then(storageKey=>{
+      snapshot.storageKey=storageKey;
       if(shot.jadePair&&$("journalDialog").open)renderJournal();
       if(pairStep){
         run.pending=false;
@@ -350,13 +344,15 @@ function savePhoto(retake=false){
           if(reference.focus&&jadePose)reference.focus={...reference.focus,previous:jadePose};
           updatePhotoReference(jadePhotoPose());
         }
-      }else announce(comparison?"留影已收进手记的「两种走法」。":"留影已存入手记。");
+      }else announce((comparison?"留影已收进手记的「两种走法」。":"留影已存入手记。")
+        +(journalKeepsPhotos?"":"当前环境只保留本次游玩的留影。"));
     },()=>{
       if(pairStep){run.pending=false;updateJadePairRun(jadePhotoPose());}
       reportJournalFailure();
     });
   },"image/jpeg",.82);
-  canvas.toBlob(blob=>{
+  // In-app hosts have no download folder; the journal keeps the photo there.
+  if(!TapTapHost.inHost)canvas.toBlob(blob=>{
     if(!blob)return;
     const url=URL.createObjectURL(blob), link=document.createElement("a");
     link.href=url;link.download="浮梦之境-"+name.replace(/[\\/:*?"<>|]/g,"-")+".png";
